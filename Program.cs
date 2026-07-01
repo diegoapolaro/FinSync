@@ -48,6 +48,19 @@ using (var scope = app.Services.CreateScope())
         });
         context.SaveChanges();
     }
+
+    if (!context.Categorias.Any())
+    {
+        context.Categorias.AddRange(
+            new FinSync.Models.Categoria { Nome = "Alimentação", Cor = "#96d4b2", Tipo = FinSync.Models.TipoTransacao.Saida },
+            new FinSync.Models.Categoria { Nome = "Transporte", Cor = "#ffb3b3", Tipo = FinSync.Models.TipoTransacao.Saida },
+            new FinSync.Models.Categoria { Nome = "Moradia", Cor = "#b3d9ff", Tipo = FinSync.Models.TipoTransacao.Saida },
+            new FinSync.Models.Categoria { Nome = "Vendas", Cor = "#b3ffb3", Tipo = FinSync.Models.TipoTransacao.Entrada },
+            new FinSync.Models.Categoria { Nome = "Salário", Cor = "#ffd9b3", Tipo = FinSync.Models.TipoTransacao.Entrada },
+            new FinSync.Models.Categoria { Nome = "Investimentos", Cor = "#d9b3ff", Tipo = FinSync.Models.TipoTransacao.Entrada }
+        );
+        context.SaveChanges();
+    }
 }
 
 app.Run();

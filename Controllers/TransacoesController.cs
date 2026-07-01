@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using FinSync.Data;
 using FinSync.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +11,49 @@ namespace FinSync.Controllers;
 [Route("api/[controller]")]
 public class TransacoesController(FinSyncDbContext context) : ControllerBase
 {
+    [HttpGet("exportar")]
+    public async Task<IActionResult> Exportar(int? contaId, string periodo = "mes_atual", string formato = "csv")
+    {
+        var query = context.Transacoes.AsQueryable();
+
+        if (contaId is not null)
+        {
+            query = query.Where(t => t.ContaId == contaId);
+        }
+
+        var hoje = DateOnly.FromDateTime(DateTime.Today);
+        DateOnly inicio = periodo switch
+        {
+            "mes_passado" => new DateOnly(hoje.Year, hoje.Month, 1).AddMonths(-1),
+            "ultimos_90" => hoje.AddDays(-89),
+            "todos" => DateOnly.MinValue,
+            _ => new DateOnly(hoje.Year, hoje.Month, 1),
+        };
+
+        DateOnly fim = periodo switch
+        {
+            "mes_passado" => new DateOnly(hoje.Year, hoje.Month, 1),
+            "ultimos_90" => hoje.AddDays(1),
+            "todos" => DateOnly.MaxValue,
+            _ => new DateOnly(hoje.Year, hoje.Month, 1).AddMonths(1),
+        };
+
+        query = query.Where(t => t.Data >= inicio && t.Data < fim);
+        query = query.OrderByDescending(t => t.Data);
+
+        var transacoes = await query.ToListAsync();
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Id,Descricao,Valor,Tipo,Data,ContaId");
+
+        foreach (var t in transacoes)
+        {
+            sb.AppendLine($"{t.Id},\"{t.Descricao}\",{t.Valor.ToString(CultureInfo.InvariantCulture)},{t.Tipo},{t.Data:yyyy-MM-dd},{t.ContaId}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+        return File(bytes, "text/csv", $"extrato_{DateTime.Today:yyyyMMdd}.csv");
+    }
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Transacao>>> GetTransacoes(int? contaId)
     {

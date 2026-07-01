@@ -12,6 +12,8 @@ public class Conta
 
     public TipoConta Tipo { get; set; }
 
+    public bool Arquivada { get; set; }
+
     // Propriedade de navegacao: permite acessar as transacoes ligadas a esta conta.
     public ICollection<Transacao> Transacoes { get; set; } = [];
 }

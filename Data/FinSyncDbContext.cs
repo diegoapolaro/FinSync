@@ -7,6 +7,7 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
 {
     public DbSet<Transacao> Transacoes => Set<Transacao>();
     public DbSet<Conta> Contas => Set<Conta>();
+    public DbSet<Categoria> Categorias => Set<Categoria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

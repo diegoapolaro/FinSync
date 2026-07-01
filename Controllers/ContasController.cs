@@ -13,6 +13,7 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
     public async Task<ActionResult<IEnumerable<Conta>>> GetContas()
     {
         var contas = await context.Contas
+            .Where(conta => !conta.Arquivada)
             .OrderBy(conta => conta.Nome)
             .ToListAsync();
 
