@@ -29,6 +29,16 @@ Thumbs.db
 *.swp
 *.swo
 
-# Secrets
+# Config & secrets
+appsettings.json
 appsettings.Development.json
+*.env
 *.local.*
+
+# Database
+finsync.db
+*.sqlite
+
+# HTTP test files
+FinSync.http
+*.http
