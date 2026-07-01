@@ -10,11 +10,18 @@ namespace FinSync.Controllers;
 public class TransacoesController(FinSyncDbContext context) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Transacao>>> GetTransacoes()
+    public async Task<ActionResult<IEnumerable<Transacao>>> GetTransacoes(int? contaId)
     {
-        var transacoes = await context.Transacoes
-            .OrderByDescending(transacao => transacao.Data)
-            .ToListAsync();
+        var query = context.Transacoes.AsQueryable();
+
+        if (contaId is not null)
+        {
+            query = query.Where(transacao => transacao.ContaId == contaId);
+        }
+
+        var transacoes = await query
+             .OrderByDescending(transacao => transacao.Data)
+             .ToListAsync();
 
         return Ok(transacoes);
     }
@@ -58,6 +65,7 @@ public class TransacoesController(FinSyncDbContext context) : ControllerBase
 
         context.Entry(transacao).State = EntityState.Modified;
         await context.SaveChangesAsync();
+
 
         return NoContent();
     }

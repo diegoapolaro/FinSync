@@ -1,131 +1,251 @@
 .app {
-  max-width: 600px;
+  width: min(960px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 32px 0;
 }
 
-header {
-  text-align: center;
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
   margin-bottom: 24px;
 }
 
-header h1 {
+.topo h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: #f8fafc;
 }
 
-.saldo {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-top: 8px;
+.topo p {
+  color: #94a3b8;
+  margin-top: 4px;
 }
 
-.saldo.positivo { color: #4ade80; }
-.saldo.negativo { color: #f87171; }
-
-.form {
+.seletor-conta,
+.form label {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.seletor-conta select,
+.form input,
+.form select {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #111827;
+  color: #f8fafc;
+  font-size: 0.95rem;
+}
+
+.seletor-conta select {
+  min-width: 220px;
+}
+
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.resumo div,
+.painel-form,
+.transacao-card,
+.estado-vazio {
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  background: #111827;
+}
+
+.resumo div {
+  padding: 16px;
+}
+
+.resumo span,
+.secao-titulo span,
+.transacao-info span,
+.tipo {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.resumo strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.35rem;
+}
+
+.positivo {
+  color: #22c55e;
+}
+
+.negativo {
+  color: #ef4444;
+}
+
+.painel-form {
+  padding: 18px;
   margin-bottom: 24px;
 }
 
-.form input,
-.form select {
-  flex: 1 1 140px;
-  padding: 10px 12px;
-  border: 1px solid #333;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: #e0e0e0;
-  font-size: 0.9rem;
+.secao-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.secao-titulo h2 {
+  color: #f8fafc;
+  font-size: 1.05rem;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 12px;
 }
 
 .form input::placeholder {
-  color: #666;
+  color: #64748b;
 }
 
 .form button {
-  flex: 1 1 100%;
-  padding: 10px;
+  grid-column: 1 / -1;
+  min-height: 44px;
   border: none;
   border-radius: 8px;
-  background: #6366f1;
+  background: #2563eb;
   color: #fff;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .form button:hover {
-  background: #4f46e5;
+  background: #1d4ed8;
 }
 
 .lista {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+.vazio,
+.estado-vazio {
+  text-align: center;
+  color: #94a3b8;
 }
 
 .vazio {
-  text-align: center;
-  color: #666;
-  margin-top: 32px;
+  padding: 28px 0;
 }
 
-.card {
-  display: flex;
-  justify-content: space-between;
+.estado-vazio {
+  padding: 40px 20px;
+}
+
+.estado-vazio h2 {
+  color: #f8fafc;
+  margin-bottom: 8px;
+}
+
+.transacao-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: #1a1a1a;
-  border-left: 4px solid #555;
+  gap: 16px;
+  padding: 14px 16px;
+  border-left-width: 4px;
 }
 
-.card.entrada { border-left-color: #4ade80; }
-.card.saida   { border-left-color: #f87171; }
+.transacao-card.entrada {
+  border-left-color: #22c55e;
+}
 
-.info {
+.transacao-card.saida {
+  border-left-color: #ef4444;
+}
+
+.transacao-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
 }
 
-.data {
-  font-size: 0.8rem;
-  color: #888;
+.transacao-info strong {
+  color: #f8fafc;
+  overflow-wrap: anywhere;
 }
 
-.acoes {
-  display: flex;
+.transacao-acoes {
+  display: grid;
+  grid-template-columns: 72px 128px 72px;
   align-items: center;
   gap: 12px;
+  text-align: right;
 }
 
 .valor {
-  font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.card.entrada .valor { color: #4ade80; }
-.card.saida .valor   { color: #f87171; }
+.entrada .valor {
+  color: #22c55e;
+}
 
-.deletar {
-  background: transparent;
-  border: 1px solid #555;
-  color: #888;
-  width: 32px;
-  height: 32px;
+.saida .valor {
+  color: #ef4444;
+}
+
+.transacao-acoes button {
+  min-height: 34px;
+  border: 1px solid #475569;
   border-radius: 6px;
+  background: transparent;
+  color: #cbd5e1;
   cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.2s;
 }
 
-.deletar:hover {
-  border-color: #f87171;
-  color: #f87171;
+.transacao-acoes button:hover {
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+@media (max-width: 720px) {
+  .topo,
+  .secao-titulo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .seletor-conta select {
+    min-width: 100%;
+  }
+
+  .resumo,
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .transacao-card {
+    grid-template-columns: 1fr;
+  }
+
+  .transacao-acoes {
+    grid-template-columns: 1fr 1fr auto;
+    text-align: left;
+  }
 }

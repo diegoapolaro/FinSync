@@ -16,4 +16,9 @@ public class Transacao
     public TipoTransacao Tipo { get; set; }
 
     public DateTime Data { get; set; } = DateTime.Now;
+
+    public int ContaId { get; set; }
+
+    // Propriedade de navegacao: o EF Core usa junto com ContaId para montar o relacionamento.
+    public Conta? Conta { get; set; }
 }
