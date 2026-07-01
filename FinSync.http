@@ -1,0 +1,38 @@
+@FinSync_HostAddress = http://localhost:5154
+
+GET {{FinSync_HostAddress}}/api/transacoes
+Accept: application/json
+
+###
+
+GET {{FinSync_HostAddress}}/api/transacoes/1
+Accept: application/json
+
+###
+
+POST {{FinSync_HostAddress}}/api/transacoes
+Content-Type: application/json
+
+{
+  "descricao": "Venda de pizza",
+  "valor": 80.00,
+  "tipo": "Entrada",
+  "data": "2026-06-30T21:00:00"
+}
+
+###
+
+PUT {{FinSync_HostAddress}}/api/transacoes/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "descricao": "Venda de pizza grande",
+  "valor": 90.00,
+  "tipo": "Entrada",
+  "data": "2026-06-30T21:00:00"
+}
+
+###
+
+DELETE {{FinSync_HostAddress}}/api/transacoes/1
