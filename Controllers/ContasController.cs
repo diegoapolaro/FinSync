@@ -42,6 +42,11 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
             return NotFound();
         }
 
+        var hoje = DateTime.Today;
+        var amanha = hoje.AddDays(1);
+        var inicioDoMes = new DateTime(hoje.Year, hoje.Month, 1);
+        var inicioDoProximoMes = inicioDoMes.AddMonths(1);
+
         var totalEntradas = await context.Transacoes
             .Where(transacao => transacao.ContaId == id && transacao.Tipo == TipoTransacao.Entrada)
             .SumAsync(transacao => transacao.Valor);
@@ -50,11 +55,53 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
             .Where(transacao => transacao.ContaId == id && transacao.Tipo == TipoTransacao.Saida)
             .SumAsync(transacao => transacao.Valor);
 
+        var totalEntradasHoje = await context.Transacoes
+            .Where(transacao =>
+                transacao.ContaId == id
+                && transacao.Tipo == TipoTransacao.Entrada
+                && transacao.Data >= hoje
+                && transacao.Data < amanha)
+            .SumAsync(transacao => transacao.Valor);
+
+        var totalSaidasHoje = await context.Transacoes
+            .Where(transacao =>
+                transacao.ContaId == id
+                && transacao.Tipo == TipoTransacao.Saida
+                && transacao.Data >= hoje
+                && transacao.Data < amanha)
+            .SumAsync(transacao => transacao.Valor);
+
+        var totalEntradasMes = await context.Transacoes
+            .Where(transacao =>
+                transacao.ContaId == id
+                && transacao.Tipo == TipoTransacao.Entrada
+                && transacao.Data >= inicioDoMes
+                && transacao.Data < inicioDoProximoMes)
+            .SumAsync(transacao => transacao.Valor);
+
+        var totalSaidasMes = await context.Transacoes
+            .Where(transacao =>
+                transacao.ContaId == id
+                && transacao.Tipo == TipoTransacao.Saida
+                && transacao.Data >= inicioDoMes
+                && transacao.Data < inicioDoProximoMes)
+            .SumAsync(transacao => transacao.Valor);
+
+        var quantidadeTransacoes = await context.Transacoes
+            .CountAsync(transacao => transacao.ContaId == id);
+
         return Ok(new
         {
             TotalEntradas = totalEntradas,
             TotalSaidas = totalSaidas,
-            Saldo = totalEntradas - totalSaidas
+            Saldo = totalEntradas - totalSaidas,
+            TotalEntradasHoje = totalEntradasHoje,
+            TotalSaidasHoje = totalSaidasHoje,
+            SaldoDiario = totalEntradasHoje - totalSaidasHoje,
+            TotalEntradasMes = totalEntradasMes,
+            TotalSaidasMes = totalSaidasMes,
+            SaldoMensal = totalEntradasMes - totalSaidasMes,
+            QuantidadeTransacoes = quantidadeTransacoes
         });
     }
 
