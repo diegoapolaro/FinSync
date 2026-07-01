@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinSync.Migrations
 {
     [DbContext(typeof(FinSyncDbContext))]
-    [Migration("20260701013325_InitialCreate")]
+    [Migration("20260701155005_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,13 +20,35 @@ namespace FinSync.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
+            modelBuilder.Entity("FinSync.Models.Conta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Contas");
+                });
+
             modelBuilder.Entity("FinSync.Models.Transacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("Data")
+                    b.Property<int>("ContaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Data")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Descricao")
@@ -42,7 +64,25 @@ namespace FinSync.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ContaId");
+
                     b.ToTable("Transacoes");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Transacao", b =>
+                {
+                    b.HasOne("FinSync.Models.Conta", "Conta")
+                        .WithMany("Transacoes")
+                        .HasForeignKey("ContaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Conta");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Conta", b =>
+                {
+                    b.Navigation("Transacoes");
                 });
 #pragma warning restore 612, 618
         }

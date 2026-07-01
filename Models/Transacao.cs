@@ -15,7 +15,7 @@ public class Transacao
 
     public TipoTransacao Tipo { get; set; }
 
-    public DateTime Data { get; set; } = DateTime.Now;
+    public DateOnly Data { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
     public int ContaId { get; set; }
 

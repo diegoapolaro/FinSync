@@ -45,7 +45,7 @@ namespace FinSync.Migrations
                     b.Property<int>("ContaId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("Data")
+                    b.Property<DateOnly>("Data")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Descricao")

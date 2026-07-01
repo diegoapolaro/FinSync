@@ -42,9 +42,8 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
             return NotFound();
         }
 
-        var hoje = DateTime.Today;
-        var amanha = hoje.AddDays(1);
-        var inicioDoMes = new DateTime(hoje.Year, hoje.Month, 1);
+        var hoje = DateOnly.FromDateTime(DateTime.Today);
+        var inicioDoMes = new DateOnly(hoje.Year, hoje.Month, 1);
         var inicioDoProximoMes = inicioDoMes.AddMonths(1);
 
         var totalEntradas = await context.Transacoes
@@ -59,16 +58,14 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
             .Where(transacao =>
                 transacao.ContaId == id
                 && transacao.Tipo == TipoTransacao.Entrada
-                && transacao.Data >= hoje
-                && transacao.Data < amanha)
+                && transacao.Data == hoje)
             .SumAsync(transacao => transacao.Valor);
 
         var totalSaidasHoje = await context.Transacoes
             .Where(transacao =>
                 transacao.ContaId == id
                 && transacao.Tipo == TipoTransacao.Saida
-                && transacao.Data >= hoje
-                && transacao.Data < amanha)
+                && transacao.Data == hoje)
             .SumAsync(transacao => transacao.Valor);
 
         var totalEntradasMes = await context.Transacoes

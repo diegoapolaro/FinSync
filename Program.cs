@@ -29,4 +29,25 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<FinSyncDbContext>();
+    context.Database.Migrate();
+
+    if (!context.Contas.Any())
+    {
+        context.Contas.Add(new FinSync.Models.Conta
+        {
+            Nome = "Pizzaria",
+            Tipo = FinSync.Models.TipoConta.Comercial,
+        });
+        context.Contas.Add(new FinSync.Models.Conta
+        {
+            Nome = "Pessoal",
+            Tipo = FinSync.Models.TipoConta.Pessoal,
+        });
+        context.SaveChanges();
+    }
+}
+
 app.Run();
