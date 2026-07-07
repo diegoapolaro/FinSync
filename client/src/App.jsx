@@ -142,7 +142,7 @@ function App() {
         setPagina={setPagina}
       />
 
-      <main className="w-full max-w-receipt-width bg-background min-h-screen md:min-h-[819px] shadow-lg md:my-8 flex flex-col relative pb-24 md:pb-8 md:ml-64">
+      <main className="w-full max-w-receipt-width bg-paper min-h-screen md:min-h-[819px] shadow-lg md:my-8 flex flex-col relative pb-24 md:pb-8 md:ml-64">
         <div className="w-full h-4 receipt-edge-top bg-surface-container-high absolute top-0 left-0 -translate-y-full hidden md:block" />
 
         <DesktopHeader pagina={pagina} setPagina={setPagina} />
