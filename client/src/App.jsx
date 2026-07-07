@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   createTransacao,
   deleteTransacao,
@@ -100,15 +100,23 @@ function App() {
       contaId: Number(contaSelecionadaId),
     };
 
-    await createTransacao(transacao);
-    await carregarDadosDaConta();
-    setForm({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), tipo: form.tipo });
+    try {
+      await createTransacao(transacao);
+      await carregarDadosDaConta();
+      setForm({ descricao: '', valor: '', data: new Date().toISOString().slice(0, 10), tipo: form.tipo });
+    } catch (error) {
+      setErro(error.message);
+    }
   }
 
   async function handleDelete(id) {
     setErro('');
-    await deleteTransacao(id);
-    await carregarDadosDaConta();
+    try {
+      await deleteTransacao(id);
+      await carregarDadosDaConta();
+    } catch (error) {
+      setErro(error.message);
+    }
   }
 
   function abrirLancamento(tipo) {
@@ -116,17 +124,7 @@ function App() {
     setFormAberto(true);
   }
 
-  const transacoesDeHoje = useMemo(() => {
-    const hoje = new Date().toDateString();
-    return transacoes.filter(
-      (transacao) =>
-        new Date(`${transacao.data}T12:00:00`).toDateString() === hoje
-    );
-  }, [transacoes]);
-
-  const transacoesVisiveis =
-    transacoesDeHoje.length > 0 ? transacoesDeHoje : transacoes;
-  const tituloLista = transacoesDeHoje.length > 0 ? 'HOJE' : 'RECENTES';
+  const tituloLista = 'RECENTES';
 
   const temTransacoes = transacoes.length > 0;
 
@@ -194,7 +192,7 @@ function App() {
 
                 <TransactionList
                   titulo={tituloLista}
-                  transacoes={transacoesVisiveis}
+                  transacoes={transacoes}
                   handleDelete={handleDelete}
                 />
 

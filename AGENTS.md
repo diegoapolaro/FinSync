@@ -39,6 +39,16 @@ Sistema web para controle de entradas e saídas financeiras com dois contextos d
 - **Extensão:** C# Dev Kit (Microsoft)
 - **.NET SDK Version:** 10.0.300
 - **Terminal:** Integrado no VS Code
+- **Front-end (design/geração):** Google Stitch
+- **Back-end/integração (AI assistant no VS Code):** opencode
+
+### ⚠️ Bugs conhecidos no Front-end (identificados em 01/07/2026)
+- Navegação duplicada (abas no topo + barra inferior fazendo a mesma função)
+- Elemento "SAIDA" (seletor Entrada/Saída) sobrepondo o cabeçalho — deveria estar 
+  isolado dentro do formulário de Novo Lançamento
+- Saldo total flutuando fora da barra de navegação inferior, desalinhado
+- Bug de "Invalid Date" no card de transações recentes — problema de código 
+  (formatação de data em JS/React), não de design
 
 ---
 
@@ -110,16 +120,27 @@ FinSync/
 
 ---
 
-## 🚀 Próximos Passos (Orden)
+## ✅ Status Atual (Atualizado)
 
-1. **Criar Controller para Transacao** (testar CRUD básico)
-2. **Criar Classe Conta** com relacionamento com Transacao
-3. **Criar Classe Usuario** com relacionamento com Conta
-4. **Configurar Entity Framework Core** (ORM para o banco)
-5. **Criar migrations** (estrutura do PostgreSQL)
-6. **Endpoints completos** (GET, POST, PUT, DELETE)
-7. **Autenticação & autorização** (JWT)
-8. **Iniciar Front-End em React** (consumir a API)
+- ✅ Model `Transacao.cs` criado (com enum `TipoTransacao`)
+- ✅ Controller de Transacao criado e funcionando (CRUD básico testável via Scalar)
+- ✅ `Program.cs` configurado corretamente
+- ✅ Conexão Front-End (React) ↔ Back-End (API) **funcionando** — front-end já iniciado, ainda muito básico
+- ✅ Back-end rodando e respondendo requisições
+
+**Fase atual:** Site funcional mas extremamente básico — hora de expandir funcionalidades.
+
+## 🚀 Próximos Passos (Ordem sugerida)
+
+- ✅ Entity Framework Core + DbContext (`FinSyncDbContext`) já configurado e funcionando
+- ✅ `TransacoesController` com CRUD completo usando EF Core (async/await, `SaveChangesAsync`)
+
+1. **🔵 EM ANDAMENTO: Criar Model + Controller de Conta** (separar "Pizzaria" de "Pessoal") + relacionamento 1-N com Transacao
+2. **Criar Model + Controller de Categoria** (organizar transações por tipo de gasto/receita)
+3. **Endpoint de resumo/dashboard** (total de entradas, saídas, saldo por Conta)
+4. **Criar Model + Controller de Usuario + Autenticação (JWT)**
+5. **Melhorar visual do Front-End em React** (cards, cores por tipo, seletor de conta)
+6. **Filtros e relatórios** (por data, categoria, conta)
 
 ---
 
@@ -149,5 +170,5 @@ Diferente de tutoriais genéricos, esse projeto é:
 
 ---
 
-*Última atualização: 30 de Junho de 2026*  
-*Status: Fase inicial - Estrutura & Modelos*
+*Última atualização: 01 de Julho de 2026*  
+*Status: MVP básico funcionando (front + back conectados) - Expandindo funcionalidades*
