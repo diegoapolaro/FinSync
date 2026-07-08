@@ -42,6 +42,20 @@ function App() {
   const [pagina, setPagina] = useState('extrato');
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem('finsync_preferencias');
+      if (raw) {
+        const { tema } = JSON.parse(raw);
+        if (tema === 'escuro') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     async function carregarContas() {
       setCarregando(true);
       const contasDaApi = await getContas();
