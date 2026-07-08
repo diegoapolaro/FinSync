@@ -1,4 +1,5 @@
 using FinSync.Data;
+using FinSync.Dtos;
 using FinSync.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,40 +11,59 @@ namespace FinSync.Controllers;
 public class CategoriasController(FinSyncDbContext context) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Categoria>>> GetCategorias()
+    public async Task<ActionResult<IEnumerable<CategoriaDto>>> GetCategorias()
     {
         var categorias = await context.Categorias
             .OrderBy(c => c.Tipo)
             .ThenBy(c => c.Nome)
+            .Select(c => new CategoriaDto
+            {
+                Id = c.Id,
+                Nome = c.Nome,
+                Cor = c.Cor,
+                Tipo = c.Tipo
+            })
             .ToListAsync();
 
         return Ok(categorias);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Categoria>> PostCategoria(Categoria categoria)
+    public async Task<ActionResult<CategoriaDto>> PostCategoria(CreateCategoriaDto dto)
     {
+        var categoria = new Categoria
+        {
+            Nome = dto.Nome,
+            Cor = dto.Cor,
+            Tipo = dto.Tipo
+        };
+
         context.Categorias.Add(categoria);
         await context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetCategorias), new { id = categoria.Id }, categoria);
+        return CreatedAtAction(nameof(GetCategorias), new { id = categoria.Id }, new CategoriaDto
+        {
+            Id = categoria.Id,
+            Nome = categoria.Nome,
+            Cor = categoria.Cor,
+            Tipo = categoria.Tipo
+        });
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> PutCategoria(int id, Categoria categoria)
+    public async Task<IActionResult> PutCategoria(int id, UpdateCategoriaDto dto)
     {
-        if (id != categoria.Id)
-        {
-            return BadRequest("O id da URL precisa ser igual ao id da categoria.");
-        }
+        var categoria = await context.Categorias.FindAsync(id);
 
-        var existe = await context.Categorias.AnyAsync(c => c.Id == id);
-        if (!existe)
+        if (categoria is null)
         {
             return NotFound();
         }
 
-        context.Entry(categoria).State = EntityState.Modified;
+        categoria.Nome = dto.Nome;
+        categoria.Cor = dto.Cor;
+        categoria.Tipo = dto.Tipo;
+
         await context.SaveChangesAsync();
 
         return NoContent();

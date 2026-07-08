@@ -1,4 +1,5 @@
 using FinSync.Data;
+using FinSync.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using System.Text.Json.Serialization;
@@ -15,29 +16,47 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<FinSyncDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddOpenApi();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
-var corsOrigins = builder.Configuration.GetValue<string>("CorsOrigins") ?? "";
+var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendPolicy", policy =>
+    if (corsOrigins is { Length: > 0 })
     {
-        if (!string.IsNullOrWhiteSpace(corsOrigins))
+        options.AddPolicy("FrontendPolicy", policy =>
         {
-            policy.WithOrigins(corsOrigins.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            policy.WithOrigins(corsOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
-        }
-    });
+        });
+    }
+    else if (builder.Environment.IsDevelopment())
+    {
+        options.AddPolicy("FrontendPolicy", policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "CORS nao configurado. Defina 'CorsOrigins' em appsettings.json (ex.: [\"http://localhost:5173\"]).");
+    }
 });
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-
 
 app.UseCors("FrontendPolicy");
 

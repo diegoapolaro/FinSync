@@ -1,4 +1,5 @@
 using FinSync.Data;
+using FinSync.Dtos;
 using FinSync.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +11,25 @@ namespace FinSync.Controllers;
 public class ContasController(FinSyncDbContext context) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Conta>>> GetContas()
+    public async Task<ActionResult<IEnumerable<ContaDto>>> GetContas()
     {
         var contas = await context.Contas
             .Where(conta => !conta.Arquivada)
             .OrderBy(conta => conta.Nome)
+            .Select(conta => new ContaDto
+            {
+                Id = conta.Id,
+                Nome = conta.Nome,
+                Tipo = conta.Tipo,
+                Arquivada = conta.Arquivada
+            })
             .ToListAsync();
 
         return Ok(contas);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Conta>> GetConta(int id)
+    public async Task<ActionResult<ContaDto>> GetConta(int id)
     {
         var conta = await context.Contas.FindAsync(id);
 
@@ -30,7 +38,13 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
             return NotFound();
         }
 
-        return Ok(conta);
+        return Ok(new ContaDto
+        {
+            Id = conta.Id,
+            Nome = conta.Nome,
+            Tipo = conta.Tipo,
+            Arquivada = conta.Arquivada
+        });
     }
 
     [HttpGet("{id:int}/resumo")]
@@ -104,30 +118,40 @@ public class ContasController(FinSyncDbContext context) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Conta>> PostConta(Conta conta)
+    public async Task<ActionResult<ContaDto>> PostConta(CreateContaDto dto)
     {
+        var conta = new Conta
+        {
+            Nome = dto.Nome,
+            Tipo = dto.Tipo
+        };
+
         context.Contas.Add(conta);
         await context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetConta), new { id = conta.Id }, conta);
+        return CreatedAtAction(nameof(GetConta), new { id = conta.Id }, new ContaDto
+        {
+            Id = conta.Id,
+            Nome = conta.Nome,
+            Tipo = conta.Tipo,
+            Arquivada = conta.Arquivada
+        });
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> PutConta(int id, Conta conta)
+    public async Task<IActionResult> PutConta(int id, UpdateContaDto dto)
     {
-        if (id != conta.Id)
-        {
-            return BadRequest("O id da URL precisa ser igual ao id da conta.");
-        }
+        var conta = await context.Contas.FindAsync(id);
 
-        var contaExiste = await context.Contas.AnyAsync(item => item.Id == id);
-
-        if (!contaExiste)
+        if (conta is null)
         {
             return NotFound();
         }
 
-        context.Entry(conta).State = EntityState.Modified;
+        conta.Nome = dto.Nome;
+        conta.Tipo = dto.Tipo;
+        conta.Arquivada = dto.Arquivada;
+
         await context.SaveChangesAsync();
 
         return NoContent();

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using FinSync.Data;
+using FinSync.Dtos;
 using FinSync.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,10 +55,13 @@ public class TransacoesController(FinSyncDbContext context) : ControllerBase
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());
         return File(bytes, "text/csv", $"extrato_{DateTime.Today:yyyyMMdd}.csv");
     }
+
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Transacao>>> GetTransacoes(int? contaId)
+    public async Task<ActionResult<IEnumerable<TransacaoDto>>> GetTransacoes(int? contaId)
     {
-        var query = context.Transacoes.AsQueryable();
+        var query = context.Transacoes
+            .Include(t => t.Conta)
+            .AsQueryable();
 
         if (contaId is not null)
         {
@@ -65,14 +69,83 @@ public class TransacoesController(FinSyncDbContext context) : ControllerBase
         }
 
         var transacoes = await query
-             .OrderByDescending(transacao => transacao.Data)
-             .ToListAsync();
+            .OrderByDescending(transacao => transacao.Data)
+            .Select(t => new TransacaoDto
+            {
+                Id = t.Id,
+                Descricao = t.Descricao,
+                Valor = t.Valor,
+                Tipo = t.Tipo,
+                Data = t.Data,
+                ContaId = t.ContaId,
+                ContaNome = t.Conta != null ? t.Conta.Nome : string.Empty
+            })
+            .ToListAsync();
 
         return Ok(transacoes);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Transacao>> GetTransacao(int id)
+    public async Task<ActionResult<TransacaoDto>> GetTransacao(int id)
+    {
+        var transacao = await context.Transacoes
+            .Include(t => t.Conta)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (transacao is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new TransacaoDto
+        {
+            Id = transacao.Id,
+            Descricao = transacao.Descricao,
+            Valor = transacao.Valor,
+            Tipo = transacao.Tipo,
+            Data = transacao.Data,
+            ContaId = transacao.ContaId,
+            ContaNome = transacao.Conta?.Nome ?? string.Empty
+        });
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<TransacaoDto>> PostTransacao(CreateTransacaoDto dto)
+    {
+        var contaExiste = await context.Contas.AnyAsync(c => c.Id == dto.ContaId);
+        if (!contaExiste)
+        {
+            return BadRequest($"A conta com id {dto.ContaId} nao existe.");
+        }
+
+        var transacao = new Transacao
+        {
+            Descricao = dto.Descricao,
+            Valor = dto.Valor,
+            Tipo = dto.Tipo,
+            Data = dto.Data,
+            ContaId = dto.ContaId
+        };
+
+        context.Transacoes.Add(transacao);
+        await context.SaveChangesAsync();
+
+        await context.Entry(transacao).Reference(t => t.Conta).LoadAsync();
+
+        return CreatedAtAction(nameof(GetTransacao), new { id = transacao.Id }, new TransacaoDto
+        {
+            Id = transacao.Id,
+            Descricao = transacao.Descricao,
+            Valor = transacao.Valor,
+            Tipo = transacao.Tipo,
+            Data = transacao.Data,
+            ContaId = transacao.ContaId,
+            ContaNome = transacao.Conta?.Nome ?? string.Empty
+        });
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> PutTransacao(int id, UpdateTransacaoDto dto)
     {
         var transacao = await context.Transacoes.FindAsync(id);
 
@@ -81,36 +154,19 @@ public class TransacoesController(FinSyncDbContext context) : ControllerBase
             return NotFound();
         }
 
-        return Ok(transacao);
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<Transacao>> PostTransacao(Transacao transacao)
-    {
-        context.Transacoes.Add(transacao);
-        await context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetTransacao), new { id = transacao.Id }, transacao);
-    }
-
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> PutTransacao(int id, Transacao transacao)
-    {
-        if (id != transacao.Id)
+        var contaExiste = await context.Contas.AnyAsync(c => c.Id == dto.ContaId);
+        if (!contaExiste)
         {
-            return BadRequest("O id da URL precisa ser igual ao id da transacao.");
+            return BadRequest($"A conta com id {dto.ContaId} nao existe.");
         }
 
-        var transacaoExiste = await context.Transacoes.AnyAsync(item => item.Id == id);
+        transacao.Descricao = dto.Descricao;
+        transacao.Valor = dto.Valor;
+        transacao.Tipo = dto.Tipo;
+        transacao.Data = dto.Data;
+        transacao.ContaId = dto.ContaId;
 
-        if (!transacaoExiste)
-        {
-            return NotFound();
-        }
-
-        context.Entry(transacao).State = EntityState.Modified;
         await context.SaveChangesAsync();
-
 
         return NoContent();
     }
