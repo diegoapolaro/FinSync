@@ -596,7 +596,7 @@ function AlterarSenhaModal({ aberto, onClose }) {
       setErro('A senha deve ter no mínimo 6 caracteres.');
       return;
     }
-    localStorage.setItem('finsync_senha', nova);
+    // TODO: implementar PUT /api/usuarios/senha quando autenticação estiver pronta
     setAtual('');
     setNova('');
     setConfirmar('');

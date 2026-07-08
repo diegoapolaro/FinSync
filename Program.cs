@@ -16,6 +16,20 @@ builder.Services.AddDbContext<FinSyncDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddOpenApi();
 
+var corsOrigins = builder.Configuration.GetValue<string>("CorsOrigins") ?? "";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        if (!string.IsNullOrWhiteSpace(corsOrigins))
+        {
+            policy.WithOrigins(corsOrigins.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -24,6 +38,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+
+app.UseCors("FrontendPolicy");
 
 app.UseHttpsRedirection();
 

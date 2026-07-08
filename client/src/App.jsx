@@ -8,6 +8,7 @@ import {
   getTransacoes,
 } from './services/api';
 import Ajustes from './components/Ajustes';
+import Relatorios from './components/Relatorios';
 
 const resumoInicial = {
   totalEntradas: 0,
@@ -165,6 +166,11 @@ function App() {
             onContasChange={setContas}
             categorias={categorias}
             onCategoriasChange={setCategorias}
+          />
+        ) : pagina === 'relatorios' ? (
+          <Relatorios
+            contaId={contaSelecionadaId}
+            contas={contas}
           />
         ) : (
           <>
@@ -605,14 +611,22 @@ function TransactionList({ titulo, transacoes, handleDelete }) {
 
 function ActionArea({ abrirLancamento }) {
   return (
-    <div className="px-gutter py-margin-page flex justify-center">
+    <div className="px-gutter py-margin-page flex justify-center gap-3">
       <button
         type="button"
         onClick={() => abrirLancamento('Entrada')}
-        className="border-2 border-ink text-ink font-label-caps text-label-caps px-8 py-4 uppercase tracking-widest hover:bg-ink hover:text-paper transition-colors duration-150 flex items-center gap-2"
+        className="border-2 border-ink text-ink font-label-caps text-label-caps px-6 py-4 uppercase tracking-widest hover:bg-ink hover:text-paper transition-colors duration-150 flex items-center gap-2"
       >
         <span className="material-symbols-outlined text-sm">add_circle</span>
-        NOVO LANÇAMENTO
+        + Entrada
+      </button>
+      <button
+        type="button"
+        onClick={() => abrirLancamento('Saida')}
+        className="border-2 border-ink text-ink font-label-caps text-label-caps px-6 py-4 uppercase tracking-widest hover:bg-ink hover:text-paper transition-colors duration-150 flex items-center gap-2"
+      >
+        <span className="material-symbols-outlined text-sm">remove_circle</span>
+        - Saída
       </button>
     </div>
   );
