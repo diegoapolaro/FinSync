@@ -54,3 +54,11 @@ public class TransacaoDto
     public string CategoriaNome { get; set; } = string.Empty;
     public string CategoriaCor { get; set; } = string.Empty;
 }
+
+public class DetalhamentoCategoriaDto
+{
+    public int? CategoriaId { get; set; }
+    public string CategoriaNome { get; set; } = string.Empty;
+    public string CategoriaCor { get; set; } = string.Empty;
+    public decimal Total { get; set; }
+}

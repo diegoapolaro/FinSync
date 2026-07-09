@@ -119,6 +119,24 @@ export async function updateCategoria(id, categoria) {
   return handleResponse(res);
 }
 
+export async function getDetalhamento(contaId, dataInicio, dataFim) {
+  const params = new URLSearchParams();
+  if (contaId) params.set('contaId', contaId);
+  params.set('dataInicio', dataInicio);
+  params.set('dataFim', dataFim);
+  const res = await fetch(url(`/transacoes/detalhamento?${params}`));
+  return handleResponse(res);
+}
+
+export async function getResumoPeriodo(contaId, dataInicio, dataFim) {
+  const params = new URLSearchParams();
+  if (contaId) params.set('contaId', contaId);
+  params.set('dataInicio', dataInicio);
+  params.set('dataFim', dataFim);
+  const res = await fetch(url(`/transacoes/resumo-periodo?${params}`));
+  return handleResponse(res);
+}
+
 export async function exportarTransacoes(contaId, periodo, formato) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);

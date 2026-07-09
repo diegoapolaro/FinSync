@@ -1,256 +1,258 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { getResumoConta, getTransacoes } from '../services/api';
+import {
+  getDetalhamento,
+  getResumoPeriodo,
+  getResumoConta,
+} from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 
-function formatDate(value) {
-  if (!value) return '';
-  const date =
-    typeof value === 'string'
-      ? value.includes('T')
-        ? new Date(value)
-        : new Date(`${value}T12:00:00`)
-      : new Date(value);
-  if (isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-  });
+function formatDateOnly(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
-function getSemana(dia) {
-  if (dia <= 7) return 0;
-  if (dia <= 14) return 1;
-  if (dia <= 21) return 2;
-  return 3;
+function formatLabel(date, periodo) {
+  if (periodo === 'diario') {
+    return date
+      .toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })
+      .toUpperCase();
+  }
+  return date
+    .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    .toUpperCase();
 }
 
-function agruparPorSemana(transacoes, mes, ano) {
-  const semanas = [
-    { entradas: 0, saidas: 0 },
-    { entradas: 0, saidas: 0 },
-    { entradas: 0, saidas: 0 },
-    { entradas: 0, saidas: 0 },
-  ];
-
-  transacoes.forEach((t) => {
-    const data = new Date(t.data + 'T12:00:00');
-    if (data.getMonth() === mes && data.getFullYear() === ano) {
-      const semana = getSemana(data.getDate());
-      if (t.tipo === 'Entrada') {
-        semanas[semana].entradas += Number(t.valor);
-      } else {
-        semanas[semana].saidas += Number(t.valor);
-      }
-    }
-  });
-
-  return semanas;
+function primeiroDiaMes(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
+
+function ultimoDiaMes(date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+const periodos = [
+  { id: 'diario', label: 'DIÁRIO' },
+  { id: 'mensal', label: 'MENSAL' },
+  { id: 'personalizado', label: 'PERSONALIZADO' },
+];
 
 export default function RelatoriosPage() {
-  const { contaSelecionadaId, contas } = useOutletContext();
+  const { contaSelecionadaId } = useOutletContext();
+
+  const [periodo, setPeriodo] = useState('diario');
+  const [dataRef, setDataRef] = useState(() => new Date());
   const [resumo, setResumo] = useState(null);
-  const [transacoes, setTransacoes] = useState([]);
+  const [detalhamento, setDetalhamento] = useState([]);
+  const [resumoMes, setResumoMes] = useState(null);
   const [carregando, setCarregando] = useState(true);
 
-  const contaNome =
-    contas.find((c) => c.id === Number(contaSelecionadaId))?.nome ?? '';
+  const dataInicio =
+    periodo === 'diario'
+      ? formatDateOnly(dataRef)
+      : formatDateOnly(primeiroDiaMes(dataRef));
 
-  const hoje = new Date();
-  const mesAtual = hoje.getMonth();
-  const anoAtual = hoje.getFullYear();
-  const mesLabel = hoje
-    .toLocaleDateString('pt-BR', { month: 'long' })
-    .toUpperCase();
+  const dataFim =
+    periodo === 'diario'
+      ? formatDateOnly(dataRef)
+      : formatDateOnly(ultimoDiaMes(dataRef));
 
-  useEffect(() => {
+  const carregarDados = useCallback(async () => {
     if (!contaSelecionadaId) {
       setCarregando(false);
       return;
     }
 
-    let cancelado = false;
+    try {
+      const [res, det, resMes] = await Promise.all([
+        getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
+        getDetalhamento(contaSelecionadaId, dataInicio, dataFim),
+        getResumoConta(contaSelecionadaId),
+      ]);
+      setResumo(res);
+      setDetalhamento(det);
+      setResumoMes(resMes);
+    } catch {
+      setResumo(null);
+      setDetalhamento([]);
+      setResumoMes(null);
+    } finally {
+      setCarregando(false);
+    }
+  }, [contaSelecionadaId, dataInicio, dataFim]);
+
+  useEffect(() => {
     setCarregando(true);
+    carregarDados();
+  }, [carregarDados]);
 
-    Promise.all([getResumoConta(contaSelecionadaId), getTransacoes(contaSelecionadaId)])
-      .then(([res, trans]) => {
-        if (!cancelado) {
-          setResumo(res);
-          setTransacoes(trans);
-          setCarregando(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelado) setCarregando(false);
-      });
+  function navegar(direcao) {
+    const nova = new Date(dataRef);
+    if (periodo === 'diario') {
+      nova.setDate(nova.getDate() + direcao);
+    } else {
+      nova.setMonth(nova.getMonth() + direcao);
+    }
+    setDataRef(nova);
+  }
 
-    return () => {
-      cancelado = true;
-    };
-  }, [contaSelecionadaId]);
+  const totalEntradas = resumo?.totalEntradas ?? 0;
+  const totalSaidas = resumo?.totalSaidas ?? 0;
+  const saldoPeriodo = resumo?.saldo ?? 0;
+  const saldoMesAtual = resumoMes?.saldoMensal ?? 0;
 
-  const transacoesMes = transacoes.filter((t) => {
-    const data = new Date(t.data + 'T12:00:00');
-    return data.getMonth() === mesAtual && data.getFullYear() === anoAtual;
-  });
-
-  const maioresSaidas = transacoesMes
-    .filter((t) => t.tipo === 'Saida')
-    .sort((a, b) => Number(b.valor) - Number(a.valor))
-    .slice(0, 5);
-
-  const semanas = agruparPorSemana(transacoes, mesAtual, anoAtual);
-  const maxSemana = Math.max(
-    ...semanas.flatMap((s) => [s.entradas, s.saidas]),
-    1
-  );
-
-  const temTransacoesMes = transacoesMes.length > 0;
-
-  const saldoMes = resumo?.saldoMensal ?? 0;
-  const saldoHoje = resumo?.saldoDiario ?? 0;
-  const entradasMes = resumo?.totalEntradasMes ?? 0;
-  const saidasMes = resumo?.totalSaidasMes ?? 0;
-
-  if (!contaSelecionadaId) {
-    return (
-      <div className="px-gutter pt-margin-page">
-        <h2 className="font-headline-md text-headline-md uppercase text-center text-primary mb-stack-loose">
-          RELATÓRIOS
+  return (
+    <div className="px-gutter pt-stack-base md:pt-margin-page pb-[100px] md:pb-gutter flex flex-col flex-1">
+      <div className="text-center mb-6 border-b-2 border-dashed border-outline pb-6">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+            analytics
+          </span>
+        </div>
+        <h2 className="font-headline-lg text-headline-lg text-primary uppercase">
+          Relatório<br />{periodo === 'diario' ? 'Diário' : periodo === 'mensal' ? 'Mensal' : 'Personalizado'}
         </h2>
+
+        <div className="flex justify-center gap-2 mt-4">
+          {periodos.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => { setPeriodo(p.id); setDataRef(new Date()); }}
+              className={
+                periodo === p.id
+                  ? 'border-2 border-primary bg-primary-fixed-dim text-on-primary-fixed px-3 py-1 font-label-caps text-label-caps tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.1)]'
+                  : 'border border-outline-variant text-secondary px-3 py-1 font-label-caps text-label-caps tracking-widest hover:bg-surface-variant'
+              }
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <div className="flex justify-between items-center border border-primary p-3 bg-surface-bright">
+          <button
+            type="button"
+            onClick={() => navegar(-1)}
+            className="text-primary hover:bg-surface-variant p-1"
+          >
+            <span className="material-symbols-outlined">arrow_left</span>
+          </button>
+          <span className="font-label-caps text-label-caps text-primary tracking-widest">
+            {formatLabel(dataRef, periodo)}
+          </span>
+          <button
+            type="button"
+            onClick={() => navegar(1)}
+            className="text-primary hover:bg-surface-variant p-1"
+          >
+            <span className="material-symbols-outlined">arrow_right</span>
+          </button>
+        </div>
+
+        {periodo === 'personalizado' && (
+          <p className="mt-2 font-body-sm text-body-sm text-on-surface-variant text-center">
+            Use as setas para navegar entre meses. Selecione DIÁRIO ou MENSAL para visualizações específicas.
+          </p>
+        )}
+      </div>
+
+      {carregando && (
+        <p className="font-body-lg text-body-lg text-on-surface-variant text-center py-12">
+          Carregando relatório...
+        </p>
+      )}
+
+      {!carregando && !contaSelecionadaId && (
         <p className="font-body-lg text-body-lg text-on-surface-variant text-center py-12">
           Selecione uma conta para ver os relatórios.
         </p>
-      </div>
-    );
-  }
+      )}
 
-  if (carregando) {
-    return (
-      <p className="font-body-lg text-body-lg text-on-surface-variant text-center py-12">
-        Carregando relatórios...
-      </p>
-    );
-  }
-
-  return (
-    <div className="px-gutter pt-margin-page pb-[100px] md:pb-gutter">
-      <div className="text-center mb-stack-loose pb-stack-base border-b border-dashed border-outline-variant">
-        <h2 className="font-headline-md text-headline-md uppercase text-primary">
-          RELATÓRIOS
-        </h2>
-        <p className="font-value-sm text-value-sm text-on-surface-variant mt-1">
-          {contaNome} — {mesLabel} {anoAtual}
-        </p>
-      </div>
-
-      <section className="pb-stack-base border-b border-dashed border-outline-variant mb-stack-base">
-        <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">
-          RESUMO DO MÊS
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="border-2 border-entrada p-4 text-center">
-            <span className="material-symbols-outlined text-entrada text-2xl mb-1 block">add</span>
-            <p className="font-value-sm text-value-sm text-entrada font-bold">
-              {formatCurrency(entradasMes)}
-            </p>
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">Entradas</p>
-          </div>
-          <div className="border-2 border-saida p-4 text-center">
-            <span className="material-symbols-outlined text-saida text-2xl mb-1 block">remove</span>
-            <p className="font-value-sm text-value-sm text-saida font-bold">
-              {formatCurrency(saidasMes)}
-            </p>
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">Saídas</p>
-          </div>
-          <div className={`border-2 p-4 text-center ${saldoMes >= 0 ? 'border-entrada' : 'border-saida'}`}>
-            <span className={`material-symbols-outlined text-2xl mb-1 block ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}>
-              account_balance
-            </span>
-            <p className={`font-value-sm text-value-sm font-bold ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}>
-              {formatCurrency(saldoMes)}
-            </p>
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">Saldo</p>
-          </div>
-        </div>
-      </section>
-
-      {temTransacoesMes && (
+      {!carregando && contaSelecionadaId && (
         <>
-          <section className="pb-stack-base border-b border-dashed border-outline-variant mb-stack-base">
-            <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">
-              ENTRADAS x SAÍDAS POR SEMANA
-            </h3>
-            <div className="flex items-end gap-4 h-40">
-              {semanas.map((semana, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-                  <div className="flex gap-1 items-end w-full justify-center h-full">
-                    <div
-                      className="w-3 bg-entrada rounded-t-sm"
-                      style={{
-                        height: `${(semana.entradas / maxSemana) * 100}%`,
-                        minHeight: semana.entradas > 0 ? '4px' : '0',
-                      }}
-                    />
-                    <div
-                      className="w-3 bg-saida rounded-t-sm"
-                      style={{
-                        height: `${(semana.saidas / maxSemana) * 100}%`,
-                        minHeight: semana.saidas > 0 ? '4px' : '0',
-                      }}
-                    />
-                  </div>
-                  <span className="font-label-caps text-label-caps text-outline uppercase text-xs mt-2">S{i + 1}</span>
-                </div>
-              ))}
+          <section className="mb-10">
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <span className="font-label-caps text-label-caps text-on-surface-variant">
+                  ENTRADAS TOTAL (+)
+                </span>
+                <span className="font-value-lg text-value-lg text-primary">
+                  {formatCurrency(totalEntradas).replace('R$', '').trim()}
+                </span>
+              </div>
+              <div className="flex justify-between items-end">
+                <span className="font-label-caps text-label-caps text-on-surface-variant">
+                  SAÍDAS TOTAL (-)
+                </span>
+                <span className="font-value-lg text-value-lg text-primary">
+                  {formatCurrency(totalSaidas).replace('R$', '').trim()}
+                </span>
+              </div>
+              <div className="flex justify-between items-end pt-4 border-b-4 border-double border-primary pb-1 mt-2">
+                <span className="font-headline-md text-headline-md text-primary uppercase">
+                  Saldo do Período
+                </span>
+                <span className="font-value-lg text-value-lg text-primary font-bold">
+                  {formatCurrency(Math.abs(saldoPeriodo)).replace('R$', '').trim()}
+                </span>
+              </div>
             </div>
           </section>
 
-          <section className="pb-stack-base border-b border-dashed border-outline-variant mb-stack-base">
-            <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">MAIORES SAÍDAS</h3>
-            {maioresSaidas.length === 0 ? (
-              <p className="font-body-sm text-body-sm text-on-surface-variant">Nenhuma saída registrada neste mês.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {maioresSaidas.map((t) => (
-                  <div key={t.id} className="flex justify-between items-center py-2 border-b border-dashed border-outline-variant last:border-0">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="font-body-sm text-body-sm text-ink truncate">{t.descricao}</span>
-                      <span className="font-label-caps text-label-caps text-secondary text-xs mt-0.5">{formatDate(t.data)}</span>
-                    </div>
-                    <span className="font-value-sm text-value-sm text-saida whitespace-nowrap ml-3">-{formatCurrency(t.valor)}</span>
-                  </div>
-                ))}
-              </div>
+          <section className="flex-1">
+            <h3 className="font-label-caps text-label-caps text-secondary border-b border-dashed border-outline pb-2 mb-4">
+              DETALHAMENTO
+            </h3>
+
+            {detalhamento.length === 0 && (
+              <p className="font-body-sm text-body-sm text-on-surface-variant text-center py-8">
+                Nenhum lançamento neste período.
+              </p>
+            )}
+
+            {detalhamento.length > 0 && (
+              <ul className="space-y-4">
+                {detalhamento.map((item) => {
+                  const isEntrada = item.total >= 0;
+                  return (
+                    <li
+                      key={item.categoriaId ?? 'sem-categoria'}
+                      className="flex justify-between items-center border-b border-dashed border-outline-variant pb-2"
+                    >
+                      <span className="font-body-sm text-body-sm text-on-surface uppercase flex items-center gap-2">
+                        {item.categoriaCor && (
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: item.categoriaCor }}
+                          />
+                        )}
+                        {item.categoriaNome}
+                      </span>
+                      <span
+                        className={`font-value-sm text-value-sm ${isEntrada ? 'text-on-surface' : 'text-secondary'}`}
+                      >
+                        {isEntrada ? '' : '-'}{formatCurrency(Math.abs(item.total)).replace('R$', '').trim()}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </section>
         </>
       )}
 
-      <section className="pb-stack-base mb-stack-base">
-        <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">COMPARATIVO</h3>
-        <div className="flex gap-4">
-          <div className="flex-1 border-2 border-outline-variant p-4 text-center">
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mb-1">HOJE</p>
-            <p className={`font-value-lg text-value-lg font-bold ${saldoHoje >= 0 ? 'text-entrada' : 'text-saida'}`}>
-              {formatCurrency(saldoHoje)}
-            </p>
-          </div>
-          <div className="flex-1 border-2 border-outline-variant p-4 text-center">
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mb-1">MÊS</p>
-            <p className={`font-value-lg text-value-lg font-bold ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}>
-              {formatCurrency(saldoMes)}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {!temTransacoesMes && (
-        <p className="font-body-lg text-body-lg text-on-surface-variant text-center py-12 border-t border-dashed border-outline-variant">
-          Nenhum lançamento registrado neste mês.
-        </p>
-      )}
+      <div className="bg-primary text-on-primary p-4 border-t-2 border-double border-surface flex justify-between items-center sticky bottom-24 md:static z-30 -mx-gutter md:-mx-margin-page mt-auto">
+        <span className="font-label-caps text-label-caps tracking-widest">SALDO MÊS ATUAL</span>
+        <span className="font-value-lg text-value-lg">
+          R$ {formatCurrency(Math.abs(saldoMesAtual)).replace('R$', '').trim()}
+        </span>
+      </div>
     </div>
   );
 }

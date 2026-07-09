@@ -8,6 +8,18 @@ namespace FinSync.Controllers;
 [Route("api/[controller]")]
 public class TransacoesController(TransacaoService transacaoService) : ControllerBase
 {
+    [HttpGet("detalhamento")]
+    public async Task<ActionResult<IEnumerable<DetalhamentoCategoriaDto>>> GetDetalhamento(int? contaId, DateOnly dataInicio, DateOnly dataFim)
+    {
+        return Ok(await transacaoService.GetDetalhamentoAsync(contaId, dataInicio, dataFim));
+    }
+
+    [HttpGet("resumo-periodo")]
+    public async Task<IActionResult> GetResumoPeriodo(int? contaId, DateOnly dataInicio, DateOnly dataFim)
+    {
+        return Ok(await transacaoService.GetResumoPeriodoAsync(contaId, dataInicio, dataFim));
+    }
+
     [HttpGet("exportar")]
     public async Task<IActionResult> Exportar(int? contaId, string periodo = "mes_atual", string formato = "csv")
     {

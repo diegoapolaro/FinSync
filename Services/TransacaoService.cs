@@ -139,6 +139,53 @@ public class TransacaoService(FinSyncDbContext context)
         return true;
     }
 
+    public async Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim)
+    {
+        var query = context.Transacoes
+            .Include(t => t.Categoria)
+            .Where(t => t.Data >= dataInicio && t.Data <= dataFim)
+            .AsQueryable();
+
+        if (contaId is not null)
+        {
+            query = query.Where(t => t.ContaId == contaId);
+        }
+
+        return await query
+            .GroupBy(t => new { t.CategoriaId, Nome = t.Categoria != null ? t.Categoria.Nome : "Sem Categoria", Cor = t.Categoria != null ? t.Categoria.Cor : "#747874" })
+            .Select(g => new DetalhamentoCategoriaDto
+            {
+                CategoriaId = g.Key.CategoriaId,
+                CategoriaNome = g.Key.Nome,
+                CategoriaCor = g.Key.Cor,
+                Total = g.Sum(t => t.Tipo == TipoTransacao.Entrada ? t.Valor : -t.Valor)
+            })
+            .OrderByDescending(d => Math.Abs(d.Total))
+            .ToListAsync();
+    }
+
+    public async Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim)
+    {
+        var query = context.Transacoes
+            .Where(t => t.Data >= dataInicio && t.Data <= dataFim)
+            .AsQueryable();
+
+        if (contaId is not null)
+        {
+            query = query.Where(t => t.ContaId == contaId);
+        }
+
+        var totalEntradas = await query.Where(t => t.Tipo == TipoTransacao.Entrada).SumAsync(t => t.Valor);
+        var totalSaidas = await query.Where(t => t.Tipo == TipoTransacao.Saida).SumAsync(t => t.Valor);
+
+        return new
+        {
+            TotalEntradas = totalEntradas,
+            TotalSaidas = totalSaidas,
+            Saldo = totalEntradas - totalSaidas
+        };
+    }
+
     public async Task<byte[]> ExportarCsvAsync(int? contaId, string periodo)
     {
         var query = context.Transacoes.AsQueryable();
