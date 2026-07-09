@@ -8,4 +8,15 @@ export default defineConfig({
       '/api': 'http://localhost:5154',
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: false,
+    server: {
+      deps: {
+        inline: ['react'],
+      },
+    },
+  },
 })

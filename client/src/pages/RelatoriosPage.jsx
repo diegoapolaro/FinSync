@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { getResumoConta, getTransacoes } from '../services/api';
-
-function formatCurrency(value) {
-  return Number(value ?? 0).toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-}
+import { formatCurrency } from '../utils/formatters';
 
 function formatDate(value) {
   if (!value) return '';
@@ -53,13 +48,14 @@ function agruparPorSemana(transacoes, mes, ano) {
   return semanas;
 }
 
-export default function Relatorios({ contaId, contas }) {
+export default function RelatoriosPage() {
+  const { contaSelecionadaId, contas } = useOutletContext();
   const [resumo, setResumo] = useState(null);
   const [transacoes, setTransacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   const contaNome =
-    contas.find((c) => c.id === Number(contaId))?.nome ?? '';
+    contas.find((c) => c.id === Number(contaSelecionadaId))?.nome ?? '';
 
   const hoje = new Date();
   const mesAtual = hoje.getMonth();
@@ -69,7 +65,7 @@ export default function Relatorios({ contaId, contas }) {
     .toUpperCase();
 
   useEffect(() => {
-    if (!contaId) {
+    if (!contaSelecionadaId) {
       setCarregando(false);
       return;
     }
@@ -77,7 +73,7 @@ export default function Relatorios({ contaId, contas }) {
     let cancelado = false;
     setCarregando(true);
 
-    Promise.all([getResumoConta(contaId), getTransacoes(contaId)])
+    Promise.all([getResumoConta(contaSelecionadaId), getTransacoes(contaSelecionadaId)])
       .then(([res, trans]) => {
         if (!cancelado) {
           setResumo(res);
@@ -92,13 +88,11 @@ export default function Relatorios({ contaId, contas }) {
     return () => {
       cancelado = true;
     };
-  }, [contaId]);
+  }, [contaSelecionadaId]);
 
   const transacoesMes = transacoes.filter((t) => {
     const data = new Date(t.data + 'T12:00:00');
-    return (
-      data.getMonth() === mesAtual && data.getFullYear() === anoAtual
-    );
+    return data.getMonth() === mesAtual && data.getFullYear() === anoAtual;
   });
 
   const maioresSaidas = transacoesMes
@@ -119,7 +113,7 @@ export default function Relatorios({ contaId, contas }) {
   const entradasMes = resumo?.totalEntradasMes ?? 0;
   const saidasMes = resumo?.totalSaidasMes ?? 0;
 
-  if (!contaId) {
+  if (!contaSelecionadaId) {
     return (
       <div className="px-gutter pt-margin-page">
         <h2 className="font-headline-md text-headline-md uppercase text-center text-primary mb-stack-loose">
@@ -157,43 +151,27 @@ export default function Relatorios({ contaId, contas }) {
         </h3>
         <div className="grid grid-cols-3 gap-3">
           <div className="border-2 border-entrada p-4 text-center">
-            <span className="material-symbols-outlined text-entrada text-2xl mb-1 block">
-              add
-            </span>
+            <span className="material-symbols-outlined text-entrada text-2xl mb-1 block">add</span>
             <p className="font-value-sm text-value-sm text-entrada font-bold">
               {formatCurrency(entradasMes)}
             </p>
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">
-              Entradas
-            </p>
+            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">Entradas</p>
           </div>
           <div className="border-2 border-saida p-4 text-center">
-            <span className="material-symbols-outlined text-saida text-2xl mb-1 block">
-              remove
-            </span>
+            <span className="material-symbols-outlined text-saida text-2xl mb-1 block">remove</span>
             <p className="font-value-sm text-value-sm text-saida font-bold">
               {formatCurrency(saidasMes)}
             </p>
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">
-              Saídas
-            </p>
+            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">Saídas</p>
           </div>
-          <div
-            className={`border-2 p-4 text-center ${saldoMes >= 0 ? 'border-entrada' : 'border-saida'}`}
-          >
-            <span
-              className={`material-symbols-outlined text-2xl mb-1 block ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}
-            >
+          <div className={`border-2 p-4 text-center ${saldoMes >= 0 ? 'border-entrada' : 'border-saida'}`}>
+            <span className={`material-symbols-outlined text-2xl mb-1 block ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}>
               account_balance
             </span>
-            <p
-              className={`font-value-sm text-value-sm font-bold ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}
-            >
+            <p className={`font-value-sm text-value-sm font-bold ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}>
               {formatCurrency(saldoMes)}
             </p>
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">
-              Saldo
-            </p>
+            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mt-1">Saldo</p>
           </div>
         </div>
       </section>
@@ -206,10 +184,7 @@ export default function Relatorios({ contaId, contas }) {
             </h3>
             <div className="flex items-end gap-4 h-40">
               {semanas.map((semana, i) => (
-                <div
-                  key={i}
-                  className="flex-1 flex flex-col items-center justify-end h-full"
-                >
+                <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
                   <div className="flex gap-1 items-end w-full justify-center h-full">
                     <div
                       className="w-3 bg-entrada rounded-t-sm"
@@ -226,40 +201,25 @@ export default function Relatorios({ contaId, contas }) {
                       }}
                     />
                   </div>
-                  <span className="font-label-caps text-label-caps text-outline uppercase text-xs mt-2">
-                    S{i + 1}
-                  </span>
+                  <span className="font-label-caps text-label-caps text-outline uppercase text-xs mt-2">S{i + 1}</span>
                 </div>
               ))}
             </div>
           </section>
 
           <section className="pb-stack-base border-b border-dashed border-outline-variant mb-stack-base">
-            <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">
-              MAIORES SAÍDAS
-            </h3>
+            <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">MAIORES SAÍDAS</h3>
             {maioresSaidas.length === 0 ? (
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Nenhuma saída registrada neste mês.
-              </p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">Nenhuma saída registrada neste mês.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {maioresSaidas.map((t) => (
-                  <div
-                    key={t.id}
-                    className="flex justify-between items-center py-2 border-b border-dashed border-outline-variant last:border-0"
-                  >
+                  <div key={t.id} className="flex justify-between items-center py-2 border-b border-dashed border-outline-variant last:border-0">
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="font-body-sm text-body-sm text-ink truncate">
-                        {t.descricao}
-                      </span>
-                      <span className="font-label-caps text-label-caps text-secondary text-xs mt-0.5">
-                        {formatDate(t.data)}
-                      </span>
+                      <span className="font-body-sm text-body-sm text-ink truncate">{t.descricao}</span>
+                      <span className="font-label-caps text-label-caps text-secondary text-xs mt-0.5">{formatDate(t.data)}</span>
                     </div>
-                    <span className="font-value-sm text-value-sm text-saida whitespace-nowrap ml-3">
-                      -{formatCurrency(t.valor)}
-                    </span>
+                    <span className="font-value-sm text-value-sm text-saida whitespace-nowrap ml-3">-{formatCurrency(t.valor)}</span>
                   </div>
                 ))}
               </div>
@@ -269,27 +229,17 @@ export default function Relatorios({ contaId, contas }) {
       )}
 
       <section className="pb-stack-base mb-stack-base">
-        <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">
-          COMPARATIVO
-        </h3>
+        <h3 className="font-label-caps text-label-caps text-secondary uppercase mb-3">COMPARATIVO</h3>
         <div className="flex gap-4">
           <div className="flex-1 border-2 border-outline-variant p-4 text-center">
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mb-1">
-              HOJE
-            </p>
-            <p
-              className={`font-value-lg text-value-lg font-bold ${saldoHoje >= 0 ? 'text-entrada' : 'text-saida'}`}
-            >
+            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mb-1">HOJE</p>
+            <p className={`font-value-lg text-value-lg font-bold ${saldoHoje >= 0 ? 'text-entrada' : 'text-saida'}`}>
               {formatCurrency(saldoHoje)}
             </p>
           </div>
           <div className="flex-1 border-2 border-outline-variant p-4 text-center">
-            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mb-1">
-              MÊS
-            </p>
-            <p
-              className={`font-value-lg text-value-lg font-bold ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}
-            >
+            <p className="font-label-caps text-label-caps text-outline uppercase text-xs mb-1">MÊS</p>
+            <p className={`font-value-lg text-value-lg font-bold ${saldoMes >= 0 ? 'text-entrada' : 'text-saida'}`}>
               {formatCurrency(saldoMes)}
             </p>
           </div>

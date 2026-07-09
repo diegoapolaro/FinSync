@@ -28,15 +28,6 @@ export default function usePreferencias() {
     localStorage.setItem(CHAVE, JSON.stringify(prefs));
   }, [prefs]);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (prefs.tema === 'escuro') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [prefs.tema]);
-
   const atualizar = useCallback((chave, valor) => {
     setPrefs((p) => ({ ...p, [chave]: valor }));
   }, []);

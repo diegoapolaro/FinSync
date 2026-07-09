@@ -1,98 +1,118 @@
-const TRANSACOES_URL = '/api/transacoes';
-const CONTAS_URL = '/api/contas';
-const CATEGORIAS_URL = '/api/categorias';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+
+async function handleResponse(res) {
+  if (!res.ok) {
+    let message = `Erro ${res.status}: ${res.statusText}`;
+    try {
+      const body = await res.json();
+      if (body.detail) {
+        message = body.detail;
+      } else if (body.title) {
+        message = body.title;
+      }
+      if (body.errors) {
+        const errosDetalhados = Object.entries(body.errors)
+          .map(([campo, msgs]) => `${campo}: ${msgs.join(', ')}`)
+          .join('; ');
+        if (errosDetalhados) message = `${message} (${errosDetalhados})`;
+      }
+    } catch {}
+    throw new Error(message);
+  }
+  if (res.status === 204) return;
+  const text = await res.text();
+  return text ? JSON.parse(text) : undefined;
+}
+
+function url(path) {
+  return `${BASE_URL}${path}`;
+}
 
 export async function getContas() {
-  const res = await fetch(CONTAS_URL);
-  if (!res.ok) throw new Error('Erro ao carregar contas');
-  return res.json();
+  const res = await fetch(url('/contas'));
+  return handleResponse(res);
 }
 
 export async function getResumoConta(contaId) {
-  const res = await fetch(`${CONTAS_URL}/${contaId}/resumo`);
-  if (!res.ok) throw new Error('Erro ao carregar resumo da conta');
-  return res.json();
+  const res = await fetch(url(`/contas/${contaId}/resumo`));
+  return handleResponse(res);
 }
 
 export async function createConta(conta) {
-  const res = await fetch(CONTAS_URL, {
+  const res = await fetch(url('/contas'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(conta),
   });
-  if (!res.ok) throw new Error('Erro ao criar conta');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function updateConta(id, conta) {
-  const res = await fetch(`${CONTAS_URL}/${id}`, {
+  const res = await fetch(url(`/contas/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(conta),
   });
-  if (!res.ok) throw new Error('Erro ao atualizar conta');
+  return handleResponse(res);
 }
 
 export async function getTransacoes(contaId) {
-  const url = contaId ? `${TRANSACOES_URL}?contaId=${contaId}` : TRANSACOES_URL;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Erro ao carregar transacoes');
-  return res.json();
+  const path = contaId ? `/transacoes?contaId=${contaId}` : '/transacoes';
+  const res = await fetch(url(path));
+  return handleResponse(res);
 }
 
 export async function getTransacao(id) {
-  const res = await fetch(`${TRANSACOES_URL}/${id}`);
-  if (!res.ok) throw new Error('Transacao nao encontrada');
-  return res.json();
+  const res = await fetch(url(`/transacoes/${id}`));
+  return handleResponse(res);
 }
 
 export async function createTransacao(transacao) {
-  const res = await fetch(TRANSACOES_URL, {
+  const res = await fetch(url('/transacoes'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transacao),
   });
-  if (!res.ok) throw new Error('Erro ao criar transacao');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function updateTransacao(id, transacao) {
-  const res = await fetch(`${TRANSACOES_URL}/${id}`, {
+  const res = await fetch(url(`/transacoes/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transacao),
   });
-  if (!res.ok) throw new Error('Erro ao atualizar transacao');
+  return handleResponse(res);
 }
 
 export async function deleteTransacao(id) {
-  const res = await fetch(`${TRANSACOES_URL}/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Erro ao deletar transacao');
+  const res = await fetch(url(`/transacoes/${id}`), {
+    method: 'DELETE',
+  });
+  return handleResponse(res);
 }
 
 export async function getCategorias() {
-  const res = await fetch(CATEGORIAS_URL);
-  if (!res.ok) throw new Error('Erro ao carregar categorias');
-  return res.json();
+  const res = await fetch(url('/categorias'));
+  return handleResponse(res);
 }
 
 export async function createCategoria(categoria) {
-  const res = await fetch(CATEGORIAS_URL, {
+  const res = await fetch(url('/categorias'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(categoria),
   });
-  if (!res.ok) throw new Error('Erro ao criar categoria');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function updateCategoria(id, categoria) {
-  const res = await fetch(`${CATEGORIAS_URL}/${id}`, {
+  const res = await fetch(url(`/categorias/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(categoria),
   });
-  if (!res.ok) throw new Error('Erro ao atualizar categoria');
+  return handleResponse(res);
 }
 
 export async function exportarTransacoes(contaId, periodo, formato) {
@@ -100,7 +120,14 @@ export async function exportarTransacoes(contaId, periodo, formato) {
   if (contaId) params.set('contaId', contaId);
   params.set('periodo', periodo);
   params.set('formato', formato);
-  const res = await fetch(`${TRANSACOES_URL}/exportar?${params}`);
-  if (!res.ok) throw new Error('Erro ao exportar transacoes');
+  const res = await fetch(url(`/transacoes/exportar?${params}`));
+  if (!res.ok) {
+    let message = 'Erro ao exportar';
+    try {
+      const body = await res.json();
+      if (body.detail) message = body.detail;
+    } catch {}
+    throw new Error(message);
+  }
   return res.blob();
 }
