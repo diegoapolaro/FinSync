@@ -16,9 +16,9 @@ public class TransacoesController(TransacaoService transacaoService) : Controlle
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TransacaoDto>>> GetTransacoes(int? contaId)
+    public async Task<ActionResult<IEnumerable<TransacaoDto>>> GetTransacoes(int? contaId, DateOnly? data)
     {
-        return Ok(await transacaoService.GetAllAsync(contaId));
+        return Ok(await transacaoService.GetAllAsync(contaId, data));
     }
 
     [HttpGet("{id:int}")]

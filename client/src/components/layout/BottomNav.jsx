@@ -1,14 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { formatCurrency } from '../../utils/formatters';
 
-export default function BottomNav({ abrirLancamento, resumo, temTransacoes }) {
+export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const pagina = location.pathname.replace(/^\/+/, '') || '';
 
   const navItems = [
-    { id: '', label: 'Extrato', icon: 'list_alt' },
-    { id: 'novo', label: 'Novo', icon: 'add_box', isButton: true },
+    { id: '', label: 'Lançamentos', icon: 'add_box' },
     { id: 'relatorios', label: 'Relatórios', icon: 'analytics' },
     { id: 'ajustes', label: 'Ajustes', icon: 'settings' },
   ];
@@ -18,23 +16,6 @@ export default function BottomNav({ abrirLancamento, resumo, temTransacoes }) {
       <div className="flex gap-4 md:gap-8 flex-grow justify-around md:justify-start px-4">
         {navItems.map((item) => {
           const isActive = pagina === item.id;
-
-          if (item.isButton) {
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  navigate('/');
-                  abrirLancamento('Entrada');
-                }}
-                className="flex flex-col items-center justify-center text-secondary opacity-60 active:translate-y-0.5 hover:opacity-100"
-              >
-                <span className="material-symbols-outlined mb-1">{item.icon}</span>
-                <span className="font-label-caps text-label-caps">{item.label}</span>
-              </button>
-            );
-          }
 
           return (
             <button
@@ -56,17 +37,6 @@ export default function BottomNav({ abrirLancamento, resumo, temTransacoes }) {
           );
         })}
       </div>
-
-      {pagina === '' && temTransacoes && (
-        <div className="hidden md:flex flex-col items-end border-l-2 border-primary pl-4 mr-4">
-          <span className="font-label-caps text-label-caps text-outline uppercase text-sm">
-            Saldo do Mês
-          </span>
-          <span className="font-value-lg text-value-lg text-ink font-bold">
-            {formatCurrency(resumo.saldoMensal)}
-          </span>
-        </div>
-      )}
     </nav>
   );
 }

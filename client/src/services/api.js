@@ -56,8 +56,12 @@ export async function updateConta(id, conta) {
   return handleResponse(res);
 }
 
-export async function getTransacoes(contaId) {
-  const path = contaId ? `/transacoes?contaId=${contaId}` : '/transacoes';
+export async function getTransacoes(contaId, data) {
+  const params = new URLSearchParams();
+  if (contaId) params.set('contaId', contaId);
+  if (data) params.set('data', data);
+  const query = params.toString();
+  const path = query ? `/transacoes?${query}` : '/transacoes';
   const res = await fetch(url(path));
   return handleResponse(res);
 }

@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const tabs = [
-  { id: '', label: 'EXTRATO' },
+  { id: '', label: 'LANÇAMENTOS' },
   { id: 'relatorios', label: 'RELATÓRIOS' },
   { id: 'ajustes', label: 'AJUSTES' },
 ];

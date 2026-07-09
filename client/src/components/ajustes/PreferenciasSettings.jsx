@@ -1,3 +1,5 @@
+import { useTema } from '../../contexts/ThemeContext';
+
 function Campo({ label, children }) {
   return (
     <div className="flex justify-between items-center py-2">
@@ -17,6 +19,8 @@ function Toggle({ checked, onChange }) {
 }
 
 export default function PreferenciasSettings({ prefs, atualizar }) {
+  const { tema, alternarTema } = useTema();
+
   return (
     <section className="mb-stack-loose">
       <h3 className="font-headline-md text-[18px] uppercase tracking-wide mb-stack-base text-surface-tint">
@@ -47,8 +51,11 @@ export default function PreferenciasSettings({ prefs, atualizar }) {
         </Campo>
         <Campo label="Tema (Claro/Escuro)">
           <Toggle
-            checked={prefs.tema === 'escuro'}
-            onChange={() => atualizar('tema', prefs.tema === 'escuro' ? 'claro' : 'escuro')}
+            checked={tema === 'escuro'}
+            onChange={() => {
+              alternarTema();
+              atualizar('tema', tema === 'escuro' ? 'claro' : 'escuro');
+            }}
           />
         </Campo>
       </div>

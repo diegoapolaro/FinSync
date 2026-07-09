@@ -18,6 +18,8 @@ public class CreateTransacaoDto
     public DateOnly Data { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
     public int ContaId { get; set; }
+
+    public int? CategoriaId { get; set; }
 }
 
 public class UpdateTransacaoDto
@@ -35,6 +37,8 @@ public class UpdateTransacaoDto
     public DateOnly Data { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
     public int ContaId { get; set; }
+
+    public int? CategoriaId { get; set; }
 }
 
 public class TransacaoDto
@@ -46,4 +50,7 @@ public class TransacaoDto
     public DateOnly Data { get; set; }
     public int ContaId { get; set; }
     public string ContaNome { get; set; } = string.Empty;
+    public int? CategoriaId { get; set; }
+    public string CategoriaNome { get; set; } = string.Empty;
+    public string CategoriaCor { get; set; } = string.Empty;
 }

@@ -8,15 +8,21 @@ namespace FinSync.Services;
 
 public class TransacaoService(FinSyncDbContext context)
 {
-    public async Task<List<TransacaoDto>> GetAllAsync(int? contaId)
+    public async Task<List<TransacaoDto>> GetAllAsync(int? contaId, DateOnly? data = null)
     {
         var query = context.Transacoes
             .Include(t => t.Conta)
+            .Include(t => t.Categoria)
             .AsQueryable();
 
         if (contaId is not null)
         {
             query = query.Where(t => t.ContaId == contaId);
+        }
+
+        if (data is not null)
+        {
+            query = query.Where(t => t.Data == data);
         }
 
         return await query
@@ -29,7 +35,10 @@ public class TransacaoService(FinSyncDbContext context)
                 Tipo = t.Tipo,
                 Data = t.Data,
                 ContaId = t.ContaId,
-                ContaNome = t.Conta != null ? t.Conta.Nome : string.Empty
+                ContaNome = t.Conta != null ? t.Conta.Nome : string.Empty,
+                CategoriaId = t.CategoriaId,
+                CategoriaNome = t.Categoria != null ? t.Categoria.Nome : string.Empty,
+                CategoriaCor = t.Categoria != null ? t.Categoria.Cor : string.Empty
             })
             .ToListAsync();
     }
@@ -38,6 +47,7 @@ public class TransacaoService(FinSyncDbContext context)
     {
         var t = await context.Transacoes
             .Include(t => t.Conta)
+            .Include(t => t.Categoria)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (t is null) return null;
@@ -50,7 +60,10 @@ public class TransacaoService(FinSyncDbContext context)
             Tipo = t.Tipo,
             Data = t.Data,
             ContaId = t.ContaId,
-            ContaNome = t.Conta?.Nome ?? string.Empty
+            ContaNome = t.Conta?.Nome ?? string.Empty,
+            CategoriaId = t.CategoriaId,
+            CategoriaNome = t.Categoria?.Nome ?? string.Empty,
+            CategoriaCor = t.Categoria?.Cor ?? string.Empty
         };
     }
 
@@ -68,13 +81,16 @@ public class TransacaoService(FinSyncDbContext context)
             Valor = dto.Valor,
             Tipo = dto.Tipo,
             Data = dto.Data,
-            ContaId = dto.ContaId
+            ContaId = dto.ContaId,
+            CategoriaId = dto.CategoriaId
         };
 
         context.Transacoes.Add(transacao);
         await context.SaveChangesAsync();
 
         await context.Entry(transacao).Reference(t => t.Conta).LoadAsync();
+
+        await context.Entry(transacao).Reference(t => t.Categoria).LoadAsync();
 
         return (new TransacaoDto
         {
@@ -84,7 +100,10 @@ public class TransacaoService(FinSyncDbContext context)
             Tipo = transacao.Tipo,
             Data = transacao.Data,
             ContaId = transacao.ContaId,
-            ContaNome = transacao.Conta?.Nome ?? string.Empty
+            ContaNome = transacao.Conta?.Nome ?? string.Empty,
+            CategoriaId = transacao.CategoriaId,
+            CategoriaNome = transacao.Categoria?.Nome ?? string.Empty,
+            CategoriaCor = transacao.Categoria?.Cor ?? string.Empty
         }, null);
     }
 
@@ -104,6 +123,7 @@ public class TransacaoService(FinSyncDbContext context)
         transacao.Tipo = dto.Tipo;
         transacao.Data = dto.Data;
         transacao.ContaId = dto.ContaId;
+        transacao.CategoriaId = dto.CategoriaId;
 
         await context.SaveChangesAsync();
         return (true, null);

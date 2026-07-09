@@ -1,34 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import { getCategorias, getContas } from '../../services/api';
 import MobileTopBar from './MobileTopBar';
 import DesktopHeader from './DesktopHeader';
 import DesktopSidebar from './DesktopSidebar';
 import BottomNav from './BottomNav';
-import MobileBalanceBar from './MobileBalanceBar';
-
-const resumoInicial = {
-  totalEntradas: 0,
-  totalSaidas: 0,
-  saldo: 0,
-  totalEntradasHoje: 0,
-  totalSaidasHoje: 0,
-  saldoDiario: 0,
-  totalEntradasMes: 0,
-  totalSaidasMes: 0,
-  saldoMensal: 0,
-  quantidadeTransacoes: 0,
-};
 
 export default function Layout() {
-  const location = useLocation();
-  const pagina = location.pathname.replace(/^\/+/, '') || '';
-
   const [contas, setContas] = useState([]);
   const [contaSelecionadaId, setContaSelecionadaId] = useState('');
   const [categorias, setCategorias] = useState([]);
-  const [resumo, setResumo] = useState(resumoInicial);
-  const [temTransacoes, setTemTransacoes] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -41,8 +22,6 @@ export default function Layout() {
     }
     init().catch(() => {});
   }, []);
-
-  const abrirLancamento = useCallback(() => {}, []);
 
   return (
     <div className="bg-surface-container-high text-on-surface antialiased min-h-screen flex flex-col items-center">
@@ -66,18 +45,10 @@ export default function Layout() {
           categorias,
           setContas,
           setCategorias,
-          setResumo,
-          setTemTransacoes,
         }} />
       </main>
 
-      <BottomNav
-        abrirLancamento={abrirLancamento}
-        resumo={resumo}
-        temTransacoes={temTransacoes}
-      />
-
-      {pagina === '' && temTransacoes && <MobileBalanceBar resumo={resumo} />}
+      <BottomNav />
     </div>
   );
 }
