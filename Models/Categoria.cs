@@ -15,4 +15,9 @@ public class Categoria
     public string Cor { get; set; } = "#96d4b2";
 
     public TipoTransacao Tipo { get; set; }
+
+    public ICollection<Transacao> Transacoes { get; set; } = [];
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }

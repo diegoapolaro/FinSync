@@ -11,11 +11,68 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Transacao>()
-            .HasOne(transacao => transacao.Conta)
-            .WithMany(conta => conta.Transacoes)
-            .HasForeignKey(transacao => transacao.ContaId)
-            // Em sistema financeiro, apagar uma conta nao deve apagar o historico sem querer.
-            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Transacao>(entity =>
+        {
+            entity.HasOne(t => t.Conta)
+                  .WithMany(c => c.Transacoes)
+                  .HasForeignKey(t => t.ContaId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(t => t.Categoria)
+                  .WithMany(c => c.Transacoes)
+                  .HasForeignKey(t => t.CategoriaId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(t => t.Data);
+        });
+
+        modelBuilder.Entity<Conta>(entity =>
+        {
+            entity.HasIndex(c => c.Arquivada);
+        });
+    }
+
+    public override int SaveChanges()
+    {
+        SetAuditTimestamps();
+        return base.SaveChanges();
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        SetAuditTimestamps();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        SetAuditTimestamps();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        SetAuditTimestamps();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void SetAuditTimestamps()
+    {
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified
+                     && e.Properties.Any(p => p.Metadata.Name is "CreatedAt" or "UpdatedAt"));
+
+        var now = DateTime.UtcNow;
+
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Property("CreatedAt").CurrentValue = now;
+            }
+
+            entry.Property("UpdatedAt").CurrentValue = now;
+        }
     }
 }

@@ -1,5 +1,6 @@
 using FinSync.Data;
 using FinSync.Handlers;
+using FinSync.Services;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using System.Text.Json.Serialization;
@@ -18,6 +19,10 @@ builder.Services.AddDbContext<FinSyncDbContext>(options =>
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddScoped<ContaService>();
+builder.Services.AddScoped<TransacaoService>();
+builder.Services.AddScoped<CategoriaService>();
 
 var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>();
 
@@ -64,37 +69,13 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var context = scope.ServiceProvider.GetRequiredService<FinSyncDbContext>();
-    context.Database.Migrate();
-
-    if (!context.Contas.Any())
+    using (var scope = app.Services.CreateScope())
     {
-        context.Contas.Add(new FinSync.Models.Conta
-        {
-            Nome = "Pizzaria",
-            Tipo = FinSync.Models.TipoConta.Comercial,
-        });
-        context.Contas.Add(new FinSync.Models.Conta
-        {
-            Nome = "Pessoal",
-            Tipo = FinSync.Models.TipoConta.Pessoal,
-        });
-        context.SaveChanges();
-    }
-
-    if (!context.Categorias.Any())
-    {
-        context.Categorias.AddRange(
-            new FinSync.Models.Categoria { Nome = "Alimentação", Cor = "#96d4b2", Tipo = FinSync.Models.TipoTransacao.Saida },
-            new FinSync.Models.Categoria { Nome = "Transporte", Cor = "#ffb3b3", Tipo = FinSync.Models.TipoTransacao.Saida },
-            new FinSync.Models.Categoria { Nome = "Moradia", Cor = "#b3d9ff", Tipo = FinSync.Models.TipoTransacao.Saida },
-            new FinSync.Models.Categoria { Nome = "Vendas", Cor = "#b3ffb3", Tipo = FinSync.Models.TipoTransacao.Entrada },
-            new FinSync.Models.Categoria { Nome = "Salário", Cor = "#ffd9b3", Tipo = FinSync.Models.TipoTransacao.Entrada },
-            new FinSync.Models.Categoria { Nome = "Investimentos", Cor = "#d9b3ff", Tipo = FinSync.Models.TipoTransacao.Entrada }
-        );
-        context.SaveChanges();
+        var context = scope.ServiceProvider.GetRequiredService<FinSyncDbContext>();
+        await context.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(context);
     }
 }
 
