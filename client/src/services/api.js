@@ -56,6 +56,13 @@ export async function updateConta(id, conta) {
   return handleResponse(res);
 }
 
+export async function deleteConta(id) {
+  const res = await fetch(url(`/contas/${id}`), {
+    method: 'DELETE',
+  });
+  return handleResponse(res);
+}
+
 export async function getTransacoes(contaId, data, dataInicio, dataFim) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);

@@ -90,11 +90,8 @@ public class ContaService(FinSyncDbContext context)
         var conta = await context.Contas.FindAsync(id);
         if (conta is null) return (false, null);
 
-        var possuiTransacoes = await context.Transacoes.AnyAsync(t => t.ContaId == id);
-        if (possuiTransacoes)
-        {
-            return (false, "Nao e possivel deletar uma conta que possui transacoes.");
-        }
+        var transacoes = await context.Transacoes.Where(t => t.ContaId == id).ToListAsync();
+        context.Transacoes.RemoveRange(transacoes);
 
         context.Contas.Remove(conta);
         await context.SaveChangesAsync();

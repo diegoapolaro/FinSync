@@ -5,6 +5,7 @@ import { useTema } from '../contexts/ThemeContext';
 import {
   createConta,
   updateConta,
+  deleteConta,
   createCategoria,
   exportarTransacoes,
 } from '../services/api';
@@ -40,6 +41,7 @@ export default function AjustesPage() {
   const [novaCatTipo, setNovaCatTipo] = useState('Saida');
   const [novaCatCor, setNovaCatCor] = useState(categoryColors[0]);
 
+  const [contaExcluir, setContaExcluir] = useState(null);
   const [alterarSenhaAberto, setAlterarSenhaAberto] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
   const [senhaNova, setSenhaNova] = useState('');
@@ -68,6 +70,16 @@ export default function AjustesPage() {
       setEditandoContaNome((prev) => { const n = { ...prev }; delete n[id]; return n; });
       setEditandoContaTipo((prev) => { const n = { ...prev }; delete n[id]; return n; });
       addToast('Conta atualizada!', 'success');
+    } catch (err) { addToast(err.message, 'error'); }
+  }
+
+  async function handleDeletarConta() {
+    if (!contaExcluir) return;
+    try {
+      await deleteConta(contaExcluir.id);
+      setContas((prev) => prev.filter((c) => c.id !== contaExcluir.id));
+      setContaExcluir(null);
+      addToast(`Conta "${contaExcluir.nome}" excluída!`, 'success');
     } catch (err) { addToast(err.message, 'error'); }
   }
 
@@ -194,6 +206,7 @@ export default function AjustesPage() {
                       </div>
                       <div className="flex gap-1">
                         <button onClick={() => iniciarEdicaoConta(conta)} className="p-1 hover:bg-[#F5F5F2] rounded-lg"><span className="material-symbols-outlined text-[#707972]">edit</span></button>
+                        <button onClick={() => setContaExcluir(conta)} className="p-1 hover:bg-red-50 rounded-lg"><span className="material-symbols-outlined text-[#B23A2E]">delete</span></button>
                       </div>
                     </div>
                     {editando ? (
@@ -387,6 +400,41 @@ export default function AjustesPage() {
           </SettingsSection>
         </div>
       </div>
+
+      {contaExcluir && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 space-y-4 animate-fadeIn">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-3xl text-[#B23A2E]">warning</span>
+              <h3 className="text-lg font-bold text-[#181D1A]">Excluir conta?</h3>
+            </div>
+            <p className="text-sm text-[#707972]">
+              Todas as transações desta conta também serão excluídas. Esta ação é irreversível.
+            </p>
+            <div className="bg-[#FFF4F2] border border-[#B23A2E]/20 rounded-lg p-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#B23A2E] text-lg">account_balance</span>
+              <div>
+                <p className="text-sm font-semibold text-[#181D1A]">{contaExcluir.nome}</p>
+                <p className="text-xs text-[#707972]">{contaExcluir.tipo === 'Comercial' ? 'Comercial' : 'Pessoal'}</p>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={handleDeletarConta}
+                className="flex-1 px-4 py-2.5 bg-[#B23A2E] text-white rounded-lg text-sm font-semibold hover:bg-[#962F24] transition-all"
+              >
+                SIM, EXCLUIR
+              </button>
+              <button
+                onClick={() => setContaExcluir(null)}
+                className="flex-1 px-4 py-2.5 border border-[#C7C4B8] rounded-lg text-sm font-semibold text-[#181D1A] hover:bg-[#F5F5F2] transition-all"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
