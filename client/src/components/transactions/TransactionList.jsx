@@ -19,7 +19,7 @@ export default function TransactionList({ titulo, transacoes, handleDelete }) {
             <div
               className="w-1 h-12 mr-4 rounded-sm flex-shrink-0"
               style={{
-                backgroundColor: tipo === 'entrada' ? '#105137' : '#ba1a1a',
+                backgroundColor: tipo === 'entrada' ? 'var(--color-entrada)' : 'var(--color-saida)',
               }}
             />
             <div className="flex-grow flex flex-col min-w-0">

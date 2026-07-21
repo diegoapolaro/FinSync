@@ -4,26 +4,23 @@ const variants = {
   entrada: {
     label: 'Entradas',
     icon: 'arrow_circle_up',
-    iconBg: 'bg-[#105137]/10',
-    textColor: 'text-[#105137]',
-    borderColor: 'border-[#105137]',
-    gradient: 'from-[#10513708]',
+    iconBg: 'bg-entrada/10',
+    textColor: 'text-entrada',
+    borderColor: 'border-entrada',
   },
   saida: {
     label: 'Saídas',
     icon: 'arrow_circle_down',
-    iconBg: 'bg-[#B23A2E]/10',
-    textColor: 'text-[#B23A2E]',
-    borderColor: 'border-[#B23A2E]',
-    gradient: 'from-[#B23A2E08]',
+    iconBg: 'bg-saida/10',
+    textColor: 'text-saida',
+    borderColor: 'border-saida',
   },
   saldo: {
     label: 'Saldo Atual',
     icon: 'account_balance_wallet',
-    iconBg: 'bg-[#4A7C7E]/10',
-    textColor: 'text-[#4A7C7E]',
-    borderColor: 'border-[#4A7C7E]',
-    gradient: 'from-[#4A7C7E08]',
+    iconBg: 'bg-azul/10',
+    textColor: 'text-azul',
+    borderColor: 'border-azul',
   },
 };
 
@@ -32,15 +29,14 @@ export default function SummaryCard({ tipo, value }) {
   return (
     <div
       className={
-        'bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border-l-4 ' +
+        'rounded-xl shadow-card border-l-4 ' +
         v.borderColor +
-        ' p-5 flex items-center justify-between group hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-all bg-gradient-to-br ' +
-        v.gradient +
-        ' to-white'
+        ' p-5 flex items-center justify-between group hover:shadow-card-hover transition-all'
       }
+      style={{ backgroundColor: 'var(--bg-card)' }}
     >
       <div>
-        <p className="font-label-caps text-[11px] text-[#707972] uppercase tracking-[0.1em] mb-1.5">
+        <p className="font-label-caps text-[11px] text-on-surface-variant uppercase tracking-[0.1em] mb-1.5">
           {v.label}
         </p>
         <h3

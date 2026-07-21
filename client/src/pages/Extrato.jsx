@@ -121,19 +121,19 @@ export default function Extrato() {
 
         <div className="mt-1">
           {!contaSelecionadaId && !carregando && (
-            <p className="text-sm text-[#707972] text-center py-8">Selecione uma conta para começar.</p>
+            <p className="text-sm text-on-surface-variant text-center py-8">Selecione uma conta para começar.</p>
           )}
 
           {carregando && (
-            <p className="text-sm text-[#707972] text-center py-8">
+            <p className="text-sm text-on-surface-variant text-center py-8">
               <span className="spinner inline-block align-middle mr-2" />Carregando...
             </p>
           )}
 
           {!carregando && transacoes.length === 0 && contaSelecionadaId && (
             <div className="text-center py-8">
-              <span className="material-symbols-outlined text-[#C7C4B8] text-4xl mb-3">receipt_long</span>
-              <p className="text-sm text-[#707972] mb-4">Nenhuma movimentação neste período.</p>
+              <span className="material-symbols-outlined text-line text-4xl mb-3">receipt_long</span>
+              <p className="text-sm text-on-surface-variant mb-4">Nenhuma movimentação neste período.</p>
               <FloatingActions
                 onEntrada={handleNovaEntrada}
                 onSaida={handleNovaSaida}
@@ -144,7 +144,7 @@ export default function Extrato() {
 
           {!carregando && transacoes.length > 0 && (
             <div className="space-y-2.5 mt-4">
-              <p className="font-label-caps text-[11px] text-[#707972] uppercase tracking-[0.1em]">
+              <p className="font-label-caps text-[11px] text-on-surface-variant uppercase tracking-[0.1em]">
                 MOVIMENTAÇÕES
               </p>
               {transacoes.map((t) => (

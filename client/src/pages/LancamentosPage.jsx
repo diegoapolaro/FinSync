@@ -187,8 +187,8 @@ export default function LancamentosPage() {
             onClick={() => setForm((f) => ({ ...f, tipo: 'Entrada', categoriaId: '' }))}
             className={
               form.tipo === 'Entrada'
-                ? 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#2F6B4F] text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
-                : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#fdf9ec] hover:bg-[#2F6B4F] hover:text-white hover:border-[#2F6B4F] transition-colors group'
+                ? 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-primaria text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
+                : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-paper hover:bg-primaria hover:text-white hover:border-primaria transition-colors group'
             }
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -201,8 +201,8 @@ export default function LancamentosPage() {
             onClick={() => setForm((f) => ({ ...f, tipo: 'Saida', categoriaId: '' }))}
             className={
               form.tipo === 'Saida'
-                ? 'btn-base border-2 border-[#B23A2E] p-3 flex flex-col items-center justify-center gap-1 bg-[#B23A2E] text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
-                : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#fdf9ec] hover:bg-[#B23A2E] hover:text-white hover:border-[#B23A2E] transition-colors group'
+                ? 'btn-base border-2 border-saida p-3 flex flex-col items-center justify-center gap-1 bg-saida text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
+                : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-paper hover:bg-saida hover:text-white hover:border-saida transition-colors group'
             }
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -305,7 +305,7 @@ export default function LancamentosPage() {
         {!carregando && transacoes.length > 0 && (
           <ul className="flex flex-col gap-3">
             {transacoes.map((t) => {
-              const cor = t.tipo === 'Entrada' ? '#2F6B4F' : '#B23A2E';
+              const cor = t.tipo === 'Entrada' ? 'var(--color-primaria)' : 'var(--color-saida)';
               return (
                 <li
                   key={t.id}

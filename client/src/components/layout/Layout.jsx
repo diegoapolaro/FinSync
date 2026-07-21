@@ -24,7 +24,7 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="bg-app text-[#181D1A] antialiased min-h-screen overflow-hidden">
+    <div className="bg-app text-on-surface antialiased min-h-screen overflow-hidden">
       <MobileTopBar />
 
       <DesktopSidebar

@@ -3,9 +3,10 @@ import Modal from '../Modal';
 import { createCategoria, updateCategoria } from '../../services/api';
 
 const CORES = [
-  '#96d4b2', '#ffb3b3', '#b3d9ff', '#b3ffb3',
-  '#ffd9b3', '#d9b3ff', '#ffb3d9', '#b3fff0',
+  '#66D89F', '#FF6B6B', '#7DD3D8', '#FFB84D',
+  '#B388FF', '#FF80AB', '#82B1FF', '#B9F6CA',
 ];
+const COR_PADRAO = '#66D89F';
 
 function SeletorCor({ cor, onChange }) {
   return (
@@ -25,7 +26,7 @@ function SeletorCor({ cor, onChange }) {
 
 function EditarCategoriaModal({ categoria, onClose, onCategoriasChange }) {
   const [nome, setNome] = useState('');
-  const [cor, setCor] = useState('#96d4b2');
+  const [cor, setCor] = useState(COR_PADRAO);
 
   useEffect(() => {
     if (categoria) {
@@ -74,7 +75,7 @@ function EditarCategoriaModal({ categoria, onClose, onCategoriasChange }) {
 function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
   const [nome, setNome] = useState('');
   const [tipo, setTipo] = useState('Entrada');
-  const [cor, setCor] = useState('#96d4b2');
+  const [cor, setCor] = useState(COR_PADRAO);
 
   async function salvar(e) {
     e.preventDefault();
@@ -83,7 +84,7 @@ function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
     onCategoriasChange(await res.json());
     setNome('');
     setTipo('Entrada');
-    setCor('#96d4b2');
+    setCor(COR_PADRAO);
     onClose();
   }
 

@@ -52,8 +52,11 @@ export default {
         "on-tertiary-container": "var(--color-on-tertiary-container)",
         "primary-container": "var(--color-primary-container)",
         "error-container": "var(--color-error-container)",
-        "entrada": "var(--color-entrada)",
-        "saida": "var(--color-saida)",
+        entrada: "var(--color-entrada)",
+        saida: "var(--color-saida)",
+        primaria: "var(--color-primaria)",
+        laranja: "var(--color-laranja)",
+        azul: "var(--color-azul)",
         ink: "var(--color-ink)",
         paper: "var(--color-paper)",
         "stamp-accent": "var(--color-stamp-accent)",
@@ -61,6 +64,8 @@ export default {
         "tertiary-container": "var(--color-tertiary-container)",
         "on-surface": "var(--color-on-surface)",
         line: "var(--color-line)",
+        card: "var(--bg-card)",
+        "input-surface": "var(--bg-input)",
       },
       spacing: {
         "receipt-width": "480px",
@@ -135,6 +140,10 @@ export default {
           "16px",
           { lineHeight: "1.4", fontWeight: "500" },
         ],
+      },
+      boxShadow: {
+        card: 'var(--shadow)',
+        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.12)',
       },
       maxWidth: {
         "receipt-width": "480px",

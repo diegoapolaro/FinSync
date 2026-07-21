@@ -140,26 +140,26 @@ export default function RelatoriosPage() {
     <div className="px-4 md:px-8 max-w-7xl mx-auto pb-32 md:pb-12 pt-4 md:pt-6">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#125238] mb-1">RELATÓRIOS</h2>
-          <nav className="flex gap-2 text-sm text-[#707972]">
+          <h2 className="text-2xl font-bold text-primaria mb-1">RELATÓRIOS</h2>
+          <nav className="flex gap-2 text-sm text-on-surface-variant">
             <span>FinSync</span>
             <span>/</span>
-            <span className="text-[#8d4f00] font-semibold">Relatórios Mensais</span>
+            <span className="text-laranja font-semibold">Relatórios Mensais</span>
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => navegar(-1)} className="material-symbols-outlined p-1 text-[#707972] hover:text-[#125238]">chevron_left</button>
-          <span className="font-mono text-sm text-[#181D1A] px-3 py-1.5 rounded-lg border border-[#C7C4B8]">{mesAnoDisplay}</span>
-          <button onClick={() => navegar(1)} className="material-symbols-outlined p-1 text-[#707972] hover:text-[#125238]">chevron_right</button>
+          <button onClick={() => navegar(-1)} className="material-symbols-outlined p-1 text-on-surface-variant hover:text-primaria">chevron_left</button>
+          <span className="font-mono text-sm text-on-surface px-3 py-1.5 rounded-lg border border-line">{mesAnoDisplay}</span>
+          <button onClick={() => navegar(1)} className="material-symbols-outlined p-1 text-on-surface-variant hover:text-primaria">chevron_right</button>
         </div>
       </header>
 
       {carregando && (
-        <p className="text-sm text-[#707972] text-center py-12"><span className="spinner inline-block align-middle mr-2" />Carregando relatório...</p>
+        <p className="text-sm text-on-surface-variant text-center py-12"><span className="spinner inline-block align-middle mr-2" />Carregando relatório...</p>
       )}
 
       {!carregando && !contaSelecionadaId && (
-        <p className="text-sm text-[#707972] text-center py-12">Selecione uma conta para ver os relatórios.</p>
+        <p className="text-sm text-on-surface-variant text-center py-12">Selecione uma conta para ver os relatórios.</p>
       )}
 
       {!carregando && contaSelecionadaId && (
@@ -175,23 +175,23 @@ export default function RelatoriosPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
             <div className="lg:col-span-3">
               <ChartContainer title="MOVIMENTO POR SEMANA" icon="bar_chart">
-                <div className="h-56 flex items-end justify-between gap-2 px-2 pb-2 border-b border-[#C7C4B8] relative">
+                <div className="h-56 flex items-end justify-between gap-2 px-2 pb-2 border-b border-line relative">
                   {semanas.map((sem) => (
                     <div key={sem.semana} className="flex-1 flex justify-center items-end gap-1.5 group relative h-full">
-                      <div className="w-3.5 bg-[#105137] chart-bar rounded-t" style={{ height: Math.max(sem.entPct, 2) + '%', animationDelay: (sem.semana * 100) + 'ms' }} title={'Entradas: ' + formatCurrency(sem.entradas)} />
-                      <div className="w-3.5 bg-[#B23A2E] chart-bar rounded-t" style={{ height: Math.max(sem.saiPct, 2) + '%', animationDelay: (sem.semana * 100 + 50) + 'ms' }} title={'Saídas: ' + formatCurrency(sem.saidas)} />
-                      <div className="absolute -bottom-6 text-[10px] font-semibold text-[#707972] uppercase">SEM {sem.semana}</div>
+                      <div className="w-3.5 bg-entrada chart-bar rounded-t" style={{ height: Math.max(sem.entPct, 2) + '%', animationDelay: (sem.semana * 100) + 'ms' }} title={'Entradas: ' + formatCurrency(sem.entradas)} />
+                      <div className="w-3.5 bg-saida chart-bar rounded-t" style={{ height: Math.max(sem.saiPct, 2) + '%', animationDelay: (sem.semana * 100 + 50) + 'ms' }} title={'Saídas: ' + formatCurrency(sem.saidas)} />
+                      <div className="absolute -bottom-6 text-[10px] font-semibold text-on-surface-variant uppercase">SEM {sem.semana}</div>
                     </div>
                   ))}
                 </div>
                 <div className="mt-8 flex gap-4 justify-center">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-[#105137]"></div>
-                    <span className="text-[10px] font-semibold text-[#707972] uppercase">ENTRADAS</span>
+                    <div className="w-2.5 h-2.5 rounded bg-entrada"></div>
+                    <span className="text-[10px] font-semibold text-on-surface-variant uppercase">ENTRADAS</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-[#B23A2E]"></div>
-                    <span className="text-[10px] font-semibold text-[#707972] uppercase">SAÍDAS</span>
+                    <div className="w-2.5 h-2.5 rounded bg-saida"></div>
+                    <span className="text-[10px] font-semibold text-on-surface-variant uppercase">SAÍDAS</span>
                   </div>
                 </div>
               </ChartContainer>
@@ -200,19 +200,19 @@ export default function RelatoriosPage() {
             <div className="lg:col-span-2">
               <ChartContainer title="DISTRIBUIÇÃO POR CATEGORIA" icon="donut_small">
                 {categorias.length === 0 ? (
-                  <p className="text-sm text-[#707972] text-center py-8">Nenhuma categoria no período.</p>
+                  <p className="text-sm text-on-surface-variant text-center py-8">Nenhuma categoria no período.</p>
                 ) : (
                   <>
                     <div className="relative flex justify-center mb-4">
                       <svg className="-rotate-90" height="160" viewBox="0 0 100 100" width="160">
-                        <circle cx="50" cy="50" fill="transparent" r="40" stroke="#f0f5f0" strokeWidth="18" />
+                        <circle cx="50" cy="50" fill="transparent" r="40" stroke="var(--color-surface-container-low)" strokeWidth="18" />
                         {donutSegments.map((seg, i) => (
                           <circle key={i} className="donut-segment" cx="50" cy="50" fill="transparent" r="40" stroke={seg.color} strokeDasharray={seg.dasharray} strokeDashoffset={seg.dashoffset} strokeWidth="18" />
                         ))}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-xl font-bold text-[#181D1A]">{totalSaidas > 0 ? '100%' : '0%'}</span>
-                        <span className="text-[10px] font-semibold text-[#707972]">TOTAL</span>
+                        <span className="text-xl font-bold text-on-surface">{totalSaidas > 0 ? '100%' : '0%'}</span>
+                        <span className="text-[10px] font-semibold text-on-surface-variant">TOTAL</span>
                       </div>
                     </div>
                     <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
@@ -220,11 +220,11 @@ export default function RelatoriosPage() {
                         <div key={i} className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
                             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: seg.color }}></div>
-                            <span className="text-sm text-[#181D1A]">{seg.nome}</span>
+                            <span className="text-sm text-on-surface">{seg.nome}</span>
                           </div>
                           <div className="flex gap-3 font-mono text-sm">
-                            <span className="text-[#707972]">{seg.pct.toFixed(0)}%</span>
-                            <span className="text-[#181D1A]">{formatCurrency(seg.total)}</span>
+                            <span className="text-on-surface-variant">{seg.pct.toFixed(0)}%</span>
+                            <span className="text-on-surface">{formatCurrency(seg.total)}</span>
                           </div>
                         </div>
                       ))}
@@ -239,35 +239,35 @@ export default function RelatoriosPage() {
             <div className="lg:col-span-2">
               <ChartContainer title="MAIORES SAÍDAS" icon="arrow_downward">
                 {maioresSaidas.length === 0 ? (
-                  <p className="text-sm text-[#707972] text-center py-8">Nenhuma saída no período.</p>
+                  <p className="text-sm text-on-surface-variant text-center py-8">Nenhuma saída no período.</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="border-b border-[#C7C4B8] text-[10px] font-semibold text-[#707972] uppercase tracking-wider">
+                        <tr className="border-b border-line text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
                           <th className="pb-2.5 px-1 w-8"></th>
                           <th className="pb-2.5 px-1">DESCRIÇÃO</th>
                           <th className="pb-2.5 px-1">DATA</th>
                           <th className="pb-2.5 px-1 text-right">VALOR</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#C7C4B8]/30">
+                      <tbody className="divide-y divide-line/30">
                         {maioresSaidas.map((t) => {
                           const pct = (t.valor / maxSaida) * 100;
                           return (
-                            <tr key={t.id} className="group hover:bg-[#F5F5F2] transition-all relative">
+                            <tr key={t.id} className="group hover:bg-surface-variant transition-all relative">
                               <td className="py-3 px-1">
-                                <span className="material-symbols-outlined text-[#707972]">{categoriaIcon(t.categoriaNome)}</span>
+                                <span className="material-symbols-outlined text-on-surface-variant">{categoriaIcon(t.categoriaNome)}</span>
                               </td>
                               <td className="py-3 px-1 relative">
-                                <div className="font-medium text-[#181D1A]">{t.descricao}</div>
-                                <div className="absolute bottom-0 left-0 h-1 bg-[#B23A2E]/20 w-full rounded-full"></div>
-                                <div className="absolute bottom-0 left-0 h-1 bg-[#B23A2E] rounded-full transition-all duration-700" style={{ width: pct + '%' }}></div>
+                                <div className="font-medium text-on-surface">{t.descricao}</div>
+                                <div className="absolute bottom-0 left-0 h-1 bg-saida/20 w-full rounded-full"></div>
+                                <div className="absolute bottom-0 left-0 h-1 bg-saida rounded-full transition-all duration-700" style={{ width: pct + '%' }}></div>
                               </td>
-                              <td className="py-3 px-1 font-mono text-sm text-[#707972]">
+                              <td className="py-3 px-1 font-mono text-sm text-on-surface-variant">
                                 {t.data ? new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : ''}
                               </td>
-                              <td className="py-3 px-1 text-right font-mono text-sm font-semibold text-[#B23A2E]">- {formatCurrency(t.valor)}</td>
+                              <td className="py-3 px-1 text-right font-mono text-sm font-semibold text-saida">- {formatCurrency(t.valor)}</td>
                             </tr>
                           );
                         })}
@@ -281,36 +281,36 @@ export default function RelatoriosPage() {
             <div>
               <ChartContainer title="COMPARATIVO" icon="compare_arrows">
                 <div className="space-y-3">
-                  <div className="bg-[#F5F5F2] p-4 rounded-lg border border-[#C7C4B8]/30">
-                    <span className="text-[10px] font-semibold text-[#707972] uppercase tracking-wider block mb-1.5">SALDO ATUAL</span>
+                  <div className="bg-surface-variant p-4 rounded-lg border border-line/30">
+                    <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">SALDO ATUAL</span>
                     <div className="flex justify-between items-center">
-                      <span className={'font-mono text-lg font-semibold ' + (saldoPeriodo >= 0 ? 'text-[#105137]' : 'text-[#B23A2E]')}>
+                      <span className={'font-mono text-lg font-semibold ' + (saldoPeriodo >= 0 ? 'text-entrada' : 'text-saida')}>
                         {saldoPeriodo >= 0 ? '+ ' : '- '}{formatCurrency(Math.abs(saldoPeriodo))}
                       </span>
-                      <span className={'material-symbols-outlined ' + (saldoPeriodo >= 0 ? 'text-[#105137]' : 'text-[#B23A2E]')}>
+                      <span className={'material-symbols-outlined ' + (saldoPeriodo >= 0 ? 'text-entrada' : 'text-saida')}>
                         {saldoPeriodo >= 0 ? 'arrow_upward' : 'arrow_downward'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="bg-[#F5F5F2] p-4 rounded-lg border border-[#C7C4B8]/30">
-                    <span className="text-[10px] font-semibold text-[#707972] uppercase tracking-wider block mb-1.5">TOTAL MOVIMENTADO</span>
+                  <div className="bg-surface-variant p-4 rounded-lg border border-line/30">
+                    <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">TOTAL MOVIMENTADO</span>
                     <div className="flex justify-between items-center">
-                      <span className="font-mono text-lg font-semibold text-[#181D1A]">{formatCurrency(totalGeral)}</span>
+                      <span className="font-mono text-lg font-semibold text-on-surface">{formatCurrency(totalGeral)}</span>
                     </div>
                   </div>
 
-                  <div className="bg-[#F5F5F2] p-4 rounded-lg border border-[#C7C4B8]/30">
-                    <span className="text-[10px] font-semibold text-[#707972] uppercase tracking-wider block mb-1.5">RELAÇÃO RECEITA/DESPESA</span>
+                  <div className="bg-surface-variant p-4 rounded-lg border border-line/30">
+                    <span className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider block mb-1.5">RELAÇÃO RECEITA/DESPESA</span>
                     <div className="flex justify-between items-center">
-                      <span className={'font-mono text-lg font-semibold ' + (totalSaidas > 0 && totalEntradas / totalSaidas >= 1 ? 'text-[#105137]' : 'text-[#B23A2E]')}>
+                      <span className={'font-mono text-lg font-semibold ' + (totalSaidas > 0 && totalEntradas / totalSaidas >= 1 ? 'text-entrada' : 'text-saida')}>
                         {totalSaidas > 0 ? (totalEntradas / totalSaidas).toFixed(2) + 'x' : 'N/A'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-[#C7C4B8]/30">
-                    <p className="text-xs text-[#707972] italic">
+                  <div className="pt-2 border-t border-line/30">
+                    <p className="text-xs text-on-surface-variant italic">
                       {totalSaidas > 0
                         ? 'Sua receita cobre ' + ((totalEntradas / totalSaidas) * 100).toFixed(0) + '% das despesas do período.'
                         : 'Nenhuma despesa registrada no período.'}
