@@ -76,11 +76,12 @@ export default {
         "headline-md": ["Anybody"],
         "label-caps": ["IBM Plex Mono"],
         "value-sm": ["IBM Plex Mono"],
-        "headline-lg": ["Anybody"],
+        "headline-lg": ["Big Shoulders Display"],
         "body-lg": ["IBM Plex Sans"],
         "value-lg": ["IBM Plex Mono"],
         "body-sm": ["IBM Plex Sans"],
         "headline-xl": ["Big Shoulders Display"],
+        "headline-lg-mobile": ["Big Shoulders Display"],
         "body-md": ["IBM Plex Sans"],
         "data-lg": ["IBM Plex Mono"],
         "data-md": ["IBM Plex Mono"],
@@ -91,16 +92,16 @@ export default {
           { lineHeight: "110%", letterSpacing: "0.02em", fontWeight: "700" },
         ],
         "label-caps": [
-          "11px",
-          { lineHeight: "100%", letterSpacing: "0.1em", fontWeight: "700" },
+          "12px",
+          { lineHeight: "1.2", letterSpacing: "0.1em", fontWeight: "700" },
         ],
         "value-sm": [
           "14px",
           { lineHeight: "120%", fontWeight: "500" },
         ],
         "headline-lg": [
-          "40px",
-          { lineHeight: "100%", letterSpacing: "0.05em", fontWeight: "800" },
+          "32px",
+          { lineHeight: "1.2", letterSpacing: "0.02em", fontWeight: "700" },
         ],
         "body-lg": [
           "16px",
@@ -112,18 +113,22 @@ export default {
         ],
         "body-sm": [
           "14px",
-          { lineHeight: "140%", fontWeight: "400" },
+          { lineHeight: "1.5", fontWeight: "400" },
         ],
         "headline-xl": [
           "48px",
           { lineHeight: "1.1", letterSpacing: "0.02em", fontWeight: "800" },
+        ],
+        "headline-lg-mobile": [
+          "28px",
+          { lineHeight: "1.2", fontWeight: "700" },
         ],
         "body-md": [
           "16px",
           { lineHeight: "1.6", fontWeight: "400" },
         ],
         "data-lg": [
-          "24px",
+          "20px",
           { lineHeight: "1.4", letterSpacing: "-0.01em", fontWeight: "600" },
         ],
         "data-md": [
