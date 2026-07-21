@@ -137,6 +137,22 @@ input {
   background-image: url("https://www.transparenttextures.com/patterns/pinstriped-suit.png");
 }
 
+.bg-app {
+  background-color: #EEF0EC;
+}
+
+.card-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-shadow-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.section-divider {
+  border-top: 4px solid #2F6B4F;
+}
+
 .receipt-shadow {
   box-shadow: 0 4px 6px -1px rgba(31, 36, 33, 0.08), 0 2px 4px -1px rgba(31, 36, 33, 0.05);
 }
