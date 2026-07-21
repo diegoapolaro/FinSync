@@ -69,6 +69,8 @@ export default {
         gutter: "1rem",
         "stack-base": "1rem",
         "stack-tight": "0.25rem",
+        "margin-mobile": "16px",
+        "margin-desktop": "32px",
       },
       fontFamily: {
         "headline-md": ["Anybody"],
@@ -78,6 +80,10 @@ export default {
         "body-lg": ["IBM Plex Sans"],
         "value-lg": ["IBM Plex Mono"],
         "body-sm": ["IBM Plex Sans"],
+        "headline-xl": ["Big Shoulders Display"],
+        "body-md": ["IBM Plex Sans"],
+        "data-lg": ["IBM Plex Mono"],
+        "data-md": ["IBM Plex Mono"],
       },
       fontSize: {
         "headline-md": [
@@ -107,6 +113,22 @@ export default {
         "body-sm": [
           "14px",
           { lineHeight: "140%", fontWeight: "400" },
+        ],
+        "headline-xl": [
+          "48px",
+          { lineHeight: "1.1", letterSpacing: "0.02em", fontWeight: "800" },
+        ],
+        "body-md": [
+          "16px",
+          { lineHeight: "1.6", fontWeight: "400" },
+        ],
+        "data-lg": [
+          "24px",
+          { lineHeight: "1.4", letterSpacing: "-0.01em", fontWeight: "600" },
+        ],
+        "data-md": [
+          "16px",
+          { lineHeight: "1.4", fontWeight: "500" },
         ],
       },
       maxWidth: {

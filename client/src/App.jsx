@@ -4,6 +4,7 @@ import { TemaProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import Layout from './components/layout/Layout';
+import Extrato from './pages/Extrato';
 import LancamentosPage from './pages/LancamentosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
 import AjustesPage from './pages/AjustesPage';
@@ -16,7 +17,8 @@ export default function App() {
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route element={<Layout />}>
-                <Route path="/" element={<LancamentosPage />} />
+                <Route path="/" element={<Extrato />} />
+                <Route path="/lancamentos" element={<LancamentosPage />} />
                 <Route path="/relatorios" element={<RelatoriosPage />} />
                 <Route path="/ajustes" element={<AjustesPage />} />
               </Route>

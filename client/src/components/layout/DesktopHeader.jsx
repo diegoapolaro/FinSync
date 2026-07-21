@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const tabs = [
-  { id: '', label: 'LANÇAMENTOS' },
-  { id: 'relatorios', label: 'RELATÓRIOS' },
-  { id: 'ajustes', label: 'AJUSTES' },
+  { id: '', label: 'Extrato' },
+  { id: 'lancamentos', label: 'Lançamentos' },
+  { id: 'relatorios', label: 'Relatórios' },
+  { id: 'ajustes', label: 'Ajustes' },
 ];
 
 export default function DesktopHeader() {
@@ -11,50 +12,21 @@ export default function DesktopHeader() {
   const navigate = useNavigate();
   const pagina = location.pathname.replace(/^\/+/, '') || '';
 
-  const hoje = new Date();
-  const mes = hoje
-    .toLocaleDateString('pt-BR', { month: 'short' })
-    .toUpperCase();
-  const dataRange = `${hoje.getDate()} ${mes} ${hoje.getFullYear()}`;
-
   return (
-    <>
-      <div className="hidden md:flex justify-between items-center px-gutter pt-margin-page pb-stack-base border-b border-dashed border-line">
-        <h1 className="text-headline-lg font-headline-lg uppercase tracking-tighter text-primary">
-          FINSYNC
-        </h1>
-        <div className="flex gap-4">
-          <span className="material-symbols-outlined text-primary cursor-pointer">
-            account_balance_wallet
-          </span>
-          <span className="material-symbols-outlined text-primary cursor-pointer">
-            receipt_long
-          </span>
+    <header className="hidden md:flex justify-between items-center px-margin-desktop py-4 w-full bg-surface border-b border-outline-variant sticky top-0 z-30">
+      <div className="flex items-center gap-4">
+        <h2 className="font-headline-lg text-headline-lg font-bold text-primary tracking-tight">FINSYNC</h2>
+      </div>
+      <div className="flex items-center gap-md">
+        <div className="hidden sm:flex items-center bg-surface-container rounded-full px-4 py-2 border border-outline-variant">
+          <span className="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+          <input className="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm w-48" placeholder="Search entries..." type="text" />
+        </div>
+        <div className="flex items-center gap-sm">
+          <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-2 rounded-full transition-colors">notifications</span>
+          <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-high p-2 rounded-full transition-colors">account_circle</span>
         </div>
       </div>
-      <nav className="hidden md:flex w-full justify-between items-end px-gutter pt-margin-page pb-stack-base border-b border-dashed border-line">
-        <div className="flex gap-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => navigate(`/${tab.id}`)}
-              className={
-                pagina === tab.id
-                  ? 'font-label-caps text-label-caps text-primary font-bold underline decoration-2 hover:bg-surface-variant transition-colors duration-75 p-2 rounded'
-                  : 'font-label-caps text-label-caps text-secondary hover:bg-surface-variant transition-colors duration-75 p-2 rounded'
-              }
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        {pagina === '' && (
-          <p className="font-label-caps text-label-caps text-secondary mb-2">
-            {dataRange}
-          </p>
-        )}
-      </nav>
-    </>
+    </header>
   );
 }

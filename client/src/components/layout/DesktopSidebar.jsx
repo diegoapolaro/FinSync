@@ -6,24 +6,22 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
   const pagina = location.pathname.replace(/^\/+/, '') || '';
 
   return (
-    <nav className="hidden md:flex flex-col gap-stack-base p-gutter bg-surface fixed left-0 top-0 h-full w-64 border-r-2 border-primary z-50">
-      <div className="mb-8">
-        <h1 className="font-headline-md text-headline-md text-primary tracking-tighter uppercase mb-2">
-          FINSYNC
-        </h1>
-        <p className="font-label-caps text-label-caps text-outline">CONTAS</p>
-        <p className="font-label-caps text-label-caps text-outline opacity-70">
-          SELECIONE O LIVRO
-        </p>
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col z-40 bg-inverse-surface shadow-md">
+      <div className="p-margin-desktop flex flex-col items-center gap-md pt-xl">
+        <span className="w-16 h-16 rounded-full bg-primary-container/30 flex items-center justify-center">
+          <span className="material-symbols-outlined text-3xl text-surface">finance</span>
+        </span>
+        <div className="text-center">
+          <h1 className="font-headline-xl text-headline-xl text-surface uppercase">Books</h1>
+          <p className="text-surface-variant font-label-caps text-label-caps tracking-widest text-sm">Manage Ledger</p>
+        </div>
       </div>
 
-      {contas.length === 0 && (
-        <p className="font-label-caps text-label-caps text-outline">
-          Sem contas cadastradas
-        </p>
-      )}
+      <nav className="flex-1 mt-xl space-y-1 px-4">
+        <div className="mb-4 px-2">
+          <span className="text-surface-variant font-label-caps text-label-caps tracking-widest text-xs opacity-60">CONTAS</span>
+        </div>
 
-      <div className="flex flex-col gap-stack-base">
         {contas.map((conta) => {
           const selecionada = String(conta.id) === contaSelecionadaId;
           return (
@@ -36,35 +34,39 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
               }}
               className={
                 selecionada
-                  ? 'flex items-center gap-2 -rotate-3 border-2 border-stamp-accent text-stamp-accent bg-tertiary-fixed-dim/20 p-4 font-bold scale-105 transition-transform duration-200 ease-in-out stamp-bg'
-                  : 'flex items-center gap-2 p-4 text-outline border-2 border-transparent opacity-50 hover:bg-secondary-container transition-transform duration-200 ease-in-out'
-              }
-            >
-              <span className="material-symbols-outlined" style={selecionada ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                {conta.tipo === 'Comercial' ? 'storefront' : 'person'}
-              </span>
-              <span className="font-label-caps text-label-caps text-left">
-                {conta.nome}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-auto pt-stack-base border-t border-dashed border-outline-variant">
-        <button
-          type="button"
-          onClick={() => navigate('/ajustes')}
-          className={
-            pagina === 'ajustes'
-              ? 'flex items-center gap-2 w-full p-3 -rotate-3 border-2 border-stamp-accent text-stamp-accent bg-tertiary-fixed-dim/20 font-bold scale-105 transition-transform duration-200 ease-in-out stamp-bg'
-              : 'flex items-center gap-2 w-full p-3 text-outline border-2 border-transparent opacity-50 hover:bg-secondary-container transition-transform duration-200 ease-in-out'
+              ? 'w-full flex items-center gap-3 px-4 py-3 font-bold uppercase tracking-widest transition-all ink-stamp-active'
+              : 'w-full flex items-center gap-3 px-4 py-3 text-surface-variant hover:bg-surface-container-high hover:text-surface transition-all uppercase tracking-widest'
           }
         >
-          <span className="material-symbols-outlined">settings</span>
-          <span className="font-label-caps text-label-caps text-left">Ajustes</span>
+          <span className="material-symbols-outlined" style={selecionada ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+            {conta.tipo === 'Comercial' ? 'storefront' : 'person'}
+          </span>
+          <span className="font-label-caps text-label-caps text-left">{conta.nome}</span>
+        </button>
+        );
+      })}
+    </nav>
+
+      <div className="p-margin-desktop mt-auto space-y-2">
+        <div className="pt-4 border-t border-outline-variant/20">
+          <button
+            type="button"
+            onClick={() => navigate('/ajustes')}
+            className={
+              pagina === 'ajustes'
+              ? 'w-full flex items-center gap-3 px-4 py-3 font-bold uppercase tracking-widest transition-all ink-stamp-active'
+              : 'w-full flex items-center gap-3 px-4 py-3 text-surface-variant hover:bg-surface-container-high hover:text-surface transition-all uppercase tracking-widest'
+            }
+          >
+            <span className="material-symbols-outlined">settings</span>
+            <span className="font-label-caps text-label-caps">Ajustes</span>
+          </button>
+        </div>
+        <button className="w-full py-3 bg-secondary text-on-secondary font-bold rounded-lg hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 mt-2">
+          <span className="material-symbols-outlined">add</span>
+          New Book
         </button>
       </div>
-    </nav>
+    </aside>
   );
 }

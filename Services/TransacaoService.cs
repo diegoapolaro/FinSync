@@ -8,7 +8,11 @@ namespace FinSync.Services;
 
 public class TransacaoService(FinSyncDbContext context)
 {
-    public async Task<List<TransacaoDto>> GetAllAsync(int? contaId, DateOnly? data = null)
+    public async Task<List<TransacaoDto>> GetAllAsync(
+        int? contaId,
+        DateOnly? data = null,
+        DateOnly? dataInicio = null,
+        DateOnly? dataFim = null)
     {
         var query = context.Transacoes
             .Include(t => t.Conta)
@@ -23,6 +27,16 @@ public class TransacaoService(FinSyncDbContext context)
         if (data is not null)
         {
             query = query.Where(t => t.Data == data);
+        }
+
+        if (dataInicio is not null)
+        {
+            query = query.Where(t => t.Data >= dataInicio);
+        }
+
+        if (dataFim is not null)
+        {
+            query = query.Where(t => t.Data <= dataFim);
         }
 
         return await query

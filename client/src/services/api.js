@@ -56,14 +56,20 @@ export async function updateConta(id, conta) {
   return handleResponse(res);
 }
 
-export async function getTransacoes(contaId, data) {
+export async function getTransacoes(contaId, data, dataInicio, dataFim) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
   if (data) params.set('data', data);
+  if (dataInicio) params.set('dataInicio', dataInicio);
+  if (dataFim) params.set('dataFim', dataFim);
   const query = params.toString();
   const path = query ? `/transacoes?${query}` : '/transacoes';
   const res = await fetch(url(path));
   return handleResponse(res);
+}
+
+export async function getTransacoesRange(contaId, dataInicio, dataFim) {
+  return getTransacoes(contaId, null, dataInicio, dataFim);
 }
 
 export async function getTransacao(id) {
