@@ -6,8 +6,19 @@ import {
   createConta,
   updateConta,
   createCategoria,
+  exportarTransacoes,
 } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+
+const navItems = [
+  { id: 'perfil', label: 'Perfil', icon: 'person', cor: 'text-primary' },
+  { id: 'contas', label: 'Contas', icon: 'account_balance', cor: 'text-primary' },
+  { id: 'categorias', label: 'Categorias', icon: 'category', cor: 'text-primary' },
+  { id: 'preferencias', label: 'Preferências', icon: 'tune', cor: 'text-primary' },
+  { id: 'seguranca', label: 'Segurança', icon: 'security', cor: 'text-error' },
+];
+
+const categoryColors = ['#fda958', '#2f6b4f', '#1a5052', '#ba1a1a', '#8d4f00', '#7c4dff', '#009688', '#e91e63'];
 
 export default function AjustesPage() {
   const { contas, setContas, categorias, setCategorias } = useOutletContext();
@@ -24,11 +35,14 @@ export default function AjustesPage() {
   const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
   const [novaCatNome, setNovaCatNome] = useState('');
   const [novaCatTipo, setNovaCatTipo] = useState('Saida');
-  const [novaCatCor, setNovaCatCor] = useState('#96d4b2');
+  const [novaCatCor, setNovaCatCor] = useState(categoryColors[0]);
 
   const [alterarSenhaAberto, setAlterarSenhaAberto] = useState(false);
   const [senhaAtual, setSenhaAtual] = useState('');
   const [senhaNova, setSenhaNova] = useState('');
+
+  const [exportPeriodo, setExportPeriodo] = useState('30d');
+  const [exportFormato, setExportFormato] = useState('csv');
 
   async function handleCriarConta() {
     if (!novaContaNome.trim()) return;
@@ -83,199 +97,398 @@ export default function AjustesPage() {
     setSenhaNova('');
   }
 
+  async function handleExportar() {
+    try {
+      const blob = await exportarTransacoes(null, exportPeriodo, exportFormato);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'exportacao.' + exportFormato;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      addToast('Arquivo exportado com sucesso!', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  function iniciarEdicaoConta(conta) {
+    setEditandoContaNome((prev) => ({ ...prev, [conta.id]: conta.nome }));
+    setEditandoContaTipo((prev) => ({ ...prev, [conta.id]: conta.tipo }));
+  }
+
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-4xl mx-auto pt-4 md:pt-6 pb-32">
-      <section className="mb-xl">
-        <div className="flex flex-col md:flex-row items-center gap-md mb-lg p-md bg-white rounded-xl shadow-sm border border-outline-variant">
-          <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-4 border-primary/10">
-              <span className="material-symbols-outlined text-4xl text-primary">person</span>
+    <div className="bg-surface min-h-screen py-lg px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+        <aside className="lg:col-span-3 space-y-md">
+          <div className="paper-card p-sm rounded-xl overflow-hidden">
+            <div className="flex flex-col gap-base">
+              {navItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={'#' + item.id}
+                  className="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-container transition-all group"
+                >
+                  <span className={'material-symbols-outlined ' + item.cor}>{item.icon}</span>
+                  <span className={'font-label-caps text-label-caps uppercase ' + item.cor}>{item.label}</span>
+                </a>
+              ))}
             </div>
-            <button className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full border-2 border-white shadow-md">
-              <span className="material-symbols-outlined text-sm">edit</span>
-            </button>
-          </div>
-          <div className="text-center md:text-left flex-1">
-            <h1 className="font-headline-lg text-headline-lg text-on-background">{prefs.nome}</h1>
-            <p className="font-body-md text-on-surface-variant">{prefs.email}</p>
-            <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-xs">
-              <span className="px-3 py-1 rounded-full border border-primary/30 text-primary text-xs font-bold uppercase tracking-wider">Premium Plan</span>
-              <span className="px-3 py-1 rounded-full border border-secondary/30 text-secondary text-xs font-bold uppercase tracking-wider">Membro desde 2022</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="space-y-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-          <div className="bg-white p-md rounded-xl shadow-sm border-l-4 border-primary-container">
-            <div className="flex items-center gap-xs mb-md">
-              <span className="material-symbols-outlined text-primary">person</span>
-              <h2 className="font-headline-lg text-headline-lg uppercase tracking-tight text-lg">Perfil</h2>
-            </div>
-            <ul className="space-y-sm">
-              <li className="flex justify-between items-center py-2 border-b border-outline-variant/30">
-                <span className="text-on-surface-variant">Nome de exibição</span>
-                <span className="font-bold">{prefs.nome}</span>
-              </li>
-              <li className="flex justify-between items-center py-2 border-b border-outline-variant/30">
-                <span className="text-on-surface-variant">Idioma</span>
-                <span className="font-bold">Português (BR)</span>
-              </li>
-              <li className="flex justify-between items-center py-2">
-                <span className="text-on-surface-variant">Moeda Principal</span>
-                <span className="font-data-md text-data-md">BRL (R$)</span>
-              </li>
-            </ul>
           </div>
 
-          <div className="bg-white p-md rounded-xl shadow-sm border-l-4 border-tertiary">
-            <div className="flex items-center gap-xs mb-md">
-              <span className="material-symbols-outlined text-tertiary">tune</span>
-              <h2 className="font-headline-lg text-headline-lg uppercase tracking-tight text-lg">Preferências</h2>
+          <div className="paper-card p-md rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-sm">
+              <span className="material-symbols-outlined text-primary">dark_mode</span>
+              <span className="font-body-sm font-bold">Modo Escuro</span>
             </div>
-            <div className="space-y-sm">
-              <div className="flex justify-between items-center">
-                <span className="text-on-surface-variant">Modo Escuro</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={tema === 'escuro'}
-                    onChange={alternarTema}
-                  />
-                  <div className="w-11 h-6 bg-outline-variant rounded-full peer peer-checked:bg-primary peer-focus:ring-2 peer-focus:ring-primary/30 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-                </label>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-on-surface-variant">Notificações Push</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    defaultChecked
-                  />
-                  <div className="w-11 h-6 bg-outline-variant rounded-full peer peer-checked:bg-primary peer-focus:ring-2 peer-focus:ring-primary/30 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-md rounded-xl shadow-sm border-l-4 border-secondary">
-          <div className="flex justify-between items-center mb-md">
-            <div className="flex items-center gap-xs">
-              <span className="material-symbols-outlined text-secondary">account_balance</span>
-              <h2 className="font-headline-lg text-headline-lg uppercase tracking-tight text-lg">Contas &amp; Cartões</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setMostrarNovaConta(true)}
-              className="bg-secondary text-on-secondary px-4 py-1.5 rounded-lg text-sm font-bold flex items-center gap-xs hover:shadow-lg transition-shadow"
-            >
-              <span className="material-symbols-outlined text-sm">add</span>
-              Nova Conta
-            </button>
-          </div>
-
-          {mostrarNovaConta && (
-            <div className="mb-4 p-4 bg-surface-container rounded-lg border border-outline-variant">
+            <label className="inline-flex items-center cursor-pointer">
               <input
-                className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-white font-body-md"
-                placeholder="Nome da conta"
-                value={novaContaNome}
-                onChange={(e) => setNovaContaNome(e.target.value)}
+                type="checkbox"
+                className="sr-only peer"
+                checked={tema === 'escuro'}
+                onChange={alternarTema}
               />
-              <select
-                className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-white font-body-md"
-                value={novaContaTipo}
-                onChange={(e) => setNovaContaTipo(e.target.value)}
-              >
-                <option value="Pessoal">Pessoal</option>
-                <option value="Comercial">Comercial</option>
-              </select>
-              <div className="flex gap-2">
-                <button type="button" onClick={handleCriarConta} className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
-                <button type="button" onClick={() => setMostrarNovaConta(false)} className="px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
-              </div>
-            </div>
-          )}
+              <div className="toggle-switch peer"></div>
+            </label>
+          </div>
+        </aside>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-sm">
-            {contas.map((conta) => {
-              const editando = editandoContaNome[conta.id] !== undefined;
-              return (
-                <div key={conta.id} className="p-sm bg-surface-container rounded-lg border border-outline-variant/20 flex flex-col justify-between h-32 relative overflow-hidden group">
-                  <div className="flex justify-between">
-                    <span className="font-label-caps text-label-caps opacity-60">{conta.nome}</span>
-                    <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
-                  </div>
-                  {editando ? (
-                    <div className="flex flex-col gap-1">
-                      <input
-                        className="text-xs px-2 py-1 border rounded bg-white"
-                        value={editandoContaNome[conta.id]}
-                        onChange={(e) => setEditandoContaNome((prev) => ({ ...prev, [conta.id]: e.target.value }))}
-                      />
-                      <div className="flex gap-1">
-                        <button type="button" onClick={() => handleSalvarConta(conta.id)} className="text-xs text-primary font-bold">OK</button>
-                        <button type="button" onClick={() => { setEditandoContaNome((prev) => { const n = { ...prev }; delete n[conta.id]; return n; }); }} className="text-xs text-error">X</button>
+        <div className="lg:col-span-9 space-y-xl">
+          <section className="scroll-mt-32" id="perfil">
+            <h2 className="font-headline-lg text-headline-lg text-primary mb-md">Meu Perfil</h2>
+            <div className="paper-card p-md rounded-xl flex items-center justify-between cursor-pointer group">
+              <div className="flex items-center gap-md">
+                <div className="w-[50px] h-[50px] rounded-full overflow-hidden border-2 border-primary group-hover:scale-105 transition-transform bg-primary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-2xl text-primary">person</span>
+                </div>
+                <div>
+                  <p className="font-body-md font-bold">{prefs.nome}</p>
+                  <p className="font-body-sm text-on-surface-variant">{prefs.email}</p>
+                </div>
+              </div>
+              <span className="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+            </div>
+          </section>
+
+          <section className="scroll-mt-32" id="contas">
+            <div className="flex items-center justify-between mb-md">
+              <h2 className="font-headline-lg text-headline-lg text-primary">Contas Bancárias</h2>
+              <button
+                type="button"
+                onClick={() => setMostrarNovaConta(true)}
+                className="bg-primary text-white px-md py-sm rounded-lg font-label-caps text-label-caps hover:bg-opacity-90 transition-all flex items-center gap-xs"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                + NOVA CONTA
+              </button>
+            </div>
+
+            {mostrarNovaConta && (
+              <div className="mb-4 p-4 paper-card rounded-xl border border-outline-variant">
+                <input
+                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  placeholder="Nome da conta"
+                  value={novaContaNome}
+                  onChange={(e) => setNovaContaNome(e.target.value)}
+                />
+                <select
+                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  value={novaContaTipo}
+                  onChange={(e) => setNovaContaTipo(e.target.value)}
+                >
+                  <option value="Pessoal">Pessoal</option>
+                  <option value="Comercial">Comercial</option>
+                </select>
+                <div className="flex gap-2">
+                  <button type="button" onClick={handleCriarConta} className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
+                  <button type="button" onClick={() => setMostrarNovaConta(false)} className="px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+              {contas.map((conta) => {
+                const editando = editandoContaNome[conta.id] !== undefined;
+                return (
+                  <div key={conta.id} className="paper-card rounded-xl p-md border-l-4 border-primary relative overflow-hidden">
+                    <div className="flex justify-between items-start mb-sm">
+                      <div className="p-sm bg-surface-container rounded-lg">
+                        <span className="material-symbols-outlined text-primary">
+                          {conta.tipo === 'Comercial' ? 'storefront' : 'person'}
+                        </span>
+                      </div>
+                      <div className="flex gap-xs">
+                        <button
+                          type="button"
+                          onClick={() => iniciarEdicaoConta(conta)}
+                          className="p-xs hover:bg-surface-container rounded-lg transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[20px] text-outline">edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="p-xs hover:bg-error-container rounded-lg transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[20px] text-error">delete</span>
+                        </button>
                       </div>
                     </div>
-                  ) : (
-                    <div className="font-data-md text-data-md text-primary">R$ 0,00</div>
-                  )}
-                  <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditandoContaNome((prev) => ({ ...prev, [conta.id]: conta.nome }));
-                        setEditandoContaTipo((prev) => ({ ...prev, [conta.id]: conta.tipo }));
-                      }}
-                      className="material-symbols-outlined text-xs text-on-surface-variant hover:text-primary"
-                    >
-                      edit
-                    </button>
+                    {editando ? (
+                      <div className="flex flex-col gap-2 mt-2">
+                        <input
+                          className="text-sm px-2 py-1 border rounded bg-white"
+                          value={editandoContaNome[conta.id]}
+                          onChange={(e) => setEditandoContaNome((prev) => ({ ...prev, [conta.id]: e.target.value }))}
+                        />
+                        <select
+                          className="text-sm px-2 py-1 border rounded bg-white"
+                          value={editandoContaTipo[conta.id]}
+                          onChange={(e) => setEditandoContaTipo((prev) => ({ ...prev, [conta.id]: e.target.value }))}
+                        >
+                          <option value="Pessoal">Pessoal</option>
+                          <option value="Comercial">Comercial</option>
+                        </select>
+                        <div className="flex gap-1">
+                          <button type="button" onClick={() => handleSalvarConta(conta.id)} className="text-xs text-primary font-bold">OK</button>
+                          <button type="button" onClick={() => { setEditandoContaNome((prev) => { const n = { ...prev }; delete n[conta.id]; return n; }); }} className="text-xs text-error">X</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h3 className="font-headline-lg text-headline-lg-mobile text-primary">{conta.nome}</h3>
+                        <div className="mt-sm">
+                          <span className={'text-[10px] font-bold px-sm py-xs rounded-full border ' + (conta.arquivada
+                            ? 'bg-outline/10 text-outline border-outline/20'
+                            : 'bg-primary/10 text-primary border-primary/20'
+                          )}>
+                            {conta.arquivada ? 'ARQUIVADA' : 'ATIVA'}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="scroll-mt-32" id="categorias">
+            <div className="flex items-center justify-between mb-md">
+              <h2 className="font-headline-lg text-headline-lg text-primary">Categorias</h2>
+              <button
+                type="button"
+                onClick={() => setMostrarNovaCategoria(true)}
+                className="bg-primary text-white px-md py-sm rounded-lg font-label-caps text-label-caps hover:bg-opacity-90 transition-all"
+              >
+                + NOVA CATEGORIA
+              </button>
+            </div>
+
+            {mostrarNovaCategoria && (
+              <div className="mb-4 p-4 paper-card rounded-xl border border-outline-variant">
+                <input
+                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  placeholder="Nome da categoria"
+                  value={novaCatNome}
+                  onChange={(e) => setNovaCatNome(e.target.value)}
+                />
+                <select
+                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  value={novaCatTipo}
+                  onChange={(e) => setNovaCatTipo(e.target.value)}
+                >
+                  <option value="Entrada">Entrada</option>
+                  <option value="Saida">Saída</option>
+                </select>
+                <div className="flex gap-2 items-center mb-2">
+                  <span className="font-label-caps text-label-caps">Cor:</span>
+                  <div className="flex gap-1">
+                    {categoryColors.map((cor) => (
+                      <button
+                        key={cor}
+                        type="button"
+                        onClick={() => setNovaCatCor(cor)}
+                        className={'w-6 h-6 rounded-full border-2 ' + (novaCatCor === cor ? 'border-primary' : 'border-transparent')}
+                        style={{ backgroundColor: cor }}
+                      />
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-            <div className="p-sm border-2 border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center h-32 hover:bg-surface-container transition-colors cursor-pointer">
-              <span className="material-symbols-outlined text-outline">add_circle</span>
-              <span className="font-label-caps text-label-caps mt-1">Conectar Banco</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-md rounded-xl shadow-sm border-l-4 border-error">
-          <div className="flex items-center gap-xs mb-md">
-            <span className="material-symbols-outlined text-error">security</span>
-            <h2 className="font-headline-lg text-headline-lg uppercase tracking-tight text-lg">Segurança</h2>
-          </div>
-          <div className="space-y-sm">
-            <button
-              type="button"
-              onClick={() => setAlterarSenhaAberto(true)}
-              className="w-full flex justify-between items-center p-sm bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors group"
-            >
-              <div className="flex items-center gap-sm">
-                <span className="material-symbols-outlined text-on-surface-variant">lock</span>
-                <span className="font-body-md">Alterar senha de acesso</span>
+                <div className="flex gap-2">
+                  <button type="button" onClick={handleCriarCategoria} className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
+                  <button type="button" onClick={() => setMostrarNovaCategoria(false)} className="px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
+                </div>
               </div>
-              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">chevron_right</span>
-            </button>
+            )}
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-sm">
+              {categorias.map((cat) => {
+                const isEntrada = cat.tipo === 'Entrada';
+                return (
+                  <div key={cat.id} className="paper-card p-sm rounded-xl flex items-center justify-between group cursor-pointer border border-transparent hover:border-primary/20">
+                    <div className="flex items-center gap-sm">
+                      <div className="w-5 h-5 rounded-full shadow-inner" style={{ backgroundColor: cat.cor || categoryColors[0] }}></div>
+                      <div>
+                        <p className="font-body-sm font-bold">{cat.nome}</p>
+                        <p className={'text-[10px] uppercase font-bold ' + (isEntrada ? 'text-primary' : 'text-error')}>
+                          {isEntrada ? 'Entrada' : 'Saída'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">edit</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
+            <section className="scroll-mt-32 space-y-md" id="preferencias">
+              <h2 className="font-headline-lg text-headline-lg text-primary">Preferências</h2>
+              <div className="space-y-sm">
+                <div className="flex flex-col gap-base">
+                  <label className="font-label-caps text-label-caps text-outline">IDIOMA DO SISTEMA</label>
+                  <select className="custom-select w-full paper-card border border-outline-variant rounded-lg p-sm font-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                    <option>Português (Brasil)</option>
+                    <option>English (US)</option>
+                    <option>Español</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-base">
+                  <label className="font-label-caps text-label-caps text-outline">MOEDA PADRÃO</label>
+                  <select className="custom-select w-full paper-card border border-outline-variant rounded-lg p-sm font-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+                    <option>Real Brasileiro (BRL)</option>
+                    <option>Dollar (USD)</option>
+                    <option>Euro (EUR)</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <section className="scroll-mt-32 space-y-md" id="notificacoes">
+              <h2 className="font-headline-lg text-headline-lg text-primary">Notificações</h2>
+              <div className="space-y-sm">
+                <div className="paper-card p-sm rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-secondary">notifications_active</span>
+                    <span className="font-body-md">Alertas de Gasto</span>
+                  </div>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                    <div className="toggle-switch peer"></div>
+                  </label>
+                </div>
+                <div className="paper-card p-sm rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-primary">mail</span>
+                    <span className="font-body-md">Relatórios Mensais</span>
+                  </div>
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" />
+                    <div className="toggle-switch peer"></div>
+                  </label>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section className="scroll-mt-32" id="exportar">
+            <h2 className="font-headline-lg text-headline-lg text-primary mb-md">Exportar Dados</h2>
+            <div className="paper-card p-md rounded-xl space-y-md border-l-4 border-secondary">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                <div className="flex flex-col gap-base">
+                  <label className="font-label-caps text-label-caps text-outline">PERÍODO</label>
+                  <select
+                    className="custom-select w-full bg-surface-container rounded-lg p-sm font-body-md border-none focus:ring-2 focus:ring-secondary outline-none"
+                    value={exportPeriodo}
+                    onChange={(e) => setExportPeriodo(e.target.value)}
+                  >
+                    <option value="30d">Últimos 30 dias</option>
+                    <option value="ano">Este Ano</option>
+                    <option value="todo">Todo o Histórico</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-base">
+                  <label className="font-label-caps text-label-caps text-outline">FORMATO</label>
+                  <div className="flex gap-md h-full items-center">
+                    <label className="flex items-center gap-xs cursor-pointer">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="csv"
+                        checked={exportFormato === 'csv'}
+                        onChange={(e) => setExportFormato(e.target.value)}
+                        className="text-secondary focus:ring-secondary"
+                      />
+                      <span className="font-body-md">CSV</span>
+                    </label>
+                    <label className="flex items-center gap-xs cursor-pointer">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="pdf"
+                        checked={exportFormato === 'pdf'}
+                        onChange={(e) => setExportFormato(e.target.value)}
+                        className="text-secondary focus:ring-secondary"
+                      />
+                      <span className="font-body-md">PDF (Relatório)</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleExportar}
+                className="w-full bg-[#D98B3D] hover:bg-[#C27A2F] text-white py-md rounded-lg font-headline-lg-mobile transition-all shadow-md active:scale-[0.98]"
+              >
+                BAIXAR ARQUIVO
+              </button>
+            </div>
+          </section>
+
+          <section className="scroll-mt-32" id="seguranca">
+            <h2 className="font-headline-lg text-headline-lg text-error mb-md">Segurança</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+              <button
+                type="button"
+                onClick={() => setAlterarSenhaAberto(!alterarSenhaAberto)}
+                className="paper-card p-md rounded-xl flex items-center justify-between group hover:border-primary/20"
+              >
+                <div className="flex items-center gap-md">
+                  <span className="material-symbols-outlined text-primary text-[32px]">lock_reset</span>
+                  <div className="text-left">
+                    <p className="font-body-md font-bold">Alterar Senha</p>
+                    <p className="font-body-sm text-outline">Atualizado recentemente</p>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-outline-variant group-hover:text-primary">chevron_right</span>
+              </button>
+
+              <div className="paper-card p-md rounded-xl flex items-center justify-between border border-transparent hover:border-error/20">
+                <div className="flex items-center gap-md">
+                  <span className="material-symbols-outlined text-error text-[32px]">delete_forever</span>
+                  <div className="text-left">
+                    <p className="font-body-md font-bold text-error">EXCLUIR CONTA</p>
+                    <p className="font-body-sm text-error/60">Esta ação é irreversível</p>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-error opacity-40">warning</span>
+              </div>
+            </div>
 
             {alterarSenhaAberto && (
-              <form onSubmit={handleAlterarSenha} className="p-sm bg-surface-container-low rounded-lg space-y-2">
+              <form onSubmit={handleAlterarSenha} className="mt-md p-md paper-card rounded-xl space-y-2 border-l-4 border-error">
                 <input
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-white font-body-md"
+                  className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface font-body-md"
                   type="password"
                   placeholder="Senha atual"
                   value={senhaAtual}
                   onChange={(e) => setSenhaAtual(e.target.value)}
                 />
                 <input
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-white font-body-md"
+                  className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface font-body-md"
                   type="password"
                   placeholder="Nova senha"
                   value={senhaNova}
@@ -287,29 +500,7 @@ export default function AjustesPage() {
                 </div>
               </form>
             )}
-
-            <div className="flex justify-between items-center p-sm bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors">
-              <div className="flex items-center gap-sm">
-                <span className="material-symbols-outlined text-on-surface-variant">fingerprint</span>
-                <span className="font-body-md">Autenticação Biométrica</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
-                <div className="w-11 h-6 bg-outline-variant rounded-full peer peer-checked:bg-primary peer-focus:ring-2 peer-focus:ring-primary/30 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-md pt-lg">
-          <button className="flex-1 py-4 bg-primary text-on-primary font-bold rounded-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-xs">
-            <span className="material-symbols-outlined">download</span>
-            Baixar Extrato (PDF)
-          </button>
-          <button className="flex-1 py-4 border-2 border-primary text-primary font-bold rounded-lg hover:bg-primary/5 transition-all flex items-center justify-center gap-xs">
-            <span className="material-symbols-outlined">share</span>
-            Compartilhar Dados
-          </button>
+          </section>
         </div>
       </div>
     </div>
