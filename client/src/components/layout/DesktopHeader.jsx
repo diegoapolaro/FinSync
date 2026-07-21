@@ -30,7 +30,7 @@ export default function DesktopHeader() {
       <div className="flex items-center gap-md">
         <div className="relative group">
           <input
-            className="bg-surface-container-low border-none rounded-lg font-body-sm text-body-sm px-md py-2 w-64 focus:ring-2 focus:ring-primary/20 transition-all"
+            className="input-base bg-surface-container-low border-none rounded-lg font-body-sm text-body-sm px-md py-2 w-64 focus:ring-2 focus:ring-primary/20"
             placeholder="Pesquisar transação..."
             type="text"
             value={pesquisa}
@@ -41,14 +41,14 @@ export default function DesktopHeader() {
         </div>
         <button
           onClick={() => navigate('/ajustes')}
-          className="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-100"
+            className="btn-base p-2 hover:bg-surface-container-high rounded-full"
           title="Exportar CSV"
         >
           <span className="material-symbols-outlined text-on-surface-variant">ios_share</span>
         </button>
         <button
           onClick={() => navigate('/ajustes')}
-          className="p-2 hover:bg-surface-container-high rounded-full transition-colors active:scale-95 duration-100"
+            className="btn-base p-2 hover:bg-surface-container-high rounded-full"
           title="Configurações"
         >
           <span className="material-symbols-outlined text-on-surface-variant">settings</span>

@@ -38,7 +38,7 @@ function AlterarSenhaModal({ aberto, onClose }) {
             value={atual}
             onChange={(e) => setAtual(e.target.value)}
             required
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           />
         </label>
         <label className="flex flex-col gap-1 font-label-caps text-label-caps text-outline">
@@ -49,7 +49,7 @@ function AlterarSenhaModal({ aberto, onClose }) {
             onChange={(e) => setNova(e.target.value)}
             required
             minLength={6}
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           />
         </label>
         <label className="flex flex-col gap-1 font-label-caps text-label-caps text-outline">
@@ -59,7 +59,7 @@ function AlterarSenhaModal({ aberto, onClose }) {
             value={confirmar}
             onChange={(e) => setConfirmar(e.target.value)}
             required
-            className={`bg-surface-container-lowest border ${confirmar && !coincidem ? 'border-error' : 'border-outline-variant'} text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10`}
+            className={`bg-surface-container-lowest border input-base ${confirmar && !coincidem ? 'border-error' : 'border-outline-variant'} text-on-surface font-body-lg text-body-lg p-3`}
           />
           {confirmar && !coincidem && (
             <span className="font-label-caps text-label-caps text-error mt-1">Senhas não coincidem</span>
@@ -68,7 +68,7 @@ function AlterarSenhaModal({ aberto, onClose }) {
         <button
           type="submit"
           disabled={!coincidem || nova.length < 6}
-          className="w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink transition-colors disabled:opacity-40"
+          className="btn-base w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink disabled:opacity-40"
         >
           Alterar Senha
         </button>
@@ -88,7 +88,7 @@ export default function Seguranca({ aberto, setAberto }) {
           <button
             type="button"
             onClick={() => setAberto(true)}
-            className="text-left font-body-sm text-body-sm text-primary hover:underline underline-offset-4 decoration-primary decoration-dashed w-max"
+            className="btn-base text-left font-body-sm text-body-sm text-primary hover:underline underline-offset-4 decoration-primary decoration-dashed w-max"
           >
             Alterar Senha
           </button>
@@ -97,7 +97,7 @@ export default function Seguranca({ aberto, setAberto }) {
       <div className="text-center mt-8 mb-stack-loose">
         <button
           type="button"
-          className="font-label-caps text-label-caps text-error hover:underline underline-offset-4 decoration-error decoration-dashed"
+          className="btn-base font-label-caps text-label-caps text-error hover:underline underline-offset-4 decoration-error decoration-dashed"
         >
           EXCLUIR CONTA PERMANENTEMENTE
         </button>

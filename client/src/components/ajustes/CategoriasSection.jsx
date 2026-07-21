@@ -15,7 +15,7 @@ function SeletorCor({ cor, onChange }) {
           key={c}
           type="button"
           onClick={() => onChange(c)}
-          className={`w-8 h-8 rounded-full border-2 ${cor === c ? 'border-primary scale-110' : 'border-transparent'} transition-transform`}
+            className={`btn-base w-8 h-8 rounded-full border-2 ${cor === c ? 'border-primary scale-110' : 'border-transparent'}`}
           style={{ backgroundColor: c }}
         />
       ))}
@@ -53,7 +53,7 @@ function EditarCategoriaModal({ categoria, onClose, onCategoriasChange }) {
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             required
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           />
         </label>
         <div className="flex flex-col gap-2">
@@ -62,7 +62,7 @@ function EditarCategoriaModal({ categoria, onClose, onCategoriasChange }) {
         </div>
         <button
           type="submit"
-          className="w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink transition-colors"
+          className="btn-base w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink"
         >
           Salvar
         </button>
@@ -96,7 +96,7 @@ function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             required
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           />
         </label>
         <label className="flex flex-col gap-1 font-label-caps text-label-caps text-outline">
@@ -104,7 +104,7 @@ function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value)}
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           >
             <option value="Entrada">Entrada</option>
             <option value="Saida">Saída</option>
@@ -116,7 +116,7 @@ function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
         </div>
         <button
           type="submit"
-          className="w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink transition-colors"
+          className="btn-base w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink"
         >
           Criar Categoria
         </button>
@@ -149,7 +149,7 @@ export default function CategoriasSection({ categorias, onCategoriasChange, edit
           <button
             type="button"
             onClick={() => setCriando(true)}
-            className="mt-2 text-left font-label-caps text-label-caps text-primary border-2 border-primary p-2 uppercase hover:bg-primary hover:text-on-primary transition-colors inline-block w-max"
+            className="btn-base mt-2 text-left font-label-caps text-label-caps text-primary border-2 border-primary p-2 uppercase hover:bg-primary hover:text-on-primary inline-block w-max"
           >
             + NOVA CATEGORIA
           </button>

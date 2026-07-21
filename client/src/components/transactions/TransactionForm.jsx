@@ -13,10 +13,10 @@ export default function TransactionForm({
         <button
           type="button"
           onClick={() => setForm({ ...form, tipo: 'Entrada' })}
-          className={
+           className={
             form.tipo === 'Entrada'
-              ? 'flex-1 border-2 border-stamp-accent bg-tertiary-fixed-dim/20 text-stamp-accent py-3 uppercase font-label-caps text-label-caps font-bold transition-colors flex items-center justify-center gap-2'
-              : 'flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary transition-colors flex items-center justify-center gap-2'
+              ? 'btn-base flex-1 border-2 border-stamp-accent bg-tertiary-fixed-dim/20 text-stamp-accent py-3 uppercase font-label-caps text-label-caps font-bold flex items-center justify-center gap-2'
+              : 'btn-base flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary flex items-center justify-center gap-2'
           }
         >
           <span className="material-symbols-outlined text-lg">add</span>
@@ -27,8 +27,8 @@ export default function TransactionForm({
           onClick={() => setForm({ ...form, tipo: 'Saida' })}
           className={
             form.tipo === 'Saida'
-              ? 'flex-1 border-2 border-stamp-accent bg-tertiary-fixed-dim/20 text-stamp-accent py-3 uppercase font-label-caps text-label-caps font-bold transition-colors flex items-center justify-center gap-2'
-              : 'flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary transition-colors flex items-center justify-center gap-2'
+              ? 'btn-base flex-1 border-2 border-stamp-accent bg-tertiary-fixed-dim/20 text-stamp-accent py-3 uppercase font-label-caps text-label-caps font-bold flex items-center justify-center gap-2'
+              : 'btn-base flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary flex items-center justify-center gap-2'
           }
         >
           <span className="material-symbols-outlined text-lg">remove</span>
@@ -42,7 +42,7 @@ export default function TransactionForm({
           value={form.descricao}
           onChange={(e) => setForm({ ...form, descricao: e.target.value })}
           required
-          className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+          className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
         />
       </label>
       <div className="flex gap-3">
@@ -56,7 +56,7 @@ export default function TransactionForm({
             value={form.valor}
             onChange={(e) => setForm({ ...form, valor: e.target.value })}
             required
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           />
         </label>
         <label className="flex flex-col gap-2 font-label-caps text-label-caps text-outline flex-1">
@@ -65,7 +65,7 @@ export default function TransactionForm({
             type="date"
             value={form.data}
             onChange={(e) => setForm({ ...form, data: e.target.value })}
-            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           />
         </label>
       </div>
@@ -73,13 +73,13 @@ export default function TransactionForm({
         <button
           type="button"
           onClick={() => setFormAberto(false)}
-          className="flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary transition-colors"
+          className="btn-base flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary"
         >
           Cancelar
         </button>
         <button
           type="submit"
-          className="flex-1 border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink transition-colors"
+          className="btn-base flex-1 border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink"
         >
           Registrar {form.tipo.toLowerCase()}
         </button>

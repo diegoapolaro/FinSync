@@ -161,7 +161,7 @@ export default function LancamentosPage() {
           <button
             type="button"
             onClick={() => navegar(-1)}
-            className="hover:underline flex items-center gap-1 opacity-60"
+            className="btn-base hover:underline flex items-center gap-1 opacity-60"
           >
             <span className="material-symbols-outlined text-sm">arrow_left</span>
             Ontem
@@ -172,7 +172,7 @@ export default function LancamentosPage() {
           <button
             type="button"
             onClick={() => navegar(1)}
-            className="hover:underline flex items-center gap-1 opacity-60"
+            className="btn-base hover:underline flex items-center gap-1 opacity-60"
           >
             Amanhã
             <span className="material-symbols-outlined text-sm">arrow_right</span>
@@ -187,8 +187,8 @@ export default function LancamentosPage() {
             onClick={() => setForm((f) => ({ ...f, tipo: 'Entrada', categoriaId: '' }))}
             className={
               form.tipo === 'Entrada'
-                ? 'border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#2F6B4F] text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
-                : 'border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#fdf9ec] hover:bg-[#2F6B4F] hover:text-white hover:border-[#2F6B4F] transition-colors group'
+                ? 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#2F6B4F] text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
+                : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#fdf9ec] hover:bg-[#2F6B4F] hover:text-white hover:border-[#2F6B4F] transition-colors group'
             }
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -201,8 +201,8 @@ export default function LancamentosPage() {
             onClick={() => setForm((f) => ({ ...f, tipo: 'Saida', categoriaId: '' }))}
             className={
               form.tipo === 'Saida'
-                ? 'border-2 border-[#B23A2E] p-3 flex flex-col items-center justify-center gap-1 bg-[#B23A2E] text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
-                : 'border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#fdf9ec] hover:bg-[#B23A2E] hover:text-white hover:border-[#B23A2E] transition-colors group'
+                ? 'btn-base border-2 border-[#B23A2E] p-3 flex flex-col items-center justify-center gap-1 bg-[#B23A2E] text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
+                : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-[#fdf9ec] hover:bg-[#B23A2E] hover:text-white hover:border-[#B23A2E] transition-colors group'
             }
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -262,7 +262,7 @@ export default function LancamentosPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="flex-1 border-2 border-primary p-4 font-label-caps text-label-caps hover:bg-surface-variant transition-colors flex items-center justify-center gap-2"
+              className="btn-base flex-1 border-2 border-primary p-4 font-label-caps text-label-caps hover:bg-surface-variant flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined">close</span>
               CANCELAR
@@ -273,10 +273,11 @@ export default function LancamentosPage() {
             disabled={enviando}
             className={
               editandoId
-                ? 'flex-1 border-2 border-primary bg-primary text-on-primary font-label-caps text-label-caps p-4 hover:bg-surface-container-lowest hover:text-primary transition-colors flex items-center justify-center gap-2 disabled:opacity-50'
-                : 'w-full border-2 border-primary bg-primary text-on-primary font-label-caps text-label-caps p-4 hover:bg-surface-container-lowest hover:text-primary transition-colors flex items-center justify-center gap-2 disabled:opacity-50'
+                ? 'btn-base flex-1 border-2 border-primary bg-primary text-on-primary font-label-caps text-label-caps p-4 hover:bg-surface-container-lowest hover:text-primary flex items-center justify-center gap-2 disabled:opacity-50'
+                : 'btn-base w-full border-2 border-primary bg-primary text-on-primary font-label-caps text-label-caps p-4 hover:bg-surface-container-lowest hover:text-primary flex items-center justify-center gap-2 disabled:opacity-50'
             }
           >
+            {enviando && <span className="spinner-sm spinner" />}
             <span className="material-symbols-outlined">ink_pen</span>
             {editandoId ? 'SALVAR ALTERAÇÕES' : 'REGISTRAR LANÇAMENTO'}
           </button>
@@ -291,7 +292,7 @@ export default function LancamentosPage() {
 
         {carregando && (
           <p className="font-body-lg text-body-lg text-on-surface-variant text-center py-8">
-            Carregando...
+            <span className="spinner inline-block align-middle mr-2" />Carregando...
           </p>
         )}
 
@@ -308,7 +309,7 @@ export default function LancamentosPage() {
               return (
                 <li
                   key={t.id}
-                  className="flex items-center justify-between border-b border-dashed border-outline-variant pb-2 group cursor-pointer hover:bg-surface-variant transition-colors p-1 -mx-1"
+                  className="transaction-card flex items-center justify-between border-b border-dashed border-outline-variant pb-2 group cursor-pointer hover:bg-surface-variant p-1 -mx-1"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-1 h-8 shrink-0" style={{ backgroundColor: cor }} />
@@ -339,14 +340,14 @@ export default function LancamentosPage() {
                     <button
                       type="button"
                       onClick={() => editar(t)}
-                      className="text-outline opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="btn-base text-outline opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <span className="material-symbols-outlined text-[18px]">edit</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(t.id)}
-                      className="text-outline opacity-0 group-hover:opacity-100 transition-opacity hover:text-error"
+                      className="btn-base text-outline opacity-0 group-hover:opacity-100 transition-opacity hover:text-error"
                     >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
                     </button>

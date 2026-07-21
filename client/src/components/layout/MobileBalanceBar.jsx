@@ -6,7 +6,7 @@ export default function MobileBalanceBar({ resumo }) {
       <span className="font-label-caps text-label-caps text-outline uppercase text-sm">
         Saldo do Mês
       </span>
-      <span className="font-value-lg text-value-lg text-ink font-bold">
+      <span className="font-value-lg text-value-lg text-ink font-bold balance-counter">
         {formatCurrency(resumo.saldoMensal)}
       </span>
     </div>

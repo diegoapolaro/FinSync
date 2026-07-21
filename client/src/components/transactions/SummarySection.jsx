@@ -7,7 +7,7 @@ export default function SummarySection({ resumo }) {
         <span className="font-body-lg text-body-lg text-on-surface">
           ENTRADAS
         </span>
-        <span className="font-value-lg text-value-lg text-entrada">
+        <span className="font-value-lg text-value-lg text-entrada balance-counter">
           + {formatCurrency(resumo.totalEntradasMes)}
         </span>
       </div>
@@ -15,7 +15,7 @@ export default function SummarySection({ resumo }) {
         <span className="font-body-lg text-body-lg text-on-surface">
           SAÍDAS
         </span>
-        <span className="font-value-lg text-value-lg text-saida">
+        <span className="font-value-lg text-value-lg text-saida balance-counter">
           - {formatCurrency(resumo.totalSaidasMes)}
         </span>
       </div>

@@ -8,7 +8,7 @@ export default function EmptyStateComAcoes({ resumo, abrirLancamento }) {
           <button
             type="button"
             onClick={() => abrirLancamento('Entrada')}
-            className="flex-1 border-2 border-primary py-3 uppercase font-label-caps text-label-caps font-bold text-primary hover:bg-primary hover:text-on-primary transition-colors flex items-center justify-center gap-2"
+            className="btn-base flex-1 border-2 border-primary py-3 uppercase font-label-caps text-label-caps font-bold text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-lg">add</span>
             Entrada
@@ -16,7 +16,7 @@ export default function EmptyStateComAcoes({ resumo, abrirLancamento }) {
           <button
             type="button"
             onClick={() => abrirLancamento('Saida')}
-            className="flex-1 border-2 border-primary py-3 uppercase font-label-caps text-label-caps font-bold text-primary hover:bg-primary hover:text-on-primary transition-colors flex items-center justify-center gap-2"
+            className="btn-base flex-1 border-2 border-primary py-3 uppercase font-label-caps text-label-caps font-bold text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-lg">remove</span>
             Saída

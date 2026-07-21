@@ -14,7 +14,7 @@ export default function TransactionList({ titulo, transacoes, handleDelete }) {
         return (
           <div
             key={transacao.id}
-            className="flex items-center px-gutter py-stack-base border-b border-dashed border-line group hover:bg-surface-variant transition-colors duration-75"
+            className="transaction-card flex items-center px-gutter py-stack-base border-b border-dashed border-line group hover:bg-surface-variant transition-colors duration-75"
           >
             <div
               className="w-1 h-12 mr-4 rounded-sm flex-shrink-0"
@@ -40,7 +40,7 @@ export default function TransactionList({ titulo, transacoes, handleDelete }) {
               <button
                 type="button"
                 onClick={() => handleDelete(transacao.id)}
-                className="font-label-caps text-label-caps text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"
+                className="btn-base font-label-caps text-label-caps text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"
               >
                 Excluir
               </button>

@@ -4,6 +4,7 @@ import { TemaProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import Layout from './components/layout/Layout';
+import './styles/animations.css';
 import Extrato from './pages/Extrato';
 import LancamentosPage from './pages/LancamentosPage';
 import RelatoriosPage from './pages/RelatoriosPage';

@@ -209,25 +209,25 @@ export default function RelatoriosPage() {
         <div className="flex items-center gap-sm">
           <button
             onClick={() => navegar(-1)}
-            className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-1"
+            className="btn-base material-symbols-outlined text-on-surface-variant hover:text-primary p-1"
           >
             chevron_left
           </button>
-          <button className="flex items-center gap-sm bg-surface-container-high px-md py-sm rounded-lg border border-outline-variant hover:border-primary transition-colors group">
+          <button className="btn-base flex items-center gap-sm bg-surface-container-high px-md py-sm rounded-lg border border-outline-variant hover:border-primary group">
             <span className="font-data-md text-data-md text-on-surface">{mesAnoDisplay}</span>
             <span className="material-symbols-outlined text-outline group-hover:text-primary">expand_more</span>
           </button>
           <button
             onClick={() => navegar(1)}
-            className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-1"
+            className="btn-base material-symbols-outlined text-on-surface-variant hover:text-primary p-1"
           >
             chevron_right
           </button>
         </div>
       </header>
 
-      {carregando && (
-        <p className="text-body-sm font-body-sm text-on-surface-variant text-center py-12">Carregando relatório...</p>
+        {carregando && (
+        <p className="text-body-sm font-body-sm text-on-surface-variant text-center py-12"><span className="spinner inline-block align-middle mr-2" />Carregando relatório...</p>
       )}
 
       {!carregando && !contaSelecionadaId && (

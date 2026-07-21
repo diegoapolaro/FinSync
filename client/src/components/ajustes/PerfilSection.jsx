@@ -48,24 +48,24 @@ export default function PerfilSection({ prefs, atualizar, aberto, setAberto }) {
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 required
-                className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
-              />
-            </label>
-            <label className="flex flex-col gap-1 font-label-caps text-label-caps text-outline">
-              E-mail
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 focus:border-primary focus:outline-2 focus:outline-primary/10"
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-label-caps text-label-caps text-outline">
+          E-mail
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
               />
             </label>
             <button
               type="submit"
-              className="w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink transition-colors"
-            >
-              Salvar
+          className="btn-base w-full border-2 border-primary bg-primary text-on-primary py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-ink"
+        >
+          Salvar
             </button>
           </form>
         </Modal>

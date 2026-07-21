@@ -40,7 +40,7 @@ export function ToastProvider({ children }) {
               <button
                 type="button"
                 onClick={() => removeToast(toast.id)}
-                className="text-current opacity-60 hover:opacity-100 shrink-0"
+                className="btn-base text-current opacity-60 hover:opacity-100 shrink-0"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>

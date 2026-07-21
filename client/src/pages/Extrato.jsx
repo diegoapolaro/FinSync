@@ -132,7 +132,7 @@ export default function Extrato() {
             <div className="bg-white/60 backdrop-blur-sm border-l-4 border-primary rounded-lg p-md shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
               <div>
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-1">Entradas</p>
-                <h3 className="font-data-lg text-data-lg text-primary">{formatCurrency(totalEntradas)}</h3>
+                <h3 className="font-data-lg text-data-lg text-primary balance-counter">{formatCurrency(totalEntradas)}</h3>
               </div>
               <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#105137]/10 text-primary">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_circle_up</span>
@@ -142,7 +142,7 @@ export default function Extrato() {
             <div className="bg-white/60 backdrop-blur-sm border-l-4 border-error rounded-lg p-md shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
               <div>
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-1">Saídas</p>
-                <h3 className="font-data-lg text-data-lg text-error">{formatCurrency(totalSaidas)}</h3>
+                <h3 className="font-data-lg text-data-lg text-error balance-counter">{formatCurrency(totalSaidas)}</h3>
               </div>
               <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#B23A2E]/10 text-error">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_circle_down</span>
@@ -152,7 +152,7 @@ export default function Extrato() {
             <div className="bg-white/60 backdrop-blur-sm border-l-4 border-tertiary rounded-lg p-md shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
               <div>
                 <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-1">Saldo Atual</p>
-                <h3 className="font-data-lg text-data-lg text-tertiary">{formatCurrency(saldo)}</h3>
+                <h3 className="font-data-lg text-data-lg text-tertiary balance-counter">{formatCurrency(saldo)}</h3>
               </div>
               <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#4A7C7E]/10 text-tertiary">
                 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
@@ -173,7 +173,7 @@ export default function Extrato() {
               </thead>
               <tbody className="divide-y divide-outline-variant">
                 {carregando && (
-                  <tr><td colSpan={5} className="text-center py-12 text-body-sm text-on-surface-variant">Carregando...</td></tr>
+                  <tr><td colSpan={5} className="text-center py-12 text-body-sm text-on-surface-variant"><span className="spinner inline-block align-middle mr-2" />Carregando...</td></tr>
                 )}
                 {!carregando && paginadas.length === 0 && (
                   <tr><td colSpan={5} className="text-center py-12 text-body-sm text-on-surface-variant">Nenhuma movimentação neste período.</td></tr>
@@ -181,7 +181,7 @@ export default function Extrato() {
                 {!carregando && paginadas.map((t) => {
                   const isEntrada = t.tipo === 'Entrada';
                   return (
-                    <tr key={t.id} className="group hover:bg-surface-container-low transition-colors">
+                    <tr key={t.id} className="transaction-card group hover:bg-surface-container-low transition-colors">
                       <td className={'py-4 px-md font-data-md text-data-md border-l-4 ' + (isEntrada ? 'border-primary' : 'border-error')}>
                         {formatShortDate(t.data)}
                       </td>
@@ -205,7 +205,7 @@ export default function Extrato() {
                       <td className="py-4 px-md text-right opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => handleDelete(t.id)}
-                          className="material-symbols-outlined text-on-surface-variant hover:text-error"
+                          className="btn-base material-symbols-outlined text-on-surface-variant hover:text-error"
                         >
                           delete
                         </button>
@@ -225,7 +225,7 @@ export default function Extrato() {
                   <button
                     onClick={() => setPagina(Math.max(0, paginaSegura - 1))}
                     disabled={paginaSegura === 0}
-                    className="w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-white transition-colors disabled:opacity-30"
+                    className="btn-base w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-white disabled:opacity-30"
                   >
                     <span className="material-symbols-outlined text-sm">chevron_left</span>
                   </button>
@@ -237,7 +237,7 @@ export default function Extrato() {
                       <button
                         key={pageNum}
                         onClick={() => setPagina(pageNum)}
-                        className={'w-8 h-8 flex items-center justify-center rounded font-data-md text-xs ' + (pageNum === paginaSegura ? 'bg-primary text-white' : 'border border-outline-variant hover:bg-white transition-colors')}
+                        className={'btn-base w-8 h-8 flex items-center justify-center rounded font-data-md text-xs ' + (pageNum === paginaSegura ? 'bg-primary text-white' : 'border border-outline-variant hover:bg-white')}
                       >
                         {pageNum + 1}
                       </button>
@@ -246,7 +246,7 @@ export default function Extrato() {
                   <button
                     onClick={() => setPagina(Math.min(totalPaginas - 1, paginaSegura + 1))}
                     disabled={paginaSegura >= totalPaginas - 1}
-                    className="w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-white transition-colors disabled:opacity-30"
+                    className="btn-base w-8 h-8 flex items-center justify-center border border-outline-variant rounded hover:bg-white disabled:opacity-30"
                   >
                     <span className="material-symbols-outlined text-sm">chevron_right</span>
                   </button>
@@ -288,7 +288,7 @@ export default function Extrato() {
           <div className="flex justify-between items-end mb-md">
             <div>
               <p className="font-label-caps text-label-caps text-on-surface-variant mb-xs">SALDO TOTAL</p>
-              <p className="font-data-lg text-[28px] leading-none text-tertiary">{formatCurrency(saldo)}</p>
+              <p className="font-data-lg text-[28px] leading-none text-tertiary balance-counter">{formatCurrency(saldo)}</p>
             </div>
             <span className="material-symbols-outlined text-tertiary-fixed-dim" style={{ fontSize: 32 }}>account_balance_wallet</span>
           </div>
@@ -298,14 +298,14 @@ export default function Extrato() {
                 <span className="material-symbols-outlined text-on-primary-fixed-variant text-sm">add_circle</span>
                 <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Entradas</span>
               </div>
-              <p className="font-data-md text-data-md text-on-primary-fixed-variant">+ {formatCurrency(totalEntradas)}</p>
+              <p className="font-data-md text-data-md text-on-primary-fixed-variant balance-counter">+ {formatCurrency(totalEntradas)}</p>
             </div>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-xs mb-1">
                 <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">Saídas</span>
                 <span className="material-symbols-outlined text-error text-sm">remove_circle</span>
               </div>
-              <p className="font-data-md text-data-md text-error">- {formatCurrency(totalSaidas)}</p>
+              <p className="font-data-md text-data-md text-error balance-counter">- {formatCurrency(totalSaidas)}</p>
             </div>
           </div>
         </section>
@@ -313,14 +313,14 @@ export default function Extrato() {
         <div className="flex gap-sm mb-lg">
           <button
             onClick={handleNovaEntrada}
-            className="w-1/2 bg-primary text-on-primary py-4 rounded-lg flex items-center justify-center gap-xs active:scale-95 transition-transform shadow-md"
+            className="btn-base w-1/2 bg-primary text-on-primary py-4 rounded-lg flex items-center justify-center gap-xs shadow-md"
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'wght' 700" }}>add</span>
             <span className="font-label-caps text-label-caps">ENTRADA</span>
           </button>
           <button
             onClick={handleNovaSaida}
-            className="w-1/2 bg-error text-on-error py-4 rounded-lg flex items-center justify-center gap-xs active:scale-95 transition-transform shadow-md"
+            className="btn-base w-1/2 bg-error text-on-error py-4 rounded-lg flex items-center justify-center gap-xs shadow-md"
           >
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'wght' 700" }}>remove</span>
             <span className="font-label-caps text-label-caps">SAÍDA</span>
@@ -333,7 +333,7 @@ export default function Extrato() {
         </div>
 
         {carregando && (
-          <p className="text-body-sm text-on-surface-variant text-center py-8">Carregando...</p>
+          <p className="text-body-sm text-on-surface-variant text-center py-8"><span className="spinner inline-block align-middle mr-2" />Carregando...</p>
         )}
 
         {!carregando && filtradas.length === 0 && (
@@ -346,7 +346,7 @@ export default function Extrato() {
               const isEntrada = t.tipo === 'Entrada';
               const borderColor = isEntrada ? 'border-primary' : (t.tipo === 'Saida' || t.tipo === 'Saída' ? 'border-error' : 'border-tertiary');
               return (
-                <div key={t.id} className={'group relative bg-surface-container-lowest flex items-center p-sm rounded-lg receipt-shadow transition-colors hover:bg-[#EEF0EC] border-l-4 ' + borderColor}>
+                <div key={t.id} className={'transaction-card group relative bg-surface-container-lowest flex items-center p-sm rounded-lg receipt-shadow hover:bg-[#EEF0EC] border-l-4 ' + borderColor}>
                   <div className="flex-grow">
                     <p className="font-body-md font-bold text-on-surface">{t.descricao}</p>
                     <p className="font-body-sm text-on-surface-variant text-[12px]">
@@ -359,7 +359,7 @@ export default function Extrato() {
                     </p>
                     <button
                       onClick={() => handleDelete(t.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-on-surface-variant hover:text-error"
+                      className="btn-base opacity-0 group-hover:opacity-100 transition-opacity p-1 text-on-surface-variant hover:text-error"
                     >
                       <span className="material-symbols-outlined">delete</span>
                     </button>

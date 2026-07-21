@@ -54,8 +54,9 @@ export default function ExportarDados() {
           type="button"
           onClick={baixar}
           disabled={exportando}
-          className="w-full font-label-caps text-label-caps text-primary border-2 border-primary p-3 uppercase hover:bg-primary hover:text-on-primary transition-colors flex justify-center items-center gap-2 mt-4 disabled:opacity-50"
+          className="btn-base w-full font-label-caps text-label-caps text-primary border-2 border-primary p-3 uppercase hover:bg-primary hover:text-on-primary flex justify-center items-center gap-2 mt-4 disabled:opacity-50"
         >
+          {exportando && <span className="spinner-sm spinner" />}
           <span className="material-symbols-outlined">download</span>
           {exportando ? 'EXPORTANDO...' : 'BAIXAR EXTRATO (CSV)'}
         </button>

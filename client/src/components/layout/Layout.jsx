@@ -36,7 +36,7 @@ export default function Layout() {
       <div className="md:ml-[280px] flex flex-col h-screen">
         <DesktopHeader />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto page-transition-wrapper">
           <Outlet context={{
             contas,
             contaSelecionadaId,

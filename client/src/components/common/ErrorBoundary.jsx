@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component {
                 this.setState({ erro: null });
                 window.location.href = '/';
               }}
-              className="border-2 border-primary bg-primary text-on-primary px-6 py-3 uppercase font-label-caps text-label-caps hover:bg-ink transition-colors"
+              className="btn-base border-2 border-primary bg-primary text-on-primary px-6 py-3 uppercase font-label-caps text-label-caps hover:bg-ink"
             >
               Tentar novamente
             </button>

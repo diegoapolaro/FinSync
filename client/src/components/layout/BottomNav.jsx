@@ -23,8 +23,8 @@ export default function BottomNav() {
             onClick={() => navigate(`/${item.id}`)}
             className={
               isActive
-                ? 'flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-6 py-2 scale-90'
-                : 'flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 hover:text-primary transition-transform active:scale-90 duration-150'
+                ? 'btn-base flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-6 py-2 scale-90'
+                : 'btn-base flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 hover:text-primary'
             }
           >
             <span className="material-symbols-outlined" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>

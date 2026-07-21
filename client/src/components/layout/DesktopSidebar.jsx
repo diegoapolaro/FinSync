@@ -35,8 +35,8 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
                 }}
                 className={
                   selecionada
-                    ? 'ink-stamp-active flex items-center gap-xs p-4 w-full transition-all duration-200'
-                    : 'flex items-center gap-xs p-4 w-full text-surface-variant hover:bg-surface-container-highest transition-all group duration-200'
+                    ? 'btn-base ink-stamp-active flex items-center gap-xs p-4 w-full'
+                    : 'btn-base flex items-center gap-xs p-4 w-full text-surface-variant hover:bg-surface-container-highest group'
                 }
               >
                 <span className="material-symbols-outlined" style={selecionada ? {} : undefined}>
@@ -61,7 +61,7 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
               type="button"
               onClick={() => navigate(`/${link.id}`)}
               className={
-                'flex items-center gap-xs p-3 rounded-lg transition-colors ' +
+                'btn-base flex items-center gap-xs p-3 rounded-lg ' +
                 (isActive
                   ? 'bg-surface-container-highest/10 text-surface font-bold'
                   : 'text-surface-variant hover:bg-surface-container-highest')

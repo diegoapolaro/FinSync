@@ -178,7 +178,7 @@ export default function AjustesPage() {
               <button
                 type="button"
                 onClick={() => setMostrarNovaConta(true)}
-                className="bg-primary text-white px-md py-sm rounded-lg font-label-caps text-label-caps hover:bg-opacity-90 transition-all flex items-center gap-xs"
+                className="btn-base bg-primary text-white px-md py-sm rounded-lg font-label-caps text-label-caps hover:bg-opacity-90 flex items-center gap-xs"
               >
                 <span className="material-symbols-outlined text-[18px]">add</span>
                 + NOVA CONTA
@@ -188,13 +188,13 @@ export default function AjustesPage() {
             {mostrarNovaConta && (
               <div className="mb-4 p-4 paper-card rounded-xl border border-outline-variant">
                 <input
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  className="input-base w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
                   placeholder="Nome da conta"
                   value={novaContaNome}
                   onChange={(e) => setNovaContaNome(e.target.value)}
                 />
                 <select
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  className="input-base w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
                   value={novaContaTipo}
                   onChange={(e) => setNovaContaTipo(e.target.value)}
                 >
@@ -202,8 +202,8 @@ export default function AjustesPage() {
                   <option value="Comercial">Comercial</option>
                 </select>
                 <div className="flex gap-2">
-                  <button type="button" onClick={handleCriarConta} className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
-                  <button type="button" onClick={() => setMostrarNovaConta(false)} className="px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
+                  <button type="button" onClick={handleCriarConta} className="btn-base px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
+                  <button type="button" onClick={() => setMostrarNovaConta(false)} className="btn-base px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
                 </div>
               </div>
             )}
@@ -223,13 +223,13 @@ export default function AjustesPage() {
                         <button
                           type="button"
                           onClick={() => iniciarEdicaoConta(conta)}
-                          className="p-xs hover:bg-surface-container rounded-lg transition-colors"
+                          className="btn-base p-xs hover:bg-surface-container rounded-lg"
                         >
                           <span className="material-symbols-outlined text-[20px] text-outline">edit</span>
                         </button>
                         <button
                           type="button"
-                          className="p-xs hover:bg-error-container rounded-lg transition-colors"
+                          className="btn-base p-xs hover:bg-error-container rounded-lg"
                         >
                           <span className="material-symbols-outlined text-[20px] text-error">delete</span>
                         </button>
@@ -238,12 +238,12 @@ export default function AjustesPage() {
                     {editando ? (
                       <div className="flex flex-col gap-2 mt-2">
                         <input
-                          className="text-sm px-2 py-1 border rounded bg-white"
+                          className="input-base text-sm px-2 py-1 border rounded bg-white"
                           value={editandoContaNome[conta.id]}
                           onChange={(e) => setEditandoContaNome((prev) => ({ ...prev, [conta.id]: e.target.value }))}
                         />
                         <select
-                          className="text-sm px-2 py-1 border rounded bg-white"
+                          className="input-base text-sm px-2 py-1 border rounded bg-white"
                           value={editandoContaTipo[conta.id]}
                           onChange={(e) => setEditandoContaTipo((prev) => ({ ...prev, [conta.id]: e.target.value }))}
                         >
@@ -251,8 +251,8 @@ export default function AjustesPage() {
                           <option value="Comercial">Comercial</option>
                         </select>
                         <div className="flex gap-1">
-                          <button type="button" onClick={() => handleSalvarConta(conta.id)} className="text-xs text-primary font-bold">OK</button>
-                          <button type="button" onClick={() => { setEditandoContaNome((prev) => { const n = { ...prev }; delete n[conta.id]; return n; }); }} className="text-xs text-error">X</button>
+                          <button type="button" onClick={() => handleSalvarConta(conta.id)} className="btn-base text-xs text-primary font-bold">OK</button>
+                          <button type="button" onClick={() => { setEditandoContaNome((prev) => { const n = { ...prev }; delete n[conta.id]; return n; }); }} className="btn-base text-xs text-error">X</button>
                         </div>
                       </div>
                     ) : (
@@ -280,7 +280,7 @@ export default function AjustesPage() {
               <button
                 type="button"
                 onClick={() => setMostrarNovaCategoria(true)}
-                className="bg-primary text-white px-md py-sm rounded-lg font-label-caps text-label-caps hover:bg-opacity-90 transition-all"
+                className="btn-base bg-primary text-white px-md py-sm rounded-lg font-label-caps text-label-caps hover:bg-opacity-90"
               >
                 + NOVA CATEGORIA
               </button>
@@ -289,13 +289,13 @@ export default function AjustesPage() {
             {mostrarNovaCategoria && (
               <div className="mb-4 p-4 paper-card rounded-xl border border-outline-variant">
                 <input
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  className="input-base w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
                   placeholder="Nome da categoria"
                   value={novaCatNome}
                   onChange={(e) => setNovaCatNome(e.target.value)}
                 />
                 <select
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
+                  className="input-base w-full px-3 py-2 border border-outline-variant rounded-lg mb-2 bg-surface font-body-md"
                   value={novaCatTipo}
                   onChange={(e) => setNovaCatTipo(e.target.value)}
                 >
@@ -310,15 +310,15 @@ export default function AjustesPage() {
                         key={cor}
                         type="button"
                         onClick={() => setNovaCatCor(cor)}
-                        className={'w-6 h-6 rounded-full border-2 ' + (novaCatCor === cor ? 'border-primary' : 'border-transparent')}
+                        className={'btn-base w-6 h-6 rounded-full border-2 ' + (novaCatCor === cor ? 'border-primary' : 'border-transparent')}
                         style={{ backgroundColor: cor }}
                       />
                     ))}
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={handleCriarCategoria} className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
-                  <button type="button" onClick={() => setMostrarNovaCategoria(false)} className="px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
+                  <button type="button" onClick={handleCriarCategoria} className="btn-base px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
+                  <button type="button" onClick={() => setMostrarNovaCategoria(false)} className="btn-base px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
                 </div>
               </div>
             )}
@@ -441,7 +441,7 @@ export default function AjustesPage() {
               <button
                 type="button"
                 onClick={handleExportar}
-                className="w-full bg-[#D98B3D] hover:bg-[#C27A2F] text-white py-md rounded-lg font-headline-lg-mobile transition-all shadow-md active:scale-[0.98]"
+                className="btn-base w-full bg-[#D98B3D] hover:bg-[#C27A2F] text-white py-md rounded-lg font-headline-lg-mobile shadow-md"
               >
                 BAIXAR ARQUIVO
               </button>
@@ -481,22 +481,22 @@ export default function AjustesPage() {
             {alterarSenhaAberto && (
               <form onSubmit={handleAlterarSenha} className="mt-md p-md paper-card rounded-xl space-y-2 border-l-4 border-error">
                 <input
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface font-body-md"
+                  className="input-base w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface font-body-md"
                   type="password"
                   placeholder="Senha atual"
                   value={senhaAtual}
                   onChange={(e) => setSenhaAtual(e.target.value)}
                 />
                 <input
-                  className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface font-body-md"
+                  className="input-base w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface font-body-md"
                   type="password"
                   placeholder="Nova senha"
                   value={senhaNova}
                   onChange={(e) => setSenhaNova(e.target.value)}
                 />
                 <div className="flex gap-2">
-                  <button type="submit" className="px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
-                  <button type="button" onClick={() => setAlterarSenhaAberto(false)} className="px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
+                  <button type="submit" className="btn-base px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-bold">Salvar</button>
+                  <button type="button" onClick={() => setAlterarSenhaAberto(false)} className="btn-base px-4 py-2 border border-outline-variant rounded-lg text-sm">Cancelar</button>
                 </div>
               </form>
             )}
