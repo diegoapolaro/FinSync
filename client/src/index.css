@@ -175,6 +175,34 @@ input {
   color: #2d1600;
 }
 
+.paper-shadow {
+  box-shadow: 0 4px 6px -1px rgba(31, 36, 33, 0.08), 0 2px 4px -1px rgba(31, 36, 33, 0.06);
+}
+
+.chart-bar {
+  transform-origin: bottom;
+  animation: growUp 300ms ease-out forwards;
+}
+
+@keyframes growUp {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.donut-segment {
+  transition: stroke-width 0.3s ease, transform 0.3s ease;
+  transform-origin: center;
+}
+
+.donut-segment:hover {
+  stroke-width: 22;
+  transform: scale(1.02);
+}
+
+.numeric-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
