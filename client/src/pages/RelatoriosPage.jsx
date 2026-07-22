@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   getDetalhamento,
@@ -52,30 +52,42 @@ export default function RelatoriosPage() {
   const [detalhamento, setDetalhamento] = useState([]);
   const [transacoes, setTransacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const requestIdRef = useRef(0);
 
   const dataInicio = formatDateOnly(primeiroDiaMes(dataRef));
   const dataFim = formatDateOnly(ultimoDiaMes(dataRef));
 
   const carregarDados = useCallback(async () => {
-    if (!contaSelecionadaId) { setCarregando(false); return; }
+    const reqId = ++requestIdRef.current;
+    if (!contaSelecionadaId) {
+      if (requestIdRef.current === reqId) setCarregando(false);
+      return;
+    }
+
     try {
       const [res, txns] = await Promise.all([
         getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
         getTransacoesRange(contaSelecionadaId, dataInicio, dataFim),
       ]);
+      if (requestIdRef.current !== reqId) return;
       setResumo(res);
       setTransacoes(txns);
     } catch {
+      if (requestIdRef.current !== reqId) return;
       setResumo(null);
       setTransacoes([]);
     }
 
     try {
       const det = await getDetalhamento(contaSelecionadaId, dataInicio, dataFim);
+      if (requestIdRef.current !== reqId) return;
       setDetalhamento(det);
     } catch {
+      if (requestIdRef.current !== reqId) return;
       setDetalhamento([]);
-    } finally { setCarregando(false); }
+    } finally {
+      if (requestIdRef.current === reqId) setCarregando(false);
+    }
   }, [contaSelecionadaId, dataInicio, dataFim]);
 
   useEffect(() => { setCarregando(true); carregarDados(); }, [carregarDados]);

@@ -19,12 +19,12 @@ export default function TransactionTable({ transacoes, carregando, onDelete }) {
       <table className="w-full border-collapse text-left">
         <thead className="bg-surface-variant font-label-caps text-[11px] text-on-surface-variant border-b border-line">
           <tr>
-            <th className="py-3.5 px-4 font-bold uppercase w-4"></th>
+            <th className="py-3.5 px-4 font-bold uppercase w-4" />
             <th className="py-3.5 px-4 font-bold uppercase">Descrição</th>
             <th className="py-3.5 px-4 font-bold uppercase w-40">Categoria</th>
             <th className="py-3.5 px-4 font-bold uppercase w-28">Data</th>
             <th className="py-3.5 px-4 font-bold uppercase text-right w-36">Valor</th>
-            <th className="py-3.5 px-4 font-bold uppercase w-14"></th>
+            <th className="py-3.5 px-4 font-bold uppercase w-14" />
           </tr>
         </thead>
         <tbody className="divide-y divide-line/40">

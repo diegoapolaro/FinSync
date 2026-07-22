@@ -229,7 +229,7 @@ export default function AjustesPage() {
               </div>
               <label className="inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={tema === 'escuro'} onChange={alternarTema} />
-                <div className="toggle-switch peer"></div>
+                <div className="toggle-switch peer" />
               </label>
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function AjustesPage() {
                     className="rounded-xl shadow-card border border-line p-3 flex items-center gap-3 hover:bg-surface-variant transition-all cursor-pointer group text-left"
                     style={{ backgroundColor: 'var(--bg-card)' }}
                   >
-                    <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: cat.cor || categoryColors[0] }}></div>
+                    <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: cat.cor || categoryColors[0] }} />
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-on-surface">{cat.nome}</p>
                       <p className={'text-[10px] font-bold uppercase ' + (isEntrada ? 'text-entrada' : 'text-saida')}>{isEntrada ? 'Entrada' : 'Saída'}</p>
@@ -405,7 +405,7 @@ export default function AjustesPage() {
                 </div>
                 <label className="inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="toggle-switch peer"></div>
+                  <div className="toggle-switch peer" />
                 </label>
               </div>
               <div className="rounded-xl shadow-card border border-line p-3.5 flex items-center justify-between hover:bg-surface-variant transition-all" style={{ backgroundColor: 'var(--bg-card)' }}>
@@ -415,7 +415,7 @@ export default function AjustesPage() {
                 </div>
                 <label className="inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" />
-                  <div className="toggle-switch peer"></div>
+                  <div className="toggle-switch peer" />
                 </label>
               </div>
             </div>
@@ -503,7 +503,7 @@ export default function AjustesPage() {
             style={{ backgroundColor: 'var(--bg-card)' }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: editCatCor }}></div>
+              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: editCatCor }} />
               <h3 id="editar-categoria-title" className="text-lg font-bold text-on-surface">Editar categoria</h3>
             </div>
 
