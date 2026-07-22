@@ -59,18 +59,22 @@ export default function RelatoriosPage() {
   const carregarDados = useCallback(async () => {
     if (!contaSelecionadaId) { setCarregando(false); return; }
     try {
-      const [res, det, txns] = await Promise.all([
+      const [res, txns] = await Promise.all([
         getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
-        getDetalhamento(contaSelecionadaId, dataInicio, dataFim),
         getTransacoesRange(contaSelecionadaId, dataInicio, dataFim),
       ]);
       setResumo(res);
-      setDetalhamento(det);
       setTransacoes(txns);
     } catch {
       setResumo(null);
-      setDetalhamento([]);
       setTransacoes([]);
+    }
+
+    try {
+      const det = await getDetalhamento(contaSelecionadaId, dataInicio, dataFim);
+      setDetalhamento(det);
+    } catch {
+      setDetalhamento([]);
     } finally { setCarregando(false); }
   }, [contaSelecionadaId, dataInicio, dataFim]);
 
@@ -186,11 +190,11 @@ export default function RelatoriosPage() {
                 </div>
                 <div className="mt-8 flex gap-4 justify-center">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-entrada"></div>
+                    <div className="w-2.5 h-2.5 rounded bg-entrada" />
                     <span className="text-[10px] font-semibold text-on-surface-variant uppercase">ENTRADAS</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded bg-saida"></div>
+                    <div className="w-2.5 h-2.5 rounded bg-saida" />
                     <span className="text-[10px] font-semibold text-on-surface-variant uppercase">SAÍDAS</span>
                   </div>
                 </div>
@@ -219,7 +223,7 @@ export default function RelatoriosPage() {
                       {donutSegments.map((seg, i) => (
                         <div key={i} className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: seg.color }}></div>
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: seg.color }} />
                             <span className="text-sm text-on-surface">{seg.nome}</span>
                           </div>
                           <div className="flex gap-3 font-mono text-sm">
@@ -245,7 +249,7 @@ export default function RelatoriosPage() {
                     <table className="w-full text-left">
                       <thead>
                         <tr className="border-b border-line text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">
-                          <th className="pb-2.5 px-1 w-8"></th>
+                          <th className="pb-2.5 px-1 w-8" />
                           <th className="pb-2.5 px-1">DESCRIÇÃO</th>
                           <th className="pb-2.5 px-1">DATA</th>
                           <th className="pb-2.5 px-1 text-right">VALOR</th>
@@ -261,8 +265,8 @@ export default function RelatoriosPage() {
                               </td>
                               <td className="py-3 px-1 relative">
                                 <div className="font-medium text-on-surface">{t.descricao}</div>
-                                <div className="absolute bottom-0 left-0 h-1 bg-saida/20 w-full rounded-full"></div>
-                                <div className="absolute bottom-0 left-0 h-1 bg-saida rounded-full transition-all duration-700" style={{ width: pct + '%' }}></div>
+                                <div className="absolute bottom-0 left-0 h-1 bg-saida/20 w-full rounded-full" />
+                                <div className="absolute bottom-0 left-0 h-1 bg-saida rounded-full transition-all duration-700" style={{ width: pct + '%' }} />
                               </td>
                               <td className="py-3 px-1 font-mono text-sm text-on-surface-variant">
                                 {t.data ? new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : ''}

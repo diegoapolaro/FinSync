@@ -156,26 +156,46 @@ public class TransacaoService(FinSyncDbContext context)
     public async Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim)
     {
         var query = context.Transacoes
-            .Include(t => t.Categoria)
-            .Where(t => t.Data >= dataInicio && t.Data <= dataFim)
-            .AsQueryable();
+            .Where(t => t.Data >= dataInicio && t.Data <= dataFim);
 
         if (contaId is not null)
         {
             query = query.Where(t => t.ContaId == contaId);
         }
 
-        return await query
-            .GroupBy(t => new { t.CategoriaId, Nome = t.Categoria != null ? t.Categoria.Nome : "Sem Categoria", Cor = t.Categoria != null ? t.Categoria.Cor : "#747874" })
-            .Select(g => new DetalhamentoCategoriaDto
+        var grouped = await query
+            .GroupBy(t => t.CategoriaId)
+            .Select(g => new
             {
-                CategoriaId = g.Key.CategoriaId,
-                CategoriaNome = g.Key.Nome,
-                CategoriaCor = g.Key.Cor,
+                CategoriaId = g.Key,
                 Total = g.Sum(t => t.Tipo == TipoTransacao.Entrada ? t.Valor : -t.Valor)
             })
-            .OrderByDescending(d => Math.Abs(d.Total))
             .ToListAsync();
+
+        var categorias = new Dictionary<int, (string Nome, string Cor)>();
+        var idsComCategoria = grouped
+            .Where(g => g.CategoriaId.HasValue)
+            .Select(g => g.CategoriaId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (idsComCategoria.Count != 0)
+        {
+            categorias = await context.Categorias
+                .Where(c => idsComCategoria.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id, c => (c.Nome, c.Cor));
+        }
+
+        return grouped
+            .Select(g => new DetalhamentoCategoriaDto
+            {
+                CategoriaId = g.CategoriaId,
+                CategoriaNome = g.CategoriaId.HasValue && categorias.TryGetValue(g.CategoriaId.Value, out var cat) ? cat.Nome : "Sem Categoria",
+                CategoriaCor = g.CategoriaId.HasValue && categorias.TryGetValue(g.CategoriaId.Value, out var cat2) ? cat2.Cor : "#747874",
+                Total = g.Total
+            })
+            .OrderByDescending(d => Math.Abs(d.Total))
+            .ToList();
     }
 
     public async Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim)
