@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import usePreferencias from '../hooks/usePreferencias';
 import { useTema } from '../contexts/ThemeContext';
@@ -7,6 +7,7 @@ import {
   updateConta,
   deleteConta,
   createCategoria,
+  updateCategoria,
   exportarTransacoes,
 } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
@@ -40,6 +41,14 @@ export default function AjustesPage() {
   const [novaCatNome, setNovaCatNome] = useState('');
   const [novaCatTipo, setNovaCatTipo] = useState('Saida');
   const [novaCatCor, setNovaCatCor] = useState(categoryColors[0]);
+
+  const [editandoCategoria, setEditandoCategoria] = useState(null);
+  const [editCatNome, setEditCatNome] = useState('');
+  const [editCatTipo, setEditCatTipo] = useState('Saida');
+  const [editCatCor, setEditCatCor] = useState(categoryColors[0]);
+  const [isSavingCategoria, setIsSavingCategoria] = useState(false);
+  const editModalRef = useRef(null);
+  const lastFocusedElementRef = useRef(null);
 
   const [contaExcluir, setContaExcluir] = useState(null);
   const [alterarSenhaAberto, setAlterarSenhaAberto] = useState(false);
@@ -81,6 +90,79 @@ export default function AjustesPage() {
       setContaExcluir(null);
       addToast(`Conta "${contaExcluir.nome}" excluída!`, 'success');
     } catch (err) { addToast(err.message, 'error'); }
+  }
+
+  function iniciarEdicaoCategoria(cat) {
+    setEditandoCategoria(cat);
+    setEditCatNome(cat.nome);
+    setEditCatTipo(cat.tipo === 'Entrada' ? 'Entrada' : 'Saida');
+    setEditCatCor(cat.cor || categoryColors[0]);
+  }
+
+  useEffect(() => {
+    if (!editandoCategoria) {
+      if (lastFocusedElementRef.current instanceof HTMLElement) {
+        lastFocusedElementRef.current.focus();
+      }
+      return;
+    }
+
+    lastFocusedElementRef.current = document.activeElement;
+    const focusable = () => Array.from(editModalRef.current?.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') || [])
+      .filter((el) => (el instanceof HTMLElement ? el.offsetParent !== null : false));
+
+    const firstFocus = () => focusable()[0];
+    const lastFocus = () => focusable()[focusable().length - 1];
+
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey) {
+        if (document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    const node = editModalRef.current;
+    node?.addEventListener('keydown', handleKeyDown);
+    setTimeout(() => {
+      const target = editModalRef.current?.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (target instanceof HTMLElement) target.focus();
+    }, 0);
+
+    return () => {
+      node?.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editandoCategoria]);
+
+  async function handleSalvarCategoria() {
+    if (!editandoCategoria) return;
+    if (!editCatNome.trim()) {
+      addToast('Nome da categoria não pode ficar em branco.', 'error');
+      return;
+    }
+    if (isSavingCategoria) return;
+    setIsSavingCategoria(true);
+    try {
+      await updateCategoria(editandoCategoria.id, { nome: editCatNome.trim(), tipo: editCatTipo, cor: editCatCor });
+      setCategorias((prev) => prev.map((c) => c.id === editandoCategoria.id ? { ...c, nome: editCatNome.trim(), tipo: editCatTipo, cor: editCatCor } : c));
+      setEditandoCategoria(null);
+      addToast('Categoria atualizada!', 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setIsSavingCategoria(false);
+    }
   }
 
   async function handleCriarCategoria() {
@@ -269,17 +351,25 @@ export default function AjustesPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {categorias.map((cat) => {
                 const isEntrada = cat.tipo === 'Entrada';
                 return (
-                  <div key={cat.id} className="rounded-xl shadow-card border border-line p-3 flex items-center gap-3 hover:bg-surface-variant transition-all cursor-pointer" style={{ backgroundColor: 'var(--bg-card)' }}>
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => iniciarEdicaoCategoria(cat)}
+                    aria-label={`Editar categoria ${cat.nome}`}
+                    className="rounded-xl shadow-card border border-line p-3 flex items-center gap-3 hover:bg-surface-variant transition-all cursor-pointer group text-left"
+                    style={{ backgroundColor: 'var(--bg-card)' }}
+                  >
                     <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: cat.cor || categoryColors[0] }}></div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-semibold text-on-surface">{cat.nome}</p>
                       <p className={'text-[10px] font-bold uppercase ' + (isEntrada ? 'text-entrada' : 'text-saida')}>{isEntrada ? 'Entrada' : 'Saída'}</p>
                     </div>
-                  </div>
+                    <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity text-lg">edit</span>
+                  </button>
                 );
               })}
             </div>
@@ -400,6 +490,90 @@ export default function AjustesPage() {
           </SettingsSection>
         </div>
       </div>
+
+      {editandoCategoria && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="editar-categoria-title"
+            tabIndex={-1}
+            className="rounded-xl shadow-2xl max-w-sm w-full p-6 space-y-4 animate-fadeIn"
+            style={{ backgroundColor: 'var(--bg-card)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: editCatCor }}></div>
+              <h3 id="editar-categoria-title" className="text-lg font-bold text-on-surface">Editar categoria</h3>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">NOME</label>
+                <input
+                  disabled={isSavingCategoria}
+                  className="w-full px-3 py-2 border border-line rounded-lg text-sm mt-1"
+                  placeholder="Nome da categoria"
+                  value={editCatNome}
+                  onChange={(e) => setEditCatNome(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">TIPO</label>
+                <select
+                  disabled={isSavingCategoria}
+                  className="w-full px-3 py-2 border border-line rounded-lg text-sm mt-1 bg-card"
+                  value={editCatTipo}
+                  onChange={(e) => setEditCatTipo(e.target.value)}
+                >
+                  <option value="Entrada">Entrada</option>
+                  <option value="Saida">Saída</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-on-surface-variant uppercase tracking-wider">COR</label>
+                <div className="flex gap-2 items-center mt-1">
+                  <div className="flex gap-1">
+                    {categoryColors.map((cor) => (
+                      <button
+                        key={cor}
+                        type="button"
+                        aria-label={`Selecionar cor ${cor}`}
+                        aria-pressed={editCatCor === cor}
+                        disabled={isSavingCategoria}
+                        onClick={() => setEditCatCor(cor)}
+                        className={'w-6 h-6 rounded-full border-2 ' + (editCatCor === cor ? 'border-primaria' : 'border-transparent')}
+                        style={{ backgroundColor: cor }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={handleSalvarCategoria}
+                disabled={isSavingCategoria}
+                className="flex-1 px-4 py-2.5 bg-primaria text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all"
+              >
+                SALVAR
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditandoCategoria(null)}
+                disabled={isSavingCategoria}
+                className="flex-1 px-4 py-2.5 border border-line rounded-lg text-sm font-semibold text-on-surface hover:bg-surface-variant transition-all"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {contaExcluir && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
