@@ -8,6 +8,7 @@ import {
   getCategorias,
 } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
+import { TIPO_TRANSACAO } from '../utils/constants';
 import { useToast } from '../contexts/ToastContext';
 
 function formatDateOnly(date) {
@@ -36,7 +37,7 @@ function formatLabel(date) {
 const formInicial = {
   descricao: '',
   valor: '',
-  tipo: 'Entrada',
+  tipo: TIPO_TRANSACAO.ENTRADA,
   categoriaId: '',
 };
 
@@ -184,9 +185,9 @@ export default function LancamentosPage() {
         <div className="grid grid-cols-2 gap-4 mb-2">
           <button
             type="button"
-            onClick={() => setForm((f) => ({ ...f, tipo: 'Entrada', categoriaId: '' }))}
+            onClick={() => setForm((f) => ({ ...f, tipo: TIPO_TRANSACAO.ENTRADA, categoriaId: '' }))}
             className={
-              form.tipo === 'Entrada'
+              form.tipo === TIPO_TRANSACAO.ENTRADA
                 ? 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-primaria text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
                 : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-paper hover:bg-primaria hover:text-white hover:border-primaria transition-colors group'
             }
@@ -198,9 +199,9 @@ export default function LancamentosPage() {
           </button>
           <button
             type="button"
-            onClick={() => setForm((f) => ({ ...f, tipo: 'Saida', categoriaId: '' }))}
+            onClick={() => setForm((f) => ({ ...f, tipo: TIPO_TRANSACAO.SAIDA, categoriaId: '' }))}
             className={
-              form.tipo === 'Saida'
+              form.tipo === TIPO_TRANSACAO.SAIDA
                 ? 'btn-base border-2 border-saida p-3 flex flex-col items-center justify-center gap-1 bg-saida text-white -rotate-2 scale-105 shadow-[2px_2px_0px_#090e0b] transition-colors relative overflow-hidden'
                 : 'btn-base border-2 border-primary p-3 flex flex-col items-center justify-center gap-1 bg-paper hover:bg-saida hover:text-white hover:border-saida transition-colors group'
             }
@@ -305,7 +306,7 @@ export default function LancamentosPage() {
         {!carregando && transacoes.length > 0 && (
           <ul className="flex flex-col gap-3">
             {transacoes.map((t) => {
-              const cor = t.tipo === 'Entrada' ? 'var(--color-primaria)' : 'var(--color-saida)';
+              const cor = t.tipo === TIPO_TRANSACAO.ENTRADA ? 'var(--color-primaria)' : 'var(--color-saida)';
               return (
                 <li
                   key={t.id}
@@ -335,7 +336,7 @@ export default function LancamentosPage() {
                       className="font-value-lg text-value-lg"
                       style={{ color: cor }}
                     >
-                      {t.tipo === 'Entrada' ? '+' : '-'}{formatCurrency(t.valor).replace('R$', '').trim()}
+                      {t.tipo === TIPO_TRANSACAO.ENTRADA ? '+' : '-'}{formatCurrency(t.valor).replace('R$', '').trim()}
                     </span>
                     <button
                       type="button"

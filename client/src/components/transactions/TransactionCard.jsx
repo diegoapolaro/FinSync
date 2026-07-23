@@ -1,4 +1,5 @@
 import { formatCurrency } from '../../utils/formatters';
+import { TIPO_TRANSACAO } from '../../utils/constants';
 
 function formatFullDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
@@ -6,7 +7,7 @@ function formatFullDate(dateStr) {
 }
 
 export default function TransactionCard({ transacao, onDelete }) {
-  const isEntrada = transacao.tipo === 'Entrada';
+  const isEntrada = transacao.tipo === TIPO_TRANSACAO.ENTRADA;
 
   return (
     <div

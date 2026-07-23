@@ -55,7 +55,6 @@ public class CategoriaServiceTests : ServiceTestBase
         var dto = new CreateCategoriaDto
         {
             Nome = "Padrao",
-            Cor = "#96d4b2",
             Tipo = TipoTransacao.Saida
         };
 
@@ -104,6 +103,7 @@ public class CategoriaServiceTests : ServiceTestBase
         Assert.True(found);
         Assert.Null(error);
 
+        Context.ChangeTracker.Clear();
         var atualizada = await Context.Categorias.FindAsync(categoria.Id);
         Assert.NotNull(atualizada);
         Assert.Equal("Alterado", atualizada!.Nome);

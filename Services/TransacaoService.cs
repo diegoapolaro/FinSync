@@ -12,7 +12,8 @@ public class TransacaoService(FinSyncDbContext context)
         int? contaId,
         DateOnly? data = null,
         DateOnly? dataInicio = null,
-        DateOnly? dataFim = null)
+        DateOnly? dataFim = null,
+        int? categoriaId = null)
     {
         var query = context.Transacoes
             .Include(t => t.Conta)
@@ -22,6 +23,11 @@ public class TransacaoService(FinSyncDbContext context)
         if (contaId is not null)
         {
             query = query.Where(t => t.ContaId == contaId);
+        }
+
+        if (categoriaId is not null)
+        {
+            query = query.Where(t => t.CategoriaId == categoriaId);
         }
 
         if (data is not null)

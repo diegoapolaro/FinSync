@@ -61,6 +61,7 @@ public class ContaServiceTests : ServiceTestBase
         Assert.Equal(TipoConta.Comercial, result.Tipo);
         Assert.False(result.Arquivada);
 
+        Context.ChangeTracker.Clear();
         var salva = await Context.Contas.FindAsync(result.Id);
         Assert.NotNull(salva);
         Assert.Equal("Nova Conta", salva.Nome);

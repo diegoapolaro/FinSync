@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Modal from '../Modal';
 import { createCategoria, updateCategoria } from '../../services/api';
+import { TIPO_TRANSACAO } from '../../utils/constants';
 
 const CORES = [
   '#66D89F', '#FF6B6B', '#7DD3D8', '#FFB84D',
@@ -74,7 +75,7 @@ function EditarCategoriaModal({ categoria, onClose, onCategoriasChange }) {
 
 function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
   const [nome, setNome] = useState('');
-  const [tipo, setTipo] = useState('Entrada');
+  const [tipo, setTipo] = useState(TIPO_TRANSACAO.ENTRADA);
   const [cor, setCor] = useState(COR_PADRAO);
 
   async function salvar(e) {
@@ -83,7 +84,7 @@ function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
     const res = await fetch('/api/categorias');
     onCategoriasChange(await res.json());
     setNome('');
-    setTipo('Entrada');
+    setTipo(TIPO_TRANSACAO.ENTRADA);
     setCor(COR_PADRAO);
     onClose();
   }
@@ -107,8 +108,8 @@ function NovaCategoriaModal({ aberto, onClose, onCategoriasChange }) {
             onChange={(e) => setTipo(e.target.value)}
             className="bg-surface-container-lowest border border-outline-variant text-on-surface font-body-lg text-body-lg p-3 input-base"
           >
-            <option value="Entrada">Entrada</option>
-            <option value="Saida">Saída</option>
+            <option value={TIPO_TRANSACAO.ENTRADA}>Entrada</option>
+            <option value={TIPO_TRANSACAO.SAIDA}>Saída</option>
           </select>
         </label>
         <div className="flex flex-col gap-2">

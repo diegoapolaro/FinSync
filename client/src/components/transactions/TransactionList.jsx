@@ -1,4 +1,5 @@
 import { formatCurrency, formatDisplayDate } from '../../utils/formatters';
+import { TIPO_TRANSACAO } from '../../utils/constants';
 
 export default function TransactionList({ titulo, transacoes, handleDelete }) {
   return (
@@ -34,7 +35,7 @@ export default function TransactionList({ titulo, transacoes, handleDelete }) {
               <span
                 className={`font-value-lg text-value-lg whitespace-nowrap ${tipo === 'entrada' ? 'text-entrada' : 'text-saida'}`}
               >
-                {transacao.tipo === 'Entrada' ? '+' : '-'}
+                {transacao.tipo === TIPO_TRANSACAO.ENTRADA ? '+' : '-'}
                 {formatCurrency(transacao.valor)}
               </span>
               <button

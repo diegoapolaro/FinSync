@@ -11,7 +11,7 @@ public abstract class ServiceTestBase : IDisposable
 
     protected ServiceTestBase()
     {
-        _connection = new SqliteConnection("Data Source=:memory:");
+        _connection = new SqliteConnection("Data Source=:memory:;Foreign Keys=True");
         _connection.Open();
 
         var options = new DbContextOptionsBuilder<FinSyncDbContext>()

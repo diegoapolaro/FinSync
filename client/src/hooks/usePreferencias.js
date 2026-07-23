@@ -17,8 +17,8 @@ const PADRAO = {
   tema: 'claro',
   lembreteDiario: true,
   alertaSaldoBaixo: false,
-  nome: 'João Silva',
-  email: 'joao@pizzaria.com.br',
+  nome: '',
+  email: '',
 };
 
 export default function usePreferencias() {

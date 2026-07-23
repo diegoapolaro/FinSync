@@ -1,3 +1,5 @@
+import { TIPO_TRANSACAO } from '../../utils/constants';
+
 export default function TransactionForm({
   form,
   setForm,
@@ -12,9 +14,9 @@ export default function TransactionForm({
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setForm({ ...form, tipo: 'Entrada' })}
+          onClick={() => setForm({ ...form, tipo: TIPO_TRANSACAO.ENTRADA })}
            className={
-            form.tipo === 'Entrada'
+            form.tipo === TIPO_TRANSACAO.ENTRADA
               ? 'btn-base flex-1 border-2 border-stamp-accent bg-tertiary-fixed-dim/20 text-stamp-accent py-3 uppercase font-label-caps text-label-caps font-bold flex items-center justify-center gap-2'
               : 'btn-base flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary flex items-center justify-center gap-2'
           }
@@ -24,9 +26,9 @@ export default function TransactionForm({
         </button>
         <button
           type="button"
-          onClick={() => setForm({ ...form, tipo: 'Saida' })}
+          onClick={() => setForm({ ...form, tipo: TIPO_TRANSACAO.SAIDA })}
           className={
-            form.tipo === 'Saida'
+            form.tipo === TIPO_TRANSACAO.SAIDA
               ? 'btn-base flex-1 border-2 border-stamp-accent bg-tertiary-fixed-dim/20 text-stamp-accent py-3 uppercase font-label-caps text-label-caps font-bold flex items-center justify-center gap-2'
               : 'btn-base flex-1 border-2 border-outline text-outline py-3 uppercase font-label-caps text-label-caps font-bold hover:bg-primary hover:text-on-primary hover:border-primary flex items-center justify-center gap-2'
           }

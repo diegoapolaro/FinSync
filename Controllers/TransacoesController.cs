@@ -32,9 +32,10 @@ public class TransacoesController(TransacaoService transacaoService) : Controlle
         int? contaId,
         DateOnly? data,
         DateOnly? dataInicio,
-        DateOnly? dataFim)
+        DateOnly? dataFim,
+        int? categoriaId)
     {
-        return Ok(await transacaoService.GetAllAsync(contaId, data, dataInicio, dataFim));
+        return Ok(await transacaoService.GetAllAsync(contaId, data, dataInicio, dataFim, categoriaId));
     }
 
     [HttpGet("{id:int}")]

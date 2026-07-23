@@ -12,6 +12,7 @@ import {
 } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import SettingsSection from '../components/settings/SettingsSection';
+import { TIPO_TRANSACAO } from '../utils/constants';
 
 const categoryColors = ['#fda958', '#2f6b4f', '#1a5052', '#ba1a1a', '#8d4f00', '#7c4dff', '#009688', '#e91e63'];
 
@@ -39,12 +40,12 @@ export default function AjustesPage() {
 
   const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
   const [novaCatNome, setNovaCatNome] = useState('');
-  const [novaCatTipo, setNovaCatTipo] = useState('Saida');
+  const [novaCatTipo, setNovaCatTipo] = useState(TIPO_TRANSACAO.SAIDA);
   const [novaCatCor, setNovaCatCor] = useState(categoryColors[0]);
 
   const [editandoCategoria, setEditandoCategoria] = useState(null);
   const [editCatNome, setEditCatNome] = useState('');
-  const [editCatTipo, setEditCatTipo] = useState('Saida');
+  const [editCatTipo, setEditCatTipo] = useState(TIPO_TRANSACAO.SAIDA);
   const [editCatCor, setEditCatCor] = useState(categoryColors[0]);
   const [isSavingCategoria, setIsSavingCategoria] = useState(false);
   const editModalRef = useRef(null);
@@ -95,7 +96,7 @@ export default function AjustesPage() {
   function iniciarEdicaoCategoria(cat) {
     setEditandoCategoria(cat);
     setEditCatNome(cat.nome);
-    setEditCatTipo(cat.tipo === 'Entrada' ? 'Entrada' : 'Saida');
+    setEditCatTipo(cat.tipo === TIPO_TRANSACAO.ENTRADA ? TIPO_TRANSACAO.ENTRADA : TIPO_TRANSACAO.SAIDA);
     setEditCatCor(cat.cor || categoryColors[0]);
   }
 
@@ -353,7 +354,7 @@ export default function AjustesPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {categorias.map((cat) => {
-                const isEntrada = cat.tipo === 'Entrada';
+                const isEntrada = cat.tipo === TIPO_TRANSACAO.ENTRADA;
                 return (
                   <button
                     key={cat.id}
@@ -366,7 +367,7 @@ export default function AjustesPage() {
                     <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: cat.cor || categoryColors[0] }} />
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-on-surface">{cat.nome}</p>
-                      <p className={'text-[10px] font-bold uppercase ' + (isEntrada ? 'text-entrada' : 'text-saida')}>{isEntrada ? 'Entrada' : 'Saída'}</p>
+                      <p className={'text-[10px] font-bold uppercase ' + (isEntrada ? 'text-entrada' : 'text-saida')}>{isEntrada ? TIPO_TRANSACAO.ENTRADA : 'Saída'}</p>
                     </div>
                     <span className="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity text-lg">edit</span>
                   </button>

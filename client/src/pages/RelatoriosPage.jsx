@@ -6,6 +6,7 @@ import {
   getTransacoesRange,
 } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
+import { TIPO_TRANSACAO } from '../utils/constants';
 import SummaryCard from '../components/common/SummaryCard';
 import ResponsiveGrid from '../components/common/ResponsiveGrid';
 import ChartContainer from '../components/reports/ChartContainer';
@@ -115,7 +116,7 @@ export default function RelatoriosPage() {
 
   const maioresSaidas = useMemo(() => {
     return transacoes
-      .filter((t) => t.tipo === 'Saida' || t.tipo === 'Saída')
+      .filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA)
       .sort((a, b) => b.valor - a.valor)
       .slice(0, 5);
   }, [transacoes]);
@@ -124,8 +125,8 @@ export default function RelatoriosPage() {
 
   const semanas = useMemo(() => {
     const weeklyData = [];
-    const entradas = transacoes.filter((t) => t.tipo === 'Entrada');
-    const saidas = transacoes.filter((t) => t.tipo === 'Saida' || t.tipo === 'Saída');
+    const entradas = transacoes.filter((t) => t.tipo === TIPO_TRANSACAO.ENTRADA);
+    const saidas = transacoes.filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA);
     for (let w = 0; w < 4; w++) {
       const diaInicio = w * 7 + 1;
       const diaFim = Math.min((w + 1) * 7, new Date(dataRef.getFullYear(), dataRef.getMonth() + 1, 0).getDate());

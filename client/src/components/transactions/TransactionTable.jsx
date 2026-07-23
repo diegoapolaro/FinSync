@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { formatCurrency } from '../../utils/formatters';
+import { TIPO_TRANSACAO } from '../../utils/constants';
 
 function formatShortDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
@@ -43,7 +44,7 @@ export default function TransactionTable({ transacoes, carregando, onDelete }) {
             </tr>
           )}
           {!carregando && paginadas.map((t) => {
-            const isEntrada = t.tipo === 'Entrada';
+            const isEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
             return (
               <tr key={t.id} className="group hover:bg-surface-variant transition-colors">
                 <td className="py-3.5 px-4">

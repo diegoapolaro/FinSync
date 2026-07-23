@@ -40,6 +40,11 @@ public class TransacaoServiceTests : ServiceTestBase
         Assert.Equal(categoria.Id, result.CategoriaId);
         Assert.Equal(categoria.Nome, result.CategoriaNome);
         Assert.Equal(categoria.Cor, result.CategoriaCor);
+
+        Context.ChangeTracker.Clear();
+        var persistedTransaction = await Context.Transacoes.FindAsync(result.Id);
+        Assert.NotNull(persistedTransaction);
+        Assert.Equal("Compra mercado", persistedTransaction!.Descricao);
     }
 
     [Fact]
@@ -242,6 +247,8 @@ public class TransacaoServiceTests : ServiceTestBase
         var deleted = await service.DeleteAsync(transacaoId);
 
         Assert.True(deleted);
+
+        Context.ChangeTracker.Clear();
         Assert.Null(await Context.Transacoes.FindAsync(transacaoId));
         Assert.NotNull(await Context.Contas.FindAsync(conta.Id));
     }

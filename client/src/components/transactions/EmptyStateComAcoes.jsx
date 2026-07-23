@@ -1,3 +1,4 @@
+import { TIPO_TRANSACAO } from '../../utils/constants';
 import { formatCurrency, formatDisplayDate } from '../../utils/formatters';
 
 export default function EmptyStateComAcoes({ resumo, abrirLancamento }) {
@@ -7,7 +8,7 @@ export default function EmptyStateComAcoes({ resumo, abrirLancamento }) {
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => abrirLancamento('Entrada')}
+            onClick={() => abrirLancamento(TIPO_TRANSACAO.ENTRADA)}
             className="btn-base flex-1 border-2 border-primary py-3 uppercase font-label-caps text-label-caps font-bold text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-lg">add</span>
@@ -15,7 +16,7 @@ export default function EmptyStateComAcoes({ resumo, abrirLancamento }) {
           </button>
           <button
             type="button"
-            onClick={() => abrirLancamento('Saida')}
+            onClick={() => abrirLancamento(TIPO_TRANSACAO.SAIDA)}
             className="btn-base flex-1 border-2 border-primary py-3 uppercase font-label-caps text-label-caps font-bold text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-lg">remove</span>
