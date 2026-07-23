@@ -8,10 +8,10 @@ namespace FinSync.Services;
 
 public class ContaService(FinSyncDbContext context)
 {
-    public async Task<List<ContaDto>> GetAllAsync()
+    public async Task<List<ContaDto>> GetAllAsync(int usuarioId)
     {
         return await context.Contas
-            .Where(c => !c.Arquivada)
+            .Where(c => c.UsuarioId == usuarioId && !c.Arquivada)
             .OrderBy(c => c.Nome)
             .Select(c => new ContaDto
             {
@@ -23,9 +23,10 @@ public class ContaService(FinSyncDbContext context)
             .ToListAsync();
     }
 
-    public async Task<ContaDto?> GetByIdAsync(int id)
+    public async Task<ContaDto?> GetByIdAsync(int id, int usuarioId)
     {
-        var conta = await context.Contas.FindAsync(id);
+        var conta = await context.Contas
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (conta is null) return null;
 
         return new ContaDto
@@ -37,17 +38,18 @@ public class ContaService(FinSyncDbContext context)
         };
     }
 
-    public async Task<bool> ExistsAsync(int id)
+    public async Task<bool> ExistsAsync(int id, int usuarioId)
     {
-        return await context.Contas.AnyAsync(c => c.Id == id);
+        return await context.Contas.AnyAsync(c => c.Id == id && c.UsuarioId == usuarioId);
     }
 
-    public async Task<ContaDto> CreateAsync(CreateContaDto dto)
+    public async Task<ContaDto> CreateAsync(CreateContaDto dto, int usuarioId)
     {
         var conta = new Conta
         {
             Nome = dto.Nome,
-            Tipo = dto.Tipo
+            Tipo = dto.Tipo,
+            UsuarioId = usuarioId
         };
 
         context.Contas.Add(conta);
@@ -62,9 +64,10 @@ public class ContaService(FinSyncDbContext context)
         };
     }
 
-    public async Task<bool> UpdateAsync(int id, UpdateContaDto dto)
+    public async Task<bool> UpdateAsync(int id, UpdateContaDto dto, int usuarioId)
     {
-        var conta = await context.Contas.FindAsync(id);
+        var conta = await context.Contas
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (conta is null) return false;
 
         conta.Nome = dto.Nome;
@@ -75,9 +78,10 @@ public class ContaService(FinSyncDbContext context)
         return true;
     }
 
-    public async Task<bool> ToggleArchiveAsync(int id)
+    public async Task<bool> ToggleArchiveAsync(int id, int usuarioId)
     {
-        var conta = await context.Contas.FindAsync(id);
+        var conta = await context.Contas
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (conta is null) return false;
 
         conta.Arquivada = !conta.Arquivada;
@@ -85,9 +89,10 @@ public class ContaService(FinSyncDbContext context)
         return true;
     }
 
-    public async Task<(bool Success, string? Error)> DeleteAsync(int id)
+    public async Task<(bool Success, string? Error)> DeleteAsync(int id, int usuarioId)
     {
-        var conta = await context.Contas.FindAsync(id);
+        var conta = await context.Contas
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (conta is null) return (false, null);
 
         var transacoes = await context.Transacoes.Where(t => t.ContaId == id).ToListAsync();
@@ -98,9 +103,10 @@ public class ContaService(FinSyncDbContext context)
         return (true, null);
     }
 
-    public async Task<object?> GetResumoAsync(int id)
+    public async Task<object?> GetResumoAsync(int id, int usuarioId)
     {
-        var contaExiste = await context.Contas.AnyAsync(c => c.Id == id);
+        var contaExiste = await context.Contas
+            .AnyAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (!contaExiste) return null;
 
         var hoje = DateOnly.FromDateTime(DateTime.Today);

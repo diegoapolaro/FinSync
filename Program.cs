@@ -1,7 +1,10 @@
+using System.Text;
 using FinSync.Data;
 using FinSync.Handlers;
 using FinSync.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using System.Text.Json.Serialization;
 
@@ -20,9 +23,26 @@ builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
 builder.Services.AddScoped<ContaService>();
 builder.Services.AddScoped<TransacaoService>();
 builder.Services.AddScoped<CategoriaService>();
+builder.Services.AddScoped<AuthService>();
 
 var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>();
 
@@ -34,7 +54,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins(corsOrigins)
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
     }
     else if (builder.Environment.IsDevelopment())
@@ -43,7 +64,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:5173")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
     }
     else
@@ -64,6 +86,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("FrontendPolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseHttpsRedirection();
 

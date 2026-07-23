@@ -70,9 +70,14 @@ namespace FinSync.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Arquivada");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Contas");
                 });
@@ -120,6 +125,48 @@ namespace FinSync.Migrations
                     b.ToTable("Transacoes");
                 });
 
+            modelBuilder.Entity("FinSync.Models.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Conta", b =>
+                {
+                    b.HasOne("FinSync.Models.Usuario", "Usuario")
+                        .WithMany("Contas")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("FinSync.Models.Transacao", b =>
                 {
                     b.HasOne("FinSync.Models.Categoria", "Categoria")
@@ -146,6 +193,11 @@ namespace FinSync.Migrations
             modelBuilder.Entity("FinSync.Models.Conta", b =>
                 {
                     b.Navigation("Transacoes");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Usuario", b =>
+                {
+                    b.Navigation("Contas");
                 });
 #pragma warning restore 612, 618
         }

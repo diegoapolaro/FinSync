@@ -1,11 +1,35 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
+let authToken = null;
+let onUnauthorized = null;
+
+export function setAuthToken(token) { authToken = token; }
+
+export function setOnUnauthorized(callback) { onUnauthorized = callback; }
+
+function getAuthHeaders() {
+  return authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
+}
+
+async function authFetch(url, options = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, ...getAuthHeaders() },
+  });
+  if (res.status === 401 && onUnauthorized) {
+    onUnauthorized();
+  }
+  return handleResponse(res);
+}
+
 async function handleResponse(res) {
   if (!res.ok) {
     let message = `Erro ${res.status}: ${res.statusText}`;
     try {
       const body = await res.json();
-      if (body.detail) {
+      if (body.error) {
+        message = body.error;
+      } else if (body.detail) {
         message = body.detail;
       } else if (body.title) {
         message = body.title;
@@ -28,39 +52,52 @@ function url(path) {
   return `${BASE_URL}${path}`;
 }
 
-export async function getContas() {
-  const res = await fetch(url('/contas'));
+export async function login(email, senha) {
+  const res = await fetch(url('/auth/login'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha }),
+  });
   return handleResponse(res);
+}
+
+export async function registrar(nome, email, senha) {
+  const res = await fetch(url('/auth/registrar'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, email, senha }),
+  });
+  return handleResponse(res);
+}
+
+export async function getContas() {
+  return authFetch(url('/contas'));
 }
 
 export async function getResumoConta(contaId) {
-  const res = await fetch(url(`/contas/${contaId}/resumo`));
-  return handleResponse(res);
+  return authFetch(url(`/contas/${contaId}/resumo`));
 }
 
 export async function createConta(conta) {
-  const res = await fetch(url('/contas'), {
+  return authFetch(url('/contas'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(conta),
   });
-  return handleResponse(res);
 }
 
 export async function updateConta(id, conta) {
-  const res = await fetch(url(`/contas/${id}`), {
+  return authFetch(url(`/contas/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(conta),
   });
-  return handleResponse(res);
 }
 
 export async function deleteConta(id) {
-  const res = await fetch(url(`/contas/${id}`), {
+  return authFetch(url(`/contas/${id}`), {
     method: 'DELETE',
   });
-  return handleResponse(res);
 }
 
 export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1, pageSize = 20) {
@@ -71,8 +108,7 @@ export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1
   if (dataFim) params.set('dataFim', dataFim);
   params.set('page', page);
   params.set('pageSize', pageSize);
-  const res = await fetch(url(`/transacoes?${params}`));
-  return handleResponse(res);
+  return authFetch(url(`/transacoes?${params}`));
 }
 
 export async function getTransacoesRange(contaId, dataInicio, dataFim, page = 1, pageSize = 20) {
@@ -80,56 +116,49 @@ export async function getTransacoesRange(contaId, dataInicio, dataFim, page = 1,
 }
 
 export async function getTransacao(id) {
-  const res = await fetch(url(`/transacoes/${id}`));
-  return handleResponse(res);
+  return authFetch(url(`/transacoes/${id}`));
 }
 
 export async function createTransacao(transacao) {
-  const res = await fetch(url('/transacoes'), {
+  return authFetch(url('/transacoes'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transacao),
   });
-  return handleResponse(res);
 }
 
 export async function updateTransacao(id, transacao) {
-  const res = await fetch(url(`/transacoes/${id}`), {
+  return authFetch(url(`/transacoes/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(transacao),
   });
-  return handleResponse(res);
 }
 
 export async function deleteTransacao(id) {
-  const res = await fetch(url(`/transacoes/${id}`), {
+  return authFetch(url(`/transacoes/${id}`), {
     method: 'DELETE',
   });
-  return handleResponse(res);
 }
 
 export async function getCategorias() {
-  const res = await fetch(url('/categorias'));
-  return handleResponse(res);
+  return authFetch(url('/categorias'));
 }
 
 export async function createCategoria(categoria) {
-  const res = await fetch(url('/categorias'), {
+  return authFetch(url('/categorias'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(categoria),
   });
-  return handleResponse(res);
 }
 
 export async function updateCategoria(id, categoria) {
-  const res = await fetch(url(`/categorias/${id}`), {
+  return authFetch(url(`/categorias/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(categoria),
   });
-  return handleResponse(res);
 }
 
 export async function getDetalhamento(contaId, dataInicio, dataFim) {
@@ -137,8 +166,7 @@ export async function getDetalhamento(contaId, dataInicio, dataFim) {
   if (contaId) params.set('contaId', contaId);
   params.set('dataInicio', dataInicio);
   params.set('dataFim', dataFim);
-  const res = await fetch(url(`/transacoes/detalhamento?${params}`));
-  return handleResponse(res);
+  return authFetch(url(`/transacoes/detalhamento?${params}`));
 }
 
 export async function getResumoPeriodo(contaId, dataInicio, dataFim) {
@@ -146,8 +174,7 @@ export async function getResumoPeriodo(contaId, dataInicio, dataFim) {
   if (contaId) params.set('contaId', contaId);
   params.set('dataInicio', dataInicio);
   params.set('dataFim', dataFim);
-  const res = await fetch(url(`/transacoes/resumo-periodo?${params}`));
-  return handleResponse(res);
+  return authFetch(url(`/transacoes/resumo-periodo?${params}`));
 }
 
 export async function exportarTransacoes(contaId, periodo, formato) {
@@ -155,8 +182,13 @@ export async function exportarTransacoes(contaId, periodo, formato) {
   if (contaId) params.set('contaId', contaId);
   params.set('periodo', periodo);
   params.set('formato', formato);
-  const res = await fetch(url(`/transacoes/exportar?${params}`));
+  const res = await fetch(url(`/transacoes/exportar?${params}`), {
+    headers: { ...getAuthHeaders() },
+  });
   if (!res.ok) {
+    if (res.status === 401 && onUnauthorized) {
+      onUnauthorized();
+    }
     let message = 'Erro ao exportar';
     try {
       const body = await res.json();

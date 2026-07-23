@@ -14,6 +14,9 @@ public class Conta
 
     public bool Arquivada { get; set; }
 
+    public int UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
+
     public ICollection<Transacao> Transacoes { get; set; } = [];
 
     public DateTime CreatedAt { get; set; }

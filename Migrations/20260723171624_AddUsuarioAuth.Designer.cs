@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinSync.Migrations
 {
     [DbContext(typeof(FinSyncDbContext))]
-    [Migration("20260701163642_AddCategoriasEArquivada")]
-    partial class AddCategoriasEArquivada
+    [Migration("20260723171624_AddUsuarioAuth")]
+    partial class AddUsuarioAuth
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,9 @@ namespace FinSync.Migrations
                         .HasMaxLength(7)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(60)
@@ -38,6 +41,9 @@ namespace FinSync.Migrations
 
                     b.Property<int>("Tipo")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -53,6 +59,9 @@ namespace FinSync.Migrations
                     b.Property<bool>("Arquivada")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -61,7 +70,17 @@ namespace FinSync.Migrations
                     b.Property<int>("Tipo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Arquivada");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Contas");
                 });
@@ -72,8 +91,14 @@ namespace FinSync.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("CategoriaId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("ContaId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateOnly>("Data")
                         .HasColumnType("TEXT");
@@ -86,30 +111,96 @@ namespace FinSync.Migrations
                     b.Property<int>("Tipo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("Valor")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoriaId");
+
                     b.HasIndex("ContaId");
+
+                    b.HasIndex("Data");
 
                     b.ToTable("Transacoes");
                 });
 
+            modelBuilder.Entity("FinSync.Models.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Conta", b =>
+                {
+                    b.HasOne("FinSync.Models.Usuario", "Usuario")
+                        .WithMany("Contas")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("FinSync.Models.Transacao", b =>
                 {
+                    b.HasOne("FinSync.Models.Categoria", "Categoria")
+                        .WithMany("Transacoes")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("FinSync.Models.Conta", "Conta")
                         .WithMany("Transacoes")
                         .HasForeignKey("ContaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Categoria");
+
                     b.Navigation("Conta");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Categoria", b =>
+                {
+                    b.Navigation("Transacoes");
                 });
 
             modelBuilder.Entity("FinSync.Models.Conta", b =>
                 {
                     b.Navigation("Transacoes");
+                });
+
+            modelBuilder.Entity("FinSync.Models.Usuario", b =>
+                {
+                    b.Navigation("Contas");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,21 +1,45 @@
+using FinSync.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace FinSync.Data;
 
 public static class DbSeeder
 {
     public static async Task SeedAsync(FinSyncDbContext context)
     {
-        if (!context.Contas.Any())
+        Usuario? usuarioPadrao;
+
+        if (!context.Usuarios.Any())
+        {
+            usuarioPadrao = new Usuario
+            {
+                Nome = "Admin",
+                Email = "admin@finsync.com",
+                SenhaHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                DataCriacao = DateTime.UtcNow
+            };
+            context.Usuarios.Add(usuarioPadrao);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            usuarioPadrao = await context.Usuarios.FirstOrDefaultAsync();
+        }
+
+        if (usuarioPadrao is not null && !context.Contas.Any())
         {
             context.Contas.AddRange(
-                new FinSync.Models.Conta
+                new Conta
                 {
                     Nome = "Pizzaria",
-                    Tipo = FinSync.Models.TipoConta.Comercial,
+                    Tipo = TipoConta.Comercial,
+                    UsuarioId = usuarioPadrao.Id
                 },
-                new FinSync.Models.Conta
+                new Conta
                 {
                     Nome = "Pessoal",
-                    Tipo = FinSync.Models.TipoConta.Pessoal,
+                    Tipo = TipoConta.Pessoal,
+                    UsuarioId = usuarioPadrao.Id
                 }
             );
             await context.SaveChangesAsync();
@@ -24,12 +48,12 @@ public static class DbSeeder
         if (!context.Categorias.Any())
         {
             context.Categorias.AddRange(
-                new FinSync.Models.Categoria { Nome = "Alimentação", Cor = "#96d4b2", Tipo = FinSync.Models.TipoTransacao.Saida },
-                new FinSync.Models.Categoria { Nome = "Transporte", Cor = "#ffb3b3", Tipo = FinSync.Models.TipoTransacao.Saida },
-                new FinSync.Models.Categoria { Nome = "Moradia", Cor = "#b3d9ff", Tipo = FinSync.Models.TipoTransacao.Saida },
-                new FinSync.Models.Categoria { Nome = "Vendas", Cor = "#b3ffb3", Tipo = FinSync.Models.TipoTransacao.Entrada },
-                new FinSync.Models.Categoria { Nome = "Salário", Cor = "#ffd9b3", Tipo = FinSync.Models.TipoTransacao.Entrada },
-                new FinSync.Models.Categoria { Nome = "Investimentos", Cor = "#d9b3ff", Tipo = FinSync.Models.TipoTransacao.Entrada }
+                new Categoria { Nome = "Alimentação", Cor = "#96d4b2", Tipo = TipoTransacao.Saida },
+                new Categoria { Nome = "Transporte", Cor = "#ffb3b3", Tipo = TipoTransacao.Saida },
+                new Categoria { Nome = "Moradia", Cor = "#b3d9ff", Tipo = TipoTransacao.Saida },
+                new Categoria { Nome = "Vendas", Cor = "#b3ffb3", Tipo = TipoTransacao.Entrada },
+                new Categoria { Nome = "Salário", Cor = "#ffd9b3", Tipo = TipoTransacao.Entrada },
+                new Categoria { Nome = "Investimentos", Cor = "#d9b3ff", Tipo = TipoTransacao.Entrada }
             );
             await context.SaveChangesAsync();
         }

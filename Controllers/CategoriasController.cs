@@ -1,10 +1,12 @@
 using FinSync.Dtos;
 using FinSync.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinSync.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class CategoriasController(CategoriaService categoriaService) : ControllerBase
 {

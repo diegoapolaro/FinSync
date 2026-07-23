@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function DesktopHeader() {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [pesquisa, setPesquisa] = useState('');
@@ -53,8 +55,17 @@ export default function DesktopHeader() {
         >
           <span className="material-symbols-outlined text-on-surface-variant">settings</span>
         </button>
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-outline-variant bg-primary/10 flex items-center justify-center">
-          <span className="material-symbols-outlined text-primary">person</span>
+        <div className="flex items-center gap-2">
+          <span className="text-on-surface-variant font-body-sm text-body-sm truncate max-w-[120px]">
+            {user?.nome}
+          </span>
+          <button
+            onClick={logout}
+            className="btn-base p-2 hover:bg-surface-container-high rounded-full"
+            title="Sair"
+          >
+            <span className="material-symbols-outlined text-on-surface-variant">logout</span>
+          </button>
         </div>
       </div>
     </header>

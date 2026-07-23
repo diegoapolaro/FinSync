@@ -9,6 +9,7 @@ namespace FinSync.Services;
 public class TransacaoService(FinSyncDbContext context)
 {
     public async Task<PagedResponse<TransacaoDto>> GetAllAsync(
+        int usuarioId,
         int? contaId,
         DateOnly? data = null,
         DateOnly? dataInicio = null,
@@ -20,6 +21,7 @@ public class TransacaoService(FinSyncDbContext context)
         var query = context.Transacoes
             .Include(t => t.Conta)
             .Include(t => t.Categoria)
+            .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
             .AsQueryable();
 
         if (contaId is not null)
@@ -80,12 +82,12 @@ public class TransacaoService(FinSyncDbContext context)
         };
     }
 
-    public async Task<TransacaoDto?> GetByIdAsync(int id)
+    public async Task<TransacaoDto?> GetByIdAsync(int id, int usuarioId)
     {
         var t = await context.Transacoes
             .Include(t => t.Conta)
             .Include(t => t.Categoria)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .FirstOrDefaultAsync(t => t.Id == id && t.Conta != null && t.Conta.UsuarioId == usuarioId);
 
         if (t is null) return null;
 
@@ -104,9 +106,10 @@ public class TransacaoService(FinSyncDbContext context)
         };
     }
 
-    public async Task<(TransacaoDto? Dto, string? Error)> CreateAsync(CreateTransacaoDto dto)
+    public async Task<(TransacaoDto? Dto, string? Error)> CreateAsync(CreateTransacaoDto dto, int usuarioId)
     {
-        var contaExiste = await context.Contas.AnyAsync(c => c.Id == dto.ContaId);
+        var contaExiste = await context.Contas
+            .AnyAsync(c => c.Id == dto.ContaId && c.UsuarioId == usuarioId);
         if (!contaExiste)
         {
             return (null, $"A conta com id {dto.ContaId} nao existe.");
@@ -144,12 +147,20 @@ public class TransacaoService(FinSyncDbContext context)
         }, null);
     }
 
-    public async Task<(bool Found, string? Error)> UpdateAsync(int id, UpdateTransacaoDto dto)
+    public async Task<(bool Found, string? Error)> UpdateAsync(int id, UpdateTransacaoDto dto, int usuarioId)
     {
-        var transacao = await context.Transacoes.FindAsync(id);
+        var transacao = await context.Transacoes
+            .Include(t => t.Conta)
+            .FirstOrDefaultAsync(t => t.Id == id);
         if (transacao is null) return (false, null);
 
-        var contaExiste = await context.Contas.AnyAsync(c => c.Id == dto.ContaId);
+        if (transacao.Conta?.UsuarioId != usuarioId)
+        {
+            return (false, "Transação não encontrada.");
+        }
+
+        var contaExiste = await context.Contas
+            .AnyAsync(c => c.Id == dto.ContaId && c.UsuarioId == usuarioId);
         if (!contaExiste)
         {
             return (true, $"A conta com id {dto.ContaId} nao existe.");
@@ -166,19 +177,22 @@ public class TransacaoService(FinSyncDbContext context)
         return (true, null);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, int usuarioId)
     {
-        var transacao = await context.Transacoes.FindAsync(id);
-        if (transacao is null) return false;
+        var transacao = await context.Transacoes
+            .Include(t => t.Conta)
+            .FirstOrDefaultAsync(t => t.Id == id);
+        if (transacao is null || transacao.Conta?.UsuarioId != usuarioId) return false;
 
         context.Transacoes.Remove(transacao);
         await context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim)
+    public async Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId)
     {
         var query = context.Transacoes
+            .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
             .Where(t => t.Data >= dataInicio && t.Data <= dataFim);
 
         if (contaId is not null)
@@ -221,9 +235,10 @@ public class TransacaoService(FinSyncDbContext context)
             .ToList();
     }
 
-    public async Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim)
+    public async Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId)
     {
         var query = context.Transacoes
+            .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
             .Where(t => t.Data >= dataInicio && t.Data <= dataFim)
             .AsQueryable();
 
@@ -243,9 +258,11 @@ public class TransacaoService(FinSyncDbContext context)
         };
     }
 
-    public async Task<byte[]> ExportarCsvAsync(int? contaId, string periodo)
+    public async Task<byte[]> ExportarCsvAsync(int? contaId, string periodo, int usuarioId)
     {
-        var query = context.Transacoes.AsQueryable();
+        var query = context.Transacoes
+            .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
+            .AsQueryable();
 
         if (contaId is not null)
         {
