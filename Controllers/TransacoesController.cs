@@ -28,14 +28,18 @@ public class TransacoesController(TransacaoService transacaoService) : Controlle
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TransacaoDto>>> GetTransacoes(
+    public async Task<ActionResult<PagedResponse<TransacaoDto>>> GetTransacoes(
         int? contaId,
         DateOnly? data,
         DateOnly? dataInicio,
         DateOnly? dataFim,
-        int? categoriaId)
+        int? categoriaId,
+        int page = 1,
+        int pageSize = 20)
     {
-        return Ok(await transacaoService.GetAllAsync(contaId, data, dataInicio, dataFim, categoriaId));
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        page = Math.Max(1, page);
+        return Ok(await transacaoService.GetAllAsync(contaId, data, dataInicio, dataFim, categoriaId, page, pageSize));
     }
 
     [HttpGet("{id:int}")]

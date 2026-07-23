@@ -68,11 +68,11 @@ export default function RelatoriosPage() {
     try {
       const [res, txns] = await Promise.all([
         getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
-        getTransacoesRange(contaSelecionadaId, dataInicio, dataFim),
+        getTransacoesRange(contaSelecionadaId, dataInicio, dataFim, 1, 100),
       ]);
       if (requestIdRef.current !== reqId) return;
       setResumo(res);
-      setTransacoes(txns);
+      setTransacoes(txns.data);
     } catch {
       if (requestIdRef.current !== reqId) return;
       setResumo(null);

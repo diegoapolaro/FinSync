@@ -63,20 +63,20 @@ export async function deleteConta(id) {
   return handleResponse(res);
 }
 
-export async function getTransacoes(contaId, data, dataInicio, dataFim) {
+export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1, pageSize = 20) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
   if (data) params.set('data', data);
   if (dataInicio) params.set('dataInicio', dataInicio);
   if (dataFim) params.set('dataFim', dataFim);
-  const query = params.toString();
-  const path = query ? `/transacoes?${query}` : '/transacoes';
-  const res = await fetch(url(path));
+  params.set('page', page);
+  params.set('pageSize', pageSize);
+  const res = await fetch(url(`/transacoes?${params}`));
   return handleResponse(res);
 }
 
-export async function getTransacoesRange(contaId, dataInicio, dataFim) {
-  return getTransacoes(contaId, null, dataInicio, dataFim);
+export async function getTransacoesRange(contaId, dataInicio, dataFim, page = 1, pageSize = 20) {
+  return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize);
 }
 
 export async function getTransacao(id) {

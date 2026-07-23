@@ -37,8 +37,10 @@ export default function Extrato() {
   const [transacoes, setTransacoes] = useState([]);
   const [resumo, setResumo] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [pagina, setPagina] = useState(1);
+  const [paginaMeta, setPaginaMeta] = useState({ total: 0, totalPages: 1 });
 
-  const carregarDados = useCallback(async () => {
+  const carregarDados = useCallback(async (pageNum) => {
     if (!contaSelecionadaId) {
       setTransacoes([]);
       setResumo(null);
@@ -47,10 +49,11 @@ export default function Extrato() {
     }
     try {
       const [txns, res] = await Promise.all([
-        getTransacoesRange(contaSelecionadaId, dataInicio, dataFim),
+        getTransacoesRange(contaSelecionadaId, dataInicio, dataFim, pageNum),
         getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
       ]);
-      setTransacoes(txns);
+      setTransacoes(txns.data);
+      setPaginaMeta({ total: txns.total, totalPages: txns.totalPages });
       setResumo(res);
     } catch {
       setTransacoes([]);
@@ -62,8 +65,16 @@ export default function Extrato() {
 
   useEffect(() => {
     setCarregando(true);
-    carregarDados();
+    setPagina(1);
+    carregarDados(1);
   }, [carregarDados]);
+
+  function irParaPagina(p) {
+    if (p < 1 || p > paginaMeta.totalPages || p === pagina) return;
+    setPagina(p);
+    setCarregando(true);
+    carregarDados(p);
+  }
 
   const totalEntradas = resumo?.totalEntradas ?? 0;
   const totalSaidas = resumo?.totalSaidas ?? 0;
@@ -72,7 +83,7 @@ export default function Extrato() {
   async function handleDelete(id) {
     try {
       await deleteTransacao(id);
-      await carregarDados();
+      await carregarDados(pagina);
     } catch {}
   }
 
@@ -82,6 +93,58 @@ export default function Extrato() {
 
   function handleNovaSaida() {
     navigate('/lancamentos');
+  }
+
+  function Paginacao() {
+    if (carregando || paginaMeta.totalPages <= 1) return null;
+    const { total, totalPages } = paginaMeta;
+    const from = (pagina - 1) * 20 + 1;
+    const to = Math.min(pagina * 20, total);
+    return (
+      <div className="flex items-center justify-between gap-4 mt-4 px-4 py-3 rounded-xl border border-line" style={{ backgroundColor: 'var(--bg-card)' }}>
+        <span className="text-xs text-on-surface-variant">
+          {from}&ndash;{to} de {total}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => irParaPagina(pagina - 1)}
+            disabled={pagina <= 1}
+            className="w-7 h-7 flex items-center justify-center rounded border border-line disabled:opacity-30 text-sm"
+            style={{ backgroundColor: 'var(--bg-card)' }}
+          >
+            <span className="material-symbols-outlined text-sm">chevron_left</span>
+          </button>
+          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+            const start = Math.max(0, Math.min(pagina - 3, totalPages - 5));
+            const pageNum = start + i + 1;
+            if (pageNum > totalPages) return null;
+            return (
+              <button
+                key={pageNum}
+                onClick={() => irParaPagina(pageNum)}
+                className={
+                  'w-7 h-7 flex items-center justify-center rounded text-xs font-mono ' +
+                  (pageNum === pagina
+                    ? 'bg-entrada text-white'
+                    : 'border border-line')
+                }
+                style={pageNum !== pagina ? { backgroundColor: 'var(--bg-card)' } : undefined}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => irParaPagina(pagina + 1)}
+            disabled={pagina >= paginaMeta.totalPages}
+            className="w-7 h-7 flex items-center justify-center rounded border border-line disabled:opacity-30 text-sm"
+            style={{ backgroundColor: 'var(--bg-card)' }}
+          >
+            <span className="material-symbols-outlined text-sm">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -102,6 +165,8 @@ export default function Extrato() {
               onDelete={handleDelete}
             />
           </div>
+
+          <Paginacao />
 
           <FloatingActions
             onEntrada={handleNovaEntrada}
@@ -153,6 +218,8 @@ export default function Extrato() {
             </div>
           )}
         </div>
+
+        <Paginacao />
 
         {!carregando && transacoes.length > 0 && (
           <FloatingActions

@@ -8,12 +8,14 @@ namespace FinSync.Services;
 
 public class TransacaoService(FinSyncDbContext context)
 {
-    public async Task<List<TransacaoDto>> GetAllAsync(
+    public async Task<PagedResponse<TransacaoDto>> GetAllAsync(
         int? contaId,
         DateOnly? data = null,
         DateOnly? dataInicio = null,
         DateOnly? dataFim = null,
-        int? categoriaId = null)
+        int? categoriaId = null,
+        int page = 1,
+        int pageSize = 20)
     {
         var query = context.Transacoes
             .Include(t => t.Conta)
@@ -45,8 +47,13 @@ public class TransacaoService(FinSyncDbContext context)
             query = query.Where(t => t.Data <= dataFim);
         }
 
-        return await query
+        var total = await query.CountAsync();
+        var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+
+        var items = await query
             .OrderByDescending(t => t.Data)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(t => new TransacaoDto
             {
                 Id = t.Id,
@@ -61,6 +68,15 @@ public class TransacaoService(FinSyncDbContext context)
                 CategoriaCor = t.Categoria != null ? t.Categoria.Cor : string.Empty
             })
             .ToListAsync();
+
+        return new PagedResponse<TransacaoDto>
+        {
+            Data = items,
+            Total = total,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
     }
 
     public async Task<TransacaoDto?> GetByIdAsync(int id)

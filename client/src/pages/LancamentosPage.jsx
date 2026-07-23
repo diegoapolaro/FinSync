@@ -64,8 +64,8 @@ export default function LancamentosPage() {
       return;
     }
     try {
-      const dados = await getTransacoes(contaSelecionadaId, dataSelecionada);
-      setTransacoes(dados);
+      const dados = await getTransacoes(contaSelecionadaId, dataSelecionada, null, null, 1, 100);
+      setTransacoes(dados.data);
     } catch {
       setTransacoes([]);
     } finally {
