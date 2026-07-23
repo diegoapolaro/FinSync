@@ -1,23 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-
-const STORAGE_KEY = 'finsync_preferencias';
+import { createContext, useContext, useEffect } from 'react';
+import usePreferencias from '../hooks/usePreferencias';
 
 const TemaContext = createContext(null);
 
-function carregarPrefs() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
 export function TemaProvider({ children }) {
-  const [tema, setTema] = useState(() => {
-    const prefs = carregarPrefs();
-    return prefs.tema || 'claro';
-  });
+  const { prefs, atualizar } = usePreferencias();
+  const tema = prefs.tema || 'claro';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -28,18 +16,12 @@ export function TemaProvider({ children }) {
     }
   }, [tema]);
 
-  useEffect(() => {
-    const prefs = carregarPrefs();
-    prefs.tema = tema;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-  }, [tema]);
-
   const alternarTema = () => {
-    setTema((t) => (t === 'escuro' ? 'claro' : 'escuro'));
+    atualizar('tema', tema === 'escuro' ? 'claro' : 'escuro');
   };
 
   return (
-    <TemaContext.Provider value={{ tema, setTema, alternarTema }}>
+    <TemaContext.Provider value={{ tema, alternarTema }}>
       {children}
     </TemaContext.Provider>
   );

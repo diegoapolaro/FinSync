@@ -52,10 +52,7 @@ export default function PreferenciasSettings({ prefs, atualizar }) {
         <Campo label="Tema (Claro/Escuro)">
           <Toggle
             checked={tema === 'escuro'}
-            onChange={() => {
-              alternarTema();
-              atualizar('tema', tema === 'escuro' ? 'claro' : 'escuro');
-            }}
+            onChange={alternarTema}
           />
         </Campo>
       </div>
