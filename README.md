@@ -29,7 +29,8 @@ FinSync/
 ├── appsettings.json              App settings (DB connection, CORS origins)
 ├── finsync.db                    SQLite database (local, not committed)
 ├── Models/                       Entity models
-│   ├── Transacao.cs              Transaction (Descricao, Valor, Tipo, Data, ContaId, CategoriaId)
+│   ├── Usuario.cs                User (Id, Nome, Email, SenhaHash, DataCriacao)
+│   ├── Transacao.cs              Transaction (Descricao, Valor, Tipo, Data, ContaId)
 │   ├── Conta.cs                  Account (Nome, Tipo, Arquivada)
 │   ├── Categoria.cs              Category (Nome, Cor, Tipo)
 │   ├── TipoTransacao.cs          Enum: Entrada / Saida
@@ -39,10 +40,12 @@ FinSync/
 │   └── DbSeeder.cs              Seeds default accounts & categories on startup
 ├── Dtos/                         Request/response DTOs for each entity
 ├── Services/                     Business logic layer
+│   ├── AuthService.cs            Register + Login with BCrypt + JWT
 │   ├── TransacaoService.cs
 │   ├── ContaService.cs
 │   └── CategoriaService.cs
 ├── Controllers/                  API endpoints
+│   ├── AuthController.cs         POST /api/auth/registrar, /api/auth/login (JWT)
 │   ├── TransacoesController.cs   CRUD + CSV export
 │   ├── ContasController.cs       CRUD + /{id}/resumo (balance summary)
 │   └── CategoriasController.cs   CRUD
@@ -50,9 +53,9 @@ FinSync/
 │   └── GlobalExceptionHandler.cs ProblemDetails error handling
 ├── Helpers/
 │   └── DateRangeHelper.cs        Date filtering utilities
-├── Migrations/                   EF Core migrations (3 migrations applied)
+├── Migrations/                   EF Core migrations (includes Usuario + Auth)
 ├── tests/
-│   └── FinSync.Tests/            xUnit test project (scaffolded)
+│   └── FinSync.Tests/            xUnit tests (Services, Helpers)
 ├── client/                       React frontend
 │   ├── package.json
 │   ├── vite.config.js            Vite config (proxy to API)
@@ -62,6 +65,7 @@ FinSync/
 │       ├── pages/                Route pages
 │       │   ├── Extrato.jsx       Home / statement screen
 │       │   ├── RelatoriosPage.jsx Reports & charts
+│       │   ├── Login.jsx         Login / register screen
 │       │   ├── AjustesPage.jsx   Settings (profile, accounts, categories, etc.)
 │       │   └── LancamentosPage.jsx Transaction listing
 │       ├── components/
@@ -72,7 +76,7 @@ FinSync/
 │       │   └── reports/          Chart containers
 │       ├── hooks/
 │       │   └── usePreferencias.js Theme (dark/light) source of truth
-│       ├── contexts/             ThemeContext, ToastContext
+│       ├── contexts/             ThemeContext
 │       ├── services/
 │       │   └── api.js            API client with error parsing
 │       ├── utils/                Formatters, helpers
@@ -128,6 +132,15 @@ npm test
 
 ## API Endpoints
 
+### Auth
+
+| Method | Endpoint                  | Description             |
+| ------ | ------------------------- | ----------------------- |
+| POST   | `/api/auth/registrar`      | Register new user       |
+| POST   | `/api/auth/login`          | Login, returns JWT token |
+
+All other endpoints require `Authorization: Bearer <token>` header.
+
 ### Transações
 
 | Method | Endpoint                    | Description       |
@@ -139,7 +152,7 @@ npm test
 | DELETE | `/api/transacoes/{id}`       | Delete            |
 | GET    | `/api/transacoes/exportar`   | Export as CSV     |
 
-Query params for `GET /api/transacoes`: `?dataInicio=...&dataFim=...&tipo=Entrada|Saida&contaId=...&categoriaId=...`
+Query params: `?pagina=1&tamanhoPagina=20&dataInicio=...&dataFim=...&tipo=Entrada|Saida&contaId=...&categoriaId=...`
 
 ### Contas
 
@@ -176,10 +189,7 @@ Query params for `GET /api/transacoes`: `?dataInicio=...&dataFim=...&tipo=Entrad
   "tipo": "Entrada",
   "data": "2026-07-01",
   "contaId": 1,
-  "contaNome": "Pizzaria",
-  "categoriaId": 2,
-  "categoriaNome": "Vendas",
-  "categoriaCor": "#2F6B4F"
+  "contaNome": "Pizzaria"
 }
 ```
 
@@ -210,7 +220,9 @@ Query params for `GET /api/transacoes`: `?dataInicio=...&dataFim=...&tipo=Entrad
 
 ## Implemented Features
 
+- [x] User registration & login with JWT + BCrypt
 - [x] Transaction CRUD with filtering by date, type, account, and category
+- [x] Pagination on transaction listing
 - [x] Account management (personal / business) with archive support
 - [x] Categories with color coding and type binding (income / expense)
 - [x] CSV export of transactions
@@ -218,12 +230,14 @@ Query params for `GET /api/transacoes`: `?dataInicio=...&dataFim=...&tipo=Entrad
 - [x] Dark / light theme toggle (persisted in localStorage)
 - [x] Responsive layout (mobile bottom nav + desktop sidebar)
 - [x] Settings page: profile, accounts, categories, preferences, notifications, export, security
+- [x] Server-side pagination
+- [x] Backend service tests (xUnit)
 
 ## Planned Features
 
-- [ ] User authentication (JWT) — currently single-user
+- [ ] Isolate data per user (UsuarioId in Transacoes/Contas/Categorias)
 - [ ] PostgreSQL migration for production
 - [ ] PDF export
 - [ ] Recurring transactions
 - [ ] Real notifications (low balance alerts, daily reminders)
-- [ ] Multi-user support with data isolation
+- [ ] Frontend tests with Vitest + React Testing Library
