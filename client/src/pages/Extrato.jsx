@@ -53,11 +53,13 @@ export default function Extrato() {
         getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
       ]);
       setTransacoes(txns.data);
-      setPaginaMeta({ total: txns.total, totalPages: txns.totalPages });
+      setPaginaMeta({ total: txns.total, totalPages: txns.totalPages, pageSize: txns.pageSize });
       setResumo(res);
+      return txns;
     } catch {
       setTransacoes([]);
       setResumo(null);
+      return null;
     } finally {
       setCarregando(false);
     }
@@ -83,7 +85,14 @@ export default function Extrato() {
   async function handleDelete(id) {
     try {
       await deleteTransacao(id);
-      await carregarDados(pagina);
+      const response = await carregarDados(pagina);
+      const nextPage = response && response.totalPages > 0 && pagina > response.totalPages
+        ? response.totalPages
+        : pagina;
+      if (nextPage !== pagina) {
+        setPagina(nextPage);
+        await carregarDados(nextPage);
+      }
     } catch {}
   }
 
@@ -97,9 +106,9 @@ export default function Extrato() {
 
   function Paginacao() {
     if (carregando || paginaMeta.totalPages <= 1) return null;
-    const { total, totalPages } = paginaMeta;
-    const from = (pagina - 1) * 20 + 1;
-    const to = Math.min(pagina * 20, total);
+    const { total, totalPages, pageSize = 20 } = paginaMeta;
+    const from = (pagina - 1) * pageSize + 1;
+    const to = Math.min(pagina * pageSize, total);
     return (
       <div className="flex items-center justify-between gap-4 mt-4 px-4 py-3 rounded-xl border border-line" style={{ backgroundColor: 'var(--bg-card)' }}>
         <span className="text-xs text-on-surface-variant">

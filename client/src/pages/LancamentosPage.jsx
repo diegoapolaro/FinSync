@@ -64,8 +64,16 @@ export default function LancamentosPage() {
       return;
     }
     try {
-      const dados = await getTransacoes(contaSelecionadaId, dataSelecionada, null, null, 1, 100);
-      setTransacoes(dados.data);
+      const todasTransacoes = [];
+      let page = 1;
+      while (true) {
+        const dados = await getTransacoes(contaSelecionadaId, dataSelecionada, null, null, page, 100);
+        const paginaAtual = dados?.data ?? [];
+        todasTransacoes.push(...paginaAtual);
+        if (paginaAtual.length < 100) break;
+        page += 1;
+      }
+      setTransacoes(todasTransacoes);
     } catch {
       setTransacoes([]);
     } finally {

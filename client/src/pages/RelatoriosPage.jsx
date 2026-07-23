@@ -66,13 +66,24 @@ export default function RelatoriosPage() {
     }
 
     try {
-      const [res, txns] = await Promise.all([
+      const [res] = await Promise.all([
         getResumoPeriodo(contaSelecionadaId, dataInicio, dataFim),
-        getTransacoesRange(contaSelecionadaId, dataInicio, dataFim, 1, 100),
       ]);
       if (requestIdRef.current !== reqId) return;
       setResumo(res);
-      setTransacoes(txns.data);
+
+      const todasTransacoes = [];
+      let page = 1;
+      while (true) {
+        const txns = await getTransacoesRange(contaSelecionadaId, dataInicio, dataFim, page, 100);
+        const paginaAtual = txns?.data ?? [];
+        todasTransacoes.push(...paginaAtual);
+        if (paginaAtual.length < 100) break;
+        page += 1;
+      }
+
+      if (requestIdRef.current !== reqId) return;
+      setTransacoes(todasTransacoes);
     } catch {
       if (requestIdRef.current !== reqId) return;
       setResumo(null);

@@ -52,6 +52,7 @@ public class TransacaoService(FinSyncDbContext context)
 
         var items = await query
             .OrderByDescending(t => t.Data)
+            .ThenByDescending(t => t.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(t => new TransacaoDto
