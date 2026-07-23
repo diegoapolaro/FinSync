@@ -29,14 +29,15 @@ Sistema web para controle de entradas e saídas financeiras com dois contextos d
 - **Framework:** ASP.NET Core Web API (.NET 10)
 - **Banco de Dados:** SQLite (`finsync.db`, local — migração pra PostgreSQL/SQL Server ainda planejada para produção)
 - **ORM:** Entity Framework Core (migrations + seed automático de Contas/Categorias no startup)
+- **Autenticação:** JWT (Bearer token) + BCrypt (hash de senha)
 - **Documentação API:** OpenAPI com Scalar.AspNetCore (visualização)
 
 ### Front-End
 - **Framework:** React 19 + Vite
 - **Estilo:** Tailwind CSS
-- **Roteamento:** react-router-dom (adicionado na Fase 3)
-- **Lint:** Oxlint (+ Prettier adicionado na Fase 3)
-- **Testes:** Vitest + React Testing Library (client), xUnit (backend) — scaffolding inicial da Fase 3
+- **Roteamento:** react-router-dom
+- **Lint:** Oxlint + Prettier
+- **Testes:** Vitest + React Testing Library (client), xUnit (backend)
 
 ### Ambiente de Desenvolvimento
 - **Editor:** Visual Studio Code
@@ -48,129 +49,139 @@ Sistema web para controle de entradas e saídas financeiras com dois contextos d
 
 ## 🔬 Auditoria Técnica Completa (realizada em 09/07/2026 via opencode)
 
-### 🔴 TOP 5 prioridades antes de qualquer nova feature
-1. **CRÍTICO — Dual source of truth do tema**: `ThemeContext.jsx` e `usePreferencias.js` escrevem 
-   ambos na mesma chave `finsync_preferencias` do localStorage, de forma independente. 
-   `alternarTema()` sobrescreve o objeto inteiro, **apagando nome/email salvos**. (~30min pra corrigir)
-2. **CRÍTICO — Zero autenticação**: não existe Model `Usuario`, JWT, nem hash de senha. 
-   Qualquer pessoa com a URL da API acessa/edita/exclui todos os dados. Impossível ir 
-   pra produção assim. (~4-6h)
-3. **Bug latente — comparação de tipo inconsistente**: `RelatoriosPage.jsx` compara 
-   `t.tipo === 'Saida' || t.tipo === 'Saída'` — o backend sempre retorna sem acento, 
-   então o `||` é sintoma de um bug que já rondou o sistema. Precisa de constantes 
-   centralizadas (`utils/constants.js`). (~30min)
-4. **Zero testes de lógica de negócio**: só 2 testes de backend (testam modelo, não 
-   comportamento) e 1 teste de frontend frágil (falha se a API não estiver rodando). 
-   Nenhum Service (`TransacaoService`, `ContaService`, `CategoriaService`) é testado. (~3-4h)
-5. **Sem paginação**: `GET /api/transacoes` retorna tudo de uma vez — funciona hoje, mas 
-   não escala. (~1h)
-
-**Total estimado do TOP 5:** ~9-12h
+### 🔴 TOP 5 prioridades
+1. **CRÍTICO — Dual source of truth do tema**: `ThemeContext.jsx` e `usePreferencias.js` escrevem ambos na mesma chave `finsync_preferencias` do localStorage, de forma independente. `alternarTema()` sobrescreve o objeto inteiro, **apagando nome/email salvos**. (~30min)
+2. **CRÍTICO — Zero autenticação**: não existia Model `Usuario`, JWT, nem hash de senha. ✅ **RESOLVIDO** — AuthController, JWT e BCrypt implementados. Pendente: isolar dados por usuário. (~4-6h)
+3. **Bug latente — comparação de tipo inconsistente**: `RelatoriosPage.jsx` compara `t.tipo === 'Saida' || t.tipo === 'Saída'` — o backend sempre retorna sem acento. Precisa de constantes centralizadas (`utils/constants.js`). (~30min)
+4. **Zero testes de lógica de negócio**: só 2 testes de backend (testam modelo, não comportamento) e 1 teste de frontend frágil. ✅ **PARCIAL** — testes de serviço adicionados (TransacaoService, ContaService, CategoriaService). Pendente: testes de AuthService e frontend. (~3-4h)
+5. **Sem paginação**: `GET /api/transacoes` retorna tudo de uma vez. ✅ **RESOLVIDO** — paginação server-side implementada.
 
 ### Outros achados relevantes
-- **Segurança**: UI de "Alterar Senha" existe no front mas não tem backend nenhum por trás — é enganosa, deveria ser escondida até JWT existir
-- **Arquitetura**: já tem separação Controller→Service→DTO bem feita (SRP respeitado), migrations limpas, `Outlet` pattern no React evitando prop drilling — base é sólida
-- **Performance**: índices no banco corretos, eager loading sem N+1, mas Google Fonts carregada externamente (self-host recomendado)
+- **Segurança**: UI de "Alterar Senha" existe no front mas não tem backend por trás — deve ser escondida ou integrada ao Auth
+- **Arquitetura**: separação Controller→Service→DTO bem feita (SRP respeitado), migrations limpas, `Outlet` pattern no React — base sólida
+- **Performance**: índices no banco corretos, eager loading sem N+1, Google Fonts carregada externamente (self-host recomendado)
 - **Front-end**: `AjustesPage.jsx` ainda grande (~500 linhas), precisa quebrar em `ContasSection.jsx`/`CategoriasSection.jsx`
-- **Sem TypeScript**: PropTypes/TS evitariam a classe de bug do item 3 acima
+- **Sem TypeScript**: PropTypes/TS evitariam bugs de comparação de string
 
-### Honorable mentions (depois do TOP 5)
+### Honorable mentions
 - Remover UI falsa de alterar senha (10min)
 - Filtro por `categoriaId` no endpoint de transações (15min)
 - PropTypes nos componentes compartilhados (30min)
 - `.env.example` no front-end (5min)
 - ✅ RESOLVIDO: navegação duplicada, sobreposição no cabeçalho, saldo flutuando fora da barra
 - ✅ RESOLVIDO: bug de "Invalid Date" no card de transações
-- ✅ RESOLVIDO: seletor Entrada/Saída travado em "Entrada" (ActionArea agora tem botões separados)
-- ✅ RESOLVIDO: senha sendo salva em texto puro no localStorage (removido do AlterarSenhaModal)
+- ✅ RESOLVIDO: seletor Entrada/Saída travado em "Entrada"
+- ✅ RESOLVIDO: senha sendo salva em texto puro no localStorage
 
 ### 🎨 Identidade Visual
-- ✅ Logo criada em 2 versões: "Carimbo Verde" (#2F6B4F) e "Carimbo Preto" (#1F2421), 
-  monograma "FS" estilo carimbo de borracha
+- ✅ Logo criada em 2 versões: "Carimbo Verde" (#2F6B4F) e "Carimbo Preto" (#1F2421), monograma "FS" estilo carimbo de borracha
 - ✅ Tela de Extrato funcional (layout limpo, dados reais, resumo de entradas/saídas)
-- ✅ Tela de Ajustes completa e funcional (Perfil, Contas, Categorias, Preferências, 
-  Notificações, Exportar Dados CSV, Segurança)
+- ✅ Tela de Ajustes completa e funcional (Perfil, Contas, Categorias, Preferências, Notificações, Exportar Dados CSV, Segurança)
 - ✅ Tela de Relatórios criada (resumo mensal, gráfico por semana, maiores saídas)
 
-### 🏗️ Fase 3 — Modernização da estrutura do Front-end (aplicada em 08/07/2026)
-- ✅ Roteamento real com react-router-dom, substituindo o state manual `pagina` — 
-  Extrato/Relatórios/Ajustes viraram páginas roteadas em `client/src/pages/`
-- ✅ `App.jsx` desmontado: subcomponentes (MobileTopBar, DesktopHeader, DesktopSidebar, 
-  TransactionForm, TransactionList, BottomNav) extraídos para `client/src/components/layout/`
-- ✅ `Ajustes.jsx` (que estava grande) também dividido em arquivos menores
-- ✅ Base URL da API configurável via `import.meta.env` — front-end não depende mais só 
-  do proxy do Vite em dev, pronto pra build de produção
-- ✅ `services/api.js` melhorado: parsing de erros estruturados (ProblemDetails) e 
-  exibição de mensagens de erro centralizada
-- ✅ Lógica de tema claro/escuro consolidada (antes duplicada entre `App.jsx` e 
-  `hooks/usePreferencias.js`) — agora fonte única de verdade
-- ✅ Prettier configurado ao lado do Oxlint; dependências `@types/react*` não usadas removidas
-- ✅ Scaffolding de testes: Vitest + React Testing Library no client, projeto xUnit no backend
+### 🏗️ Fase 3 — Modernização do Front-end
+- ✅ Roteamento real com react-router-dom — Extrato/Relatórios/Ajustes como páginas roteadas
+- ✅ `App.jsx` desmontado em subcomponentes (MobileTopBar, DesktopHeader, DesktopSidebar, TransactionForm, TransactionList, BottomNav)
+- ✅ `Ajustes.jsx` dividido em arquivos menores
+- ✅ Base URL da API configurável via `import.meta.env`
+- ✅ `services/api.js` com parsing de erros estruturados (ProblemDetails)
+- ✅ Lógica de tema claro/escuro consolidada em `usePreferencias.js`
+- ✅ Prettier configurado, dependências não usadas removidas
+- ✅ Scaffolding de testes: Vitest + React Testing Library, projeto xUnit
 
 ---
 
-## 📁 Estrutura do Projeto (atualizada em 09/07/2026)
+## 📁 Estrutura do Projeto (atualizada em 23/07/2026)
 
 ```
 FinSync/
-├── Program.cs                    → Configuração, CORS, seed inicial de Contas/Categorias
+├── Program.cs                    → Configuração, CORS, seed inicial, JWT
 ├── FinSync.csproj
-├── appsettings.json               → Connection string SQLite (finsync.db)
-├── finsync.db                     → Banco SQLite local (não deve ir pro git)
-├── Migrations/                    → Migrations do EF Core
+├── appsettings.json              → Connection string SQLite + JWT config
+├── finsync.db                    → Banco SQLite local
 ├── Models/
-│   ├── Transacao.cs               → ContaId, navegação para Conta
-│   ├── Conta.cs                   → Nome, Tipo, Arquivada, navegação para Transacoes
-│   ├── Categoria.cs                → Nome, Cor, Tipo
-│   ├── TipoTransacao.cs           → enum (Entrada, Saida)
-│   └── TipoConta.cs               → enum (Comercial, Pessoal)
+│   ├── Usuario.cs                → Id, Nome, Email, SenhaHash, DataCriacao
+│   ├── Transacao.cs              → Id, Descricao, Valor, Tipo, Data, ContaId
+│   ├── Conta.cs                  → Id, Nome, Tipo, Arquivada, Transacoes
+│   ├── Categoria.cs              → Id, Nome, Cor, Tipo
+│   ├── TipoTransacao.cs          → enum (Entrada, Saida)
+│   └── TipoConta.cs              → enum (Comercial, Pessoal)
 ├── Data/
-│   └── FinSyncDbContext.cs        → DbSets + relacionamento Transacao→Conta (Restrict on delete)
+│   ├── FinSyncDbContext.cs       → DbSets + relacionamentos
+│   └── DbSeeder.cs               → Seed automático de Contas/Categorias
+├── Dtos/
+│   ├── AuthDtos.cs               → RegistrarRequest, LoginRequest, AuthResponse
+│   ├── TransacaoDtos.cs
+│   ├── ContaDtos.cs
+│   └── CategoriaDtos.cs
+├── Services/
+│   ├── AuthService.cs            → Registrar + Login com BCrypt + JWT
+│   ├── TransacaoService.cs
+│   ├── ContaService.cs
+│   └── CategoriaService.cs
 ├── Controllers/
-│   ├── TransacoesController.cs    → CRUD + endpoint /exportar (CSV)
-│   ├── ContasController.cs        → CRUD + endpoint /{id}/resumo
-│   └── CategoriasController.cs    → CRUD
-└── client/                        → Front-end React (Vite + Tailwind)
+│   ├── AuthController.cs         → POST /api/auth/registrar, /api/auth/login
+│   ├── TransacoesController.cs   → CRUD + GET /exportar (CSV)
+│   ├── ContasController.cs       → CRUD + GET /{id}/resumo
+│   └── CategoriasController.cs   → CRUD
+├── Handlers/
+│   └── GlobalExceptionHandler.cs → Tratamento global de erros
+├── Helpers/
+│   └── DateRangeHelper.cs
+├── Migrations/                   → Migrations do EF Core
+├── tests/
+│   └── FinSync.Tests/            → xUnit (Helpers, Services)
+└── client/                       → Front-end React (Vite + Tailwind)
     ├── src/
-    │   ├── pages/                 → Extrato, Relatórios, Ajustes (rotas via react-router-dom)
+    │   ├── pages/                → Extrato, Relatórios, Ajustes, Login
     │   ├── components/
-    │   │   └── layout/            → MobileTopBar, DesktopHeader, DesktopSidebar, 
-    │   │                             TransactionForm, TransactionList, BottomNav
+    │   │   ├── layout/           → MobileTopBar, DesktopHeader, DesktopSidebar, BottomNav
+    │   │   ├── transactions/     → TransactionForm, TransactionList
+    │   │   ├── reports/          → Componentes de relatórios
+    │   │   ├── settings/         → Seções de configurações
+    │   │   ├── ajustes/          → Subcomponentes de Ajustes
+    │   │   └── common/           → Componentes compartilhados
+    │   ├── contexts/
+    │   │   └── ThemeContext.jsx   → Contexto de tema (sincronizado com usePreferencias)
     │   ├── hooks/
-    │   │   └── usePreferencias.js → fonte única de verdade do tema claro/escuro
-    │   └── services/
-    │       └── api.js             → base URL via import.meta.env, parsing de erros
+    │   │   └── usePreferencias.js → Fonte única de verdade do tema
+    │   ├── services/
+    │   │   └── api.js            → Base URL via import.meta.env, parsing de erros, token JWT
+    │   ├── utils/
+    │   │   └── constants.js      → Constantes centralizadas
+    │   ├── styles/               → Estilos globais
+    │   └── test/                 → Testes Vitest + React Testing Library
     └── package.json
 ```
 
-**Nota:** back-end ainda não tem entidade `Usuario`/autenticação — é single-user por enquanto.
+**Autenticação:** JWT implementado (registro + login). Pendente: relacionar Transacoes/Contas/Categorias ao usuário logado.
 
 ---
 
 ## 🗂️ Modelos de Dados
 
 ### Implementados
-1. **Transacao** ✅
+1. **Usuario** ✅
+   - Id, Nome, Email, SenhaHash, DataCriacao
+2. **Transacao** ✅
    - Id, Descricao, Valor, Tipo (enum Entrada/Saida), Data (DateOnly), ContaId, Conta (navegação)
-2. **Conta** ✅
+3. **Conta** ✅
    - Id, Nome, Tipo (enum Comercial/Pessoal), Arquivada, Transacoes (navegação)
-3. **Categoria** ✅
+4. **Categoria** ✅
    - Id, Nome, Cor (hex), Tipo (enum Entrada/Saida)
 
 ### Planejados
-4. **Usuario** (ainda não iniciado)
-   - Id, Nome, Email, Senha (hash), DataCriacao
-   - Necessário para autenticação real (JWT) e sistema multiusuário
+- Relacionar entidades ao usuário logado (adicionar UsuarioId em Transacao, Conta, Categoria)
 
 ---
 
 ## 🎓 Caminho de Aprendizado Definido
 
 **Ordem de Estudo & Construção:**
-1. ✅ Lógica em C# (em progresso)
-2. → **OOP em C# (aplicando no projeto)**
-3. → Banco de dados (Entity Framework, migrations)
-4. → Autenticação & segurança
+1. ✅ Lógica em C#
+2. ✅ **OOP em C# (aplicando no projeto)**
+3. ✅ Banco de dados (Entity Framework, migrations)
+4. ✅ Autenticação & segurança (JWT + BCrypt)
 5. → React (consumindo a API)
 6. → Deployment
 
@@ -180,26 +191,21 @@ FinSync/
 
 ## ✅ Status Atual (Atualizado em 23/07/2026)
 
-- ✅ Back-end: 3 controllers completos (Transacoes, Contas, Categorias), EF Core + SQLite, 
-  seed automático, endpoint de resumo e de exportação CSV
-- ✅ Front-end: Extrato, Relatórios e Ajustes funcionais, com identidade visual própria 
-  (estilo recibo/carimbo) e logo definida
-- ✅ Estrutura do front-end modernizada: roteamento real, componentes desmontados em 
-  arquivos próprios, tema consolidado, scaffolding de testes
+- ✅ Back-end: 4 controllers (Auth, Transacoes, Contas, Categorias), EF Core + SQLite, seed automático, JWT + BCrypt, paginação, testes de serviço
+- ✅ Front-end: Extrato, Relatórios, Ajustes e Login funcionais, com identidade visual própria (estilo recibo/carimbo)
+- ✅ Estrutura modernizada: roteamento real, componentes desmontados, tema consolidado, constantes centralizadas
 
-**Fase atual:** Produto funcional de ponta a ponta para uso pessoal/comercial básico. 
-Próximo grande passo é autenticação (hoje é single-user, sem login).
+**Fase atual:** Produto funcional com autenticação JWT implementada. Pendente isolar dados por usuário.
 
 ## 🚀 Próximos Passos (Ordem sugerida)
 
-1. **Criar Model + Controller de Usuario + Autenticação (JWT)** — hoje qualquer pessoa 
-   com acesso à API vê todas as contas, sem isolamento por usuário
-2. **Migrar de SQLite para PostgreSQL** (ou manter SQLite se for uso pessoal/local só)
-3. **Rodar os testes scaffoldados na Fase 3** e expandir cobertura aos poucos
-4. **Revisar CORS e variáveis de ambiente** antes de qualquer deploy real
-5. **Considerar exportação em PDF** (hoje só CSV) na tela de Ajustes
-6. **Notificações reais** (lembrete diário, alerta de saldo baixo) — hoje são só toggles 
-   salvos sem lógica de disparo por trás
+1. ✅ ~~Criar Model + Controller de Usuario + Autenticação (JWT)~~ **Concluído**
+2. **Isolar dados por usuário** — adicionar UsuarioId em Transacoes/Contas/Categorias e filtrar por usuário logado
+3. **Migrar de SQLite para PostgreSQL** (ou manter SQLite se for uso pessoal/local só)
+4. **Expandir cobertura de testes** — AuthService, testes de frontend
+5. **Revisar CORS e variáveis de ambiente** antes de qualquer deploy real
+6. **Considerar exportação em PDF** (hoje só CSV) na tela de Ajustes
+7. **Notificações reais** (lembrete diário, alerta de saldo baixo) — hoje são só toggles salvos sem lógica de disparo
 
 ---
 
@@ -213,8 +219,8 @@ Próximo grande passo é autenticação (hoje é single-user, sem login).
 ## 📝 Notas Importantes
 
 - **Princípio Guia:** Vibecoding com fundamento — aprender fazendo, mas com estrutura correta desde o início
-- **Padrões de Código:** Organizar em pastas/namespaces desde o início (Models, Controllers, Data)
-- **Conceitos OOP Aplicados:** Encapsulamento, herança, polimorfismo, enums para tipos seguros
+- **Padrões de Código:** Organizar em pastas/namespaces desde o início (Models, Controllers, Data, Services, Dtos)
+- **Conceitos OOP Aplicados:** Encapsulamento, herança, polimorfismo, enums para tipos seguros, injeção de dependência
 - **Mentoria:** Guia passo a passo, explicando conceitos conforme aparecem no código
 
 ---
@@ -229,5 +235,5 @@ Diferente de tutoriais genéricos, esse projeto é:
 
 ---
 
-*Última atualização: 09 de Julho de 2026*  
-*Status: Produto funcional ponta a ponta (Extrato, Relatórios, Ajustes) — estrutura de front-end modernizada, autenticação ainda pendente. Auditoria técnica completa realizada — TOP 5 prioridades documentadas.*
+*Última atualização: 23 de Julho de 2026*  
+*Status: Produto funcional com autenticação JWT, 4 controllers, paginação e testes de serviço. Auditoria técnica completa realizada.*
