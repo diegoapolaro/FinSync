@@ -46,7 +46,39 @@ Sistema web para controle de entradas e saídas financeiras com dois contextos d
 - **Front-end (design/geração):** Google Stitch
 - **Back-end/integração (AI assistant no VS Code):** opencode
 
-### ⚠️ Bugs conhecidos no Front-end (atualizado em 08/07/2026)
+## 🔬 Auditoria Técnica Completa (realizada em 09/07/2026 via opencode)
+
+### 🔴 TOP 5 prioridades antes de qualquer nova feature
+1. **CRÍTICO — Dual source of truth do tema**: `ThemeContext.jsx` e `usePreferencias.js` escrevem 
+   ambos na mesma chave `finsync_preferencias` do localStorage, de forma independente. 
+   `alternarTema()` sobrescreve o objeto inteiro, **apagando nome/email salvos**. (~30min pra corrigir)
+2. **CRÍTICO — Zero autenticação**: não existe Model `Usuario`, JWT, nem hash de senha. 
+   Qualquer pessoa com a URL da API acessa/edita/exclui todos os dados. Impossível ir 
+   pra produção assim. (~4-6h)
+3. **Bug latente — comparação de tipo inconsistente**: `RelatoriosPage.jsx` compara 
+   `t.tipo === 'Saida' || t.tipo === 'Saída'` — o backend sempre retorna sem acento, 
+   então o `||` é sintoma de um bug que já rondou o sistema. Precisa de constantes 
+   centralizadas (`utils/constants.js`). (~30min)
+4. **Zero testes de lógica de negócio**: só 2 testes de backend (testam modelo, não 
+   comportamento) e 1 teste de frontend frágil (falha se a API não estiver rodando). 
+   Nenhum Service (`TransacaoService`, `ContaService`, `CategoriaService`) é testado. (~3-4h)
+5. **Sem paginação**: `GET /api/transacoes` retorna tudo de uma vez — funciona hoje, mas 
+   não escala. (~1h)
+
+**Total estimado do TOP 5:** ~9-12h
+
+### Outros achados relevantes
+- **Segurança**: UI de "Alterar Senha" existe no front mas não tem backend nenhum por trás — é enganosa, deveria ser escondida até JWT existir
+- **Arquitetura**: já tem separação Controller→Service→DTO bem feita (SRP respeitado), migrations limpas, `Outlet` pattern no React evitando prop drilling — base é sólida
+- **Performance**: índices no banco corretos, eager loading sem N+1, mas Google Fonts carregada externamente (self-host recomendado)
+- **Front-end**: `AjustesPage.jsx` ainda grande (~500 linhas), precisa quebrar em `ContasSection.jsx`/`CategoriasSection.jsx`
+- **Sem TypeScript**: PropTypes/TS evitariam a classe de bug do item 3 acima
+
+### Honorable mentions (depois do TOP 5)
+- Remover UI falsa de alterar senha (10min)
+- Filtro por `categoriaId` no endpoint de transações (15min)
+- PropTypes nos componentes compartilhados (30min)
+- `.env.example` no front-end (5min)
 - ✅ RESOLVIDO: navegação duplicada, sobreposição no cabeçalho, saldo flutuando fora da barra
 - ✅ RESOLVIDO: bug de "Invalid Date" no card de transações
 - ✅ RESOLVIDO: seletor Entrada/Saída travado em "Entrada" (ActionArea agora tem botões separados)
@@ -77,7 +109,7 @@ Sistema web para controle de entradas e saídas financeiras com dois contextos d
 
 ---
 
-## 📁 Estrutura do Projeto (atualizada em 08/07/2026)
+## 📁 Estrutura do Projeto (atualizada em 09/07/2026)
 
 ```
 FinSync/
@@ -146,7 +178,7 @@ FinSync/
 
 ---
 
-## ✅ Status Atual (Atualizado em 08/07/2026)
+## ✅ Status Atual (Atualizado em 23/07/2026)
 
 - ✅ Back-end: 3 controllers completos (Transacoes, Contas, Categorias), EF Core + SQLite, 
   seed automático, endpoint de resumo e de exportação CSV
@@ -197,5 +229,5 @@ Diferente de tutoriais genéricos, esse projeto é:
 
 ---
 
-*Última atualização: 08 de Julho de 2026*  
-*Status: Produto funcional ponta a ponta (Extrato, Relatórios, Ajustes) — estrutura de front-end modernizada, autenticação ainda pendente*
+*Última atualização: 09 de Julho de 2026*  
+*Status: Produto funcional ponta a ponta (Extrato, Relatórios, Ajustes) — estrutura de front-end modernizada, autenticação ainda pendente. Auditoria técnica completa realizada — TOP 5 prioridades documentadas.*
