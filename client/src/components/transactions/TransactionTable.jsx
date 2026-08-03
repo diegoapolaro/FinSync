@@ -3,12 +3,22 @@ import { TIPO_TRANSACAO } from '../../utils/constants';
 
 function formatShortDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' }).replace('.', '');
+  return d
+    .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
+    .replace('.', '');
 }
 
-export default function TransactionTable({ transacoes, carregando, onDelete }) {
+export default function TransactionTable({
+  transacoes,
+  carregando,
+  onDelete,
+  emptyMessage = 'Nenhuma movimentação neste período.',
+}) {
   return (
-    <div className="rounded-xl shadow-card border border-line overflow-hidden" style={{ backgroundColor: 'var(--bg-card)' }}>
+    <div
+      className="rounded-xl shadow-card border border-line overflow-hidden"
+      style={{ backgroundColor: 'var(--bg-card)' }}
+    >
       <table className="w-full border-collapse text-left">
         <thead className="bg-surface-variant font-label-caps text-[11px] text-on-surface-variant border-b border-line">
           <tr>
@@ -24,63 +34,71 @@ export default function TransactionTable({ transacoes, carregando, onDelete }) {
           {carregando && (
             <tr>
               <td colSpan={6} className="text-center py-12 text-sm text-on-surface-variant">
-                <span className="spinner inline-block align-middle mr-2" />Carregando...
+                <span className="spinner inline-block align-middle mr-2" />
+                Carregando...
               </td>
             </tr>
           )}
           {!carregando && transacoes.length === 0 && (
             <tr>
               <td colSpan={6} className="text-center py-12 text-sm text-on-surface-variant">
-                Nenhuma movimentação neste período.
+                {emptyMessage}
               </td>
             </tr>
           )}
-          {!carregando && transacoes.map((t) => {
-            const isEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
-            return (
-              <tr key={t.id} className="group hover:bg-surface-variant transition-colors">
-                <td className="py-3.5 px-4">
-                  <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isEntrada ? 'var(--color-entrada)' : 'var(--color-saida)' }} />
-                </td>
-                <td className="py-3.5 px-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-on-surface">{t.descricao}</span>
-                  </div>
-                </td>
-                <td className="py-3.5 px-4">
-                  <span
+          {!carregando &&
+            transacoes.map((t) => {
+              const isEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
+              return (
+                <tr key={t.id} className="group hover:bg-surface-variant transition-colors">
+                  <td className="py-3.5 px-4">
+                    <div
+                      className="w-1 h-8 rounded-full"
+                      style={{
+                        backgroundColor: isEntrada ? 'var(--color-entrada)' : 'var(--color-saida)',
+                      }}
+                    />
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-on-surface">{t.descricao}</span>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <span
+                      className={
+                        'px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider border ' +
+                        (isEntrada
+                          ? 'bg-entrada/5 text-entrada border-entrada/20'
+                          : 'bg-saida/5 text-saida border-saida/20')
+                      }
+                    >
+                      {t.categoriaNome || 'GERAL'}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 font-mono text-sm text-on-surface-variant">
+                    {formatShortDate(t.data)}
+                  </td>
+                  <td
                     className={
-                      'px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider border ' +
-                      (isEntrada
-                        ? 'bg-entrada/5 text-entrada border-entrada/20'
-                        : 'bg-saida/5 text-saida border-saida/20')
+                      'py-3.5 px-4 font-mono text-sm font-semibold text-right ' +
+                      (isEntrada ? 'text-entrada' : 'text-saida')
                     }
                   >
-                    {t.categoriaNome || 'GERAL'}
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 font-mono text-sm text-on-surface-variant">
-                  {formatShortDate(t.data)}
-                </td>
-                <td
-                  className={
-                    'py-3.5 px-4 font-mono text-sm font-semibold text-right ' +
-                    (isEntrada ? 'text-entrada' : 'text-saida')
-                  }
-                >
-                  {isEntrada ? '+ ' : '- '}{formatCurrency(t.valor)}
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <button
-                    onClick={() => onDelete(t.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-saida/10 text-on-surface-variant hover:text-saida"
-                  >
-                    <span className="material-symbols-outlined text-lg">delete</span>
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
+                    {isEntrada ? '+ ' : '- '}
+                    {formatCurrency(t.valor)}
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <button
+                      onClick={() => onDelete(t.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-saida/10 text-on-surface-variant hover:text-saida"
+                    >
+                      <span className="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
         </tbody>
       </table>
     </div>
