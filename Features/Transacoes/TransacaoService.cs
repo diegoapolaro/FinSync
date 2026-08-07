@@ -1,10 +1,11 @@
 using FinSync.Data;
-using FinSync.Dtos;
+using FinSync.Enums;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
 using FinSync.Helpers;
-using FinSync.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace FinSync.Services;
+namespace FinSync.Features.Transacoes;
 
 public class TransacaoService(FinSyncDbContext context)
 {

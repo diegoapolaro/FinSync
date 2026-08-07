@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using FinSync.Enums;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
 
-namespace FinSync.Models;
+namespace FinSync.Features.Transacoes;
 
 public class Transacao
 {

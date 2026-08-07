@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using FinSync.Enums;
+using FinSync.Features.Auth;
+using FinSync.Features.Transacoes;
 
-namespace FinSync.Models;
+namespace FinSync.Features.Contas;
 
 public class Conta
 {

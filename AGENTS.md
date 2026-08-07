@@ -91,7 +91,7 @@ Sistema web para controle de entradas e saídas financeiras com dois contextos d
 
 ---
 
-## 📁 Estrutura do Projeto (atualizada em 23/07/2026)
+## 📁 Estrutura do Projeto (atualizada em 07/08/2026)
 
 ```
 FinSync/
@@ -99,50 +99,51 @@ FinSync/
 ├── FinSync.csproj
 ├── appsettings.json              → Connection string SQLite + JWT config
 ├── finsync.db                    → Banco SQLite local
-├── Models/
-│   ├── Usuario.cs                → Id, Nome, Email, SenhaHash, DataCriacao
-│   ├── Transacao.cs              → Id, Descricao, Valor, Tipo, Data, ContaId
-│   ├── Conta.cs                  → Id, Nome, Tipo, Arquivada, Transacoes
-│   ├── Categoria.cs              → Id, Nome, Cor, Tipo
-│   ├── TipoTransacao.cs          → enum (Entrada, Saida)
-│   └── TipoConta.cs              → enum (Comercial, Pessoal)
+├── Features/                     → Slices verticais por domínio (Model + Dto + Service + Controller)
+│   ├── Auth/
+│   │   ├── Usuario.cs            → Id, Nome, Email, SenhaHash, DataCriacao
+│   │   ├── AuthDtos.cs           → RegistrarRequest, LoginRequest, AuthResponse
+│   │   ├── AuthService.cs        → Registrar + Login com BCrypt + JWT
+│   │   └── AuthController.cs     → POST /api/auth/registrar, /api/auth/login
+│   ├── Transacoes/
+│   │   ├── Transacao.cs          → Id, Descricao, Valor, Tipo, Data, ContaId, CategoriaId
+│   │   ├── TransacaoDtos.cs      → Create/Update/TransacaoDto, PagedResponse<T>, DetalhamentoCategoriaDto
+│   │   ├── TransacaoService.cs   → CRUD + filtros + paginação + CSV
+│   │   └── TransacoesController.cs → CRUD + GET /exportar
+│   ├── Contas/
+│   │   ├── Conta.cs              → Id, Nome, Tipo, Arquivada, UsuarioId
+│   │   ├── ContaDtos.cs          → Create/Update/ContaDto
+│   │   ├── ContaService.cs       → CRUD + GET /{id}/resumo
+│   │   └── ContasController.cs   → CRUD + GET /{id}/resumo
+│   └── Categorias/
+│       ├── Categoria.cs          → Id, Nome, Cor, Tipo, UsuarioId
+│       ├── CategoriaDtos.cs      → Create/Update/CategoriaDto
+│       ├── CategoriaService.cs   → CRUD (isolado por usuário)
+│       └── CategoriasController.cs → CRUD
+├── Shared/
+│   └── Enums/                    → Enums usados em múltiplas features
+│       ├── TipoTransacao.cs      → enum (Entrada, Saida)
+│       └── TipoConta.cs          → enum (Comercial, Pessoal)
 ├── Data/
-│   ├── FinSyncDbContext.cs       → DbSets + relacionamentos
-│   └── DbSeeder.cs               → Seed automático de Contas/Categorias
-├── Dtos/
-│   ├── AuthDtos.cs               → RegistrarRequest, LoginRequest, AuthResponse
-│   ├── TransacaoDtos.cs
-│   ├── ContaDtos.cs
-│   └── CategoriaDtos.cs
-├── Services/
-│   ├── AuthService.cs            → Registrar + Login com BCrypt + JWT
-│   ├── TransacaoService.cs
-│   ├── ContaService.cs
-│   └── CategoriaService.cs
-├── Controllers/
-│   ├── AuthController.cs         → POST /api/auth/registrar, /api/auth/login
-│   ├── TransacoesController.cs   → CRUD + GET /exportar (CSV)
-│   ├── ContasController.cs       → CRUD + GET /{id}/resumo
-│   └── CategoriasController.cs   → CRUD
+│   ├── FinSyncDbContext.cs       → DbSets + relacionamentos (UsuarioId em Conta/Categoria)
+│   └── DbSeeder.cs               → Seed automático de Usuario/Contas/Categorias por usuário
 ├── Handlers/
 │   └── GlobalExceptionHandler.cs → Tratamento global de erros
 ├── Helpers/
 │   └── DateRangeHelper.cs
-├── Migrations/                   → Migrations do EF Core
+├── Migrations/                   → Migrations do EF Core (InitialCreate única)
 ├── tests/
-│   └── FinSync.Tests/            → xUnit (Helpers, Services)
+│   └── FinSync.Tests/            → xUnit (Helpers, Services) — 30 testes
 └── client/                       → Front-end React (Vite + Tailwind)
     ├── src/
-    │   ├── pages/                → Extrato, Relatórios, Ajustes, Login
+    │   ├── pages/                → Extrato, RelatoriosPage, AjustesPage, LoginPage, LancamentosPage
     │   ├── components/
     │   │   ├── layout/           → MobileTopBar, DesktopHeader, DesktopSidebar, BottomNav
-    │   │   ├── transactions/     → TransactionForm, TransactionList
-    │   │   ├── reports/          → Componentes de relatórios
-    │   │   ├── settings/         → Seções de configurações
-    │   │   ├── ajustes/          → Subcomponentes de Ajustes
-    │   │   └── common/           → Componentes compartilhados
-    │   ├── contexts/
-    │   │   └── ThemeContext.jsx   → Contexto de tema (sincronizado com usePreferencias)
+    │   │   ├── transactions/     → TransactionForm, TransactionList, ...
+    │   │   ├── reports/          → ChartContainer
+    │   │   ├── settings/         → SettingsSection (seções de ajustes)
+    │   │   └── common/           → ErrorBoundary, SummaryCard, Modal, FloatingActions, ...
+    │   ├── contexts/             → AuthContext, ThemeContext, ToastContext
     │   ├── hooks/
     │   │   └── usePreferencias.js → Fonte única de verdade do tema
     │   ├── services/
@@ -154,7 +155,7 @@ FinSync/
     └── package.json
 ```
 
-**Autenticação:** JWT implementado (registro + login). Pendente: relacionar Transacoes/Contas/Categorias ao usuário logado.
+**Arquitetura:** vertical slices (feature-first) — Controller, Service, Dto e Entidade juntos por domínio. Infra compartilhada em `Data/`, `Handlers/`, `Helpers/` e enums em `Shared/Enums/`.
 
 ---
 
@@ -166,12 +167,12 @@ FinSync/
 2. **Transacao** ✅
    - Id, Descricao, Valor, Tipo (enum Entrada/Saida), Data (DateOnly), ContaId, Conta (navegação)
 3. **Conta** ✅
-   - Id, Nome, Tipo (enum Comercial/Pessoal), Arquivada, Transacoes (navegação)
+   - Id, Nome, Tipo (enum Comercial/Pessoal), Arquivada, UsuarioId, Transacoes (navegação)
 4. **Categoria** ✅
-   - Id, Nome, Cor (hex), Tipo (enum Entrada/Saida)
+   - Id, Nome, Cor (hex), Tipo (enum Entrada/Saida), UsuarioId
 
 ### Planejados
-- Relacionar entidades ao usuário logado (adicionar UsuarioId em Transacao, Conta, Categoria)
+- Nenhum (dados isolados por usuário concluído: Transacoes via Conta, Contas e Categorias com UsuarioId)
 
 ---
 
@@ -189,18 +190,18 @@ FinSync/
 
 ---
 
-## ✅ Status Atual (Atualizado em 23/07/2026)
+## ✅ Status Atual (Atualizado em 07/08/2026)
 
 - ✅ Back-end: 4 controllers (Auth, Transacoes, Contas, Categorias), EF Core + SQLite, seed automático, JWT + BCrypt, paginação, testes de serviço
 - ✅ Front-end: Extrato, Relatórios, Ajustes e Login funcionais, com identidade visual própria (estilo recibo/carimbo)
 - ✅ Estrutura modernizada: roteamento real, componentes desmontados, tema consolidado, constantes centralizadas
 
-**Fase atual:** Produto funcional com autenticação JWT implementada. Pendente isolar dados por usuário.
+**Fase atual:** Produto funcional com autenticação JWT implementada. Backend reorganizado em slices verticais (Features/) e dados isolados por usuário (Contas/Categorias/Transações).
 
 ## 🚀 Próximos Passos (Ordem sugerida)
 
 1. ✅ ~~Criar Model + Controller de Usuario + Autenticação (JWT)~~ **Concluído**
-2. **Isolar dados por usuário** — adicionar UsuarioId em Transacoes/Contas/Categorias e filtrar por usuário logado
+2. ~~**Isolar dados por usuário** — adicionar UsuarioId em Transacoes/Contas/Categorias e filtrar por usuário logado~~ **Concluído**
 3. **Migrar de SQLite para PostgreSQL** (ou manter SQLite se for uso pessoal/local só)
 4. **Expandir cobertura de testes** — AuthService, testes de frontend
 5. **Revisar CORS e variáveis de ambiente** antes de qualquer deploy real
@@ -236,4 +237,4 @@ Diferente de tutoriais genéricos, esse projeto é:
 ---
 
 *Última atualização: 23 de Julho de 2026*  
-*Status: Produto funcional com autenticação JWT, 4 controllers, paginação e testes de serviço. Auditoria técnica completa realizada.*
+*Status: Produto funcional com autenticação JWT, 4 controllers, paginação, dados por usuário e 30 testes de serviço passando. Backend em slices verticais (Features/).*

@@ -2,12 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using FinSync.Data;
-using FinSync.Dtos;
-using FinSync.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FinSync.Services;
+namespace FinSync.Features.Auth;
 
 public class AuthService(FinSyncDbContext context, IConfiguration configuration)
 {

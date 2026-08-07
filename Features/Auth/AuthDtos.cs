@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FinSync.Dtos;
+namespace FinSync.Features.Auth;
 
 public class RegistrarRequest
 {

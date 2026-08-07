@@ -1,10 +1,8 @@
 using System.Security.Claims;
-using FinSync.Dtos;
-using FinSync.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FinSync.Controllers;
+namespace FinSync.Features.Transacoes;
 
 [ApiController]
 [Authorize]

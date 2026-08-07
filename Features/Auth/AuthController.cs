@@ -1,8 +1,6 @@
-using FinSync.Dtos;
-using FinSync.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FinSync.Controllers;
+namespace FinSync.Features.Auth;
 
 [ApiController]
 [Route("api/[controller]")]

@@ -1,6 +1,7 @@
-using FinSync.Dtos;
-using FinSync.Models;
-using FinSync.Services;
+using FinSync.Enums;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
+using FinSync.Features.Transacoes;
 using FinSync.Tests.Helpers;
 using Xunit;
 
@@ -11,8 +12,9 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task CreateAsync_DeveCriarTransacaoVinculadaAContaECategoria()
     {
-        var conta = new Conta { Nome = "Conta Teste", Tipo = TipoConta.Pessoal };
-        var categoria = new Categoria { Nome = "Alimentacao", Cor = "#FF5733", Tipo = TipoTransacao.Saida };
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Teste", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        var categoria = new Categoria { Nome = "Alimentacao", Cor = "#FF5733", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
         Context.Categorias.Add(categoria);
         await Context.SaveChangesAsync();
@@ -28,7 +30,7 @@ public class TransacaoServiceTests : ServiceTestBase
             CategoriaId = categoria.Id
         };
 
-        var (result, error) = await service.CreateAsync(dto);
+        var (result, error) = await service.CreateAsync(dto, usuario.Id);
 
         Assert.Null(error);
         Assert.NotNull(result);
@@ -50,6 +52,7 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task CreateAsync_ContaInexistente_DeveRetornarErro()
     {
+        var usuario = await CriarUsuarioAsync();
         var service = new TransacaoService(Context);
         var dto = new CreateTransacaoDto
         {
@@ -60,7 +63,7 @@ public class TransacaoServiceTests : ServiceTestBase
             ContaId = 999
         };
 
-        var (result, error) = await service.CreateAsync(dto);
+        var (result, error) = await service.CreateAsync(dto, usuario.Id);
 
         Assert.Null(result);
         Assert.Contains("999", error);
@@ -69,7 +72,8 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task GetResumoPeriodoAsync_DeveSomarEntradasESaidasCorretamente()
     {
-        var conta = new Conta { Nome = "Conta Resumo", Tipo = TipoConta.Pessoal };
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Resumo", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
         await Context.SaveChangesAsync();
 
@@ -85,7 +89,8 @@ public class TransacaoServiceTests : ServiceTestBase
         var result = await service.GetResumoPeriodoAsync(
             null,
             new DateOnly(2026, 7, 1),
-            new DateOnly(2026, 7, 31)
+            new DateOnly(2026, 7, 31),
+            usuario.Id
         );
 
         var totalEntradas = (decimal)result.GetType().GetProperty("TotalEntradas")!.GetValue(result)!;
@@ -100,8 +105,9 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task GetResumoPeriodoAsync_ComFiltroConta_DeveConsiderarApenasAquelaConta()
     {
-        var conta1 = new Conta { Nome = "Conta A", Tipo = TipoConta.Pessoal };
-        var conta2 = new Conta { Nome = "Conta B", Tipo = TipoConta.Comercial };
+        var usuario = await CriarUsuarioAsync();
+        var conta1 = new Conta { Nome = "Conta A", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        var conta2 = new Conta { Nome = "Conta B", Tipo = TipoConta.Comercial, UsuarioId = usuario.Id };
         Context.Contas.AddRange(conta1, conta2);
         await Context.SaveChangesAsync();
 
@@ -116,7 +122,8 @@ public class TransacaoServiceTests : ServiceTestBase
         var result = await service.GetResumoPeriodoAsync(
             conta1.Id,
             new DateOnly(2026, 7, 1),
-            new DateOnly(2026, 7, 31)
+            new DateOnly(2026, 7, 31),
+            usuario.Id
         );
 
         var totalEntradas = (decimal)result.GetType().GetProperty("TotalEntradas")!.GetValue(result)!;
@@ -129,10 +136,11 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task GetDetalhamentoAsync_DeveAgruparPorCategoriaComSinalCorreto()
     {
-        var conta = new Conta { Nome = "Conta Det", Tipo = TipoConta.Pessoal };
-        var catAlimentacao = new Categoria { Nome = "Alimentacao", Cor = "#FF0000", Tipo = TipoTransacao.Saida };
-        var catTransporte = new Categoria { Nome = "Transporte", Cor = "#00FF00", Tipo = TipoTransacao.Saida };
-        var catRenda = new Categoria { Nome = "Renda", Cor = "#0000FF", Tipo = TipoTransacao.Entrada };
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Det", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        var catAlimentacao = new Categoria { Nome = "Alimentacao", Cor = "#FF0000", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        var catTransporte = new Categoria { Nome = "Transporte", Cor = "#00FF00", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        var catRenda = new Categoria { Nome = "Renda", Cor = "#0000FF", Tipo = TipoTransacao.Entrada, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
         Context.Categorias.AddRange(catAlimentacao, catTransporte, catRenda);
         await Context.SaveChangesAsync();
@@ -149,7 +157,8 @@ public class TransacaoServiceTests : ServiceTestBase
         var result = await service.GetDetalhamentoAsync(
             null,
             new DateOnly(2026, 7, 1),
-            new DateOnly(2026, 7, 31)
+            new DateOnly(2026, 7, 31),
+            usuario.Id
         );
 
         Assert.Equal(3, result.Count);
@@ -170,7 +179,8 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task GetDetalhamentoAsync_SemCategoria_DeveAgruparComoSemCategoria()
     {
-        var conta = new Conta { Nome = "Conta SC", Tipo = TipoConta.Pessoal };
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta SC", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
         await Context.SaveChangesAsync();
 
@@ -184,7 +194,8 @@ public class TransacaoServiceTests : ServiceTestBase
         var result = await service.GetDetalhamentoAsync(
             null,
             new DateOnly(2026, 7, 1),
-            new DateOnly(2026, 7, 31)
+            new DateOnly(2026, 7, 31),
+            usuario.Id
         );
 
         Assert.Single(result);
@@ -197,10 +208,11 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task GetDetalhamentoAsync_DeveOrdenarPorValorAbsolutoDecrescente()
     {
-        var conta = new Conta { Nome = "Conta Ord", Tipo = TipoConta.Pessoal };
-        var cat1 = new Categoria { Nome = "Cat1", Cor = "#111111", Tipo = TipoTransacao.Entrada };
-        var cat2 = new Categoria { Nome = "Cat2", Cor = "#222222", Tipo = TipoTransacao.Saida };
-        var cat3 = new Categoria { Nome = "Cat3", Cor = "#333333", Tipo = TipoTransacao.Saida };
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Ord", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        var cat1 = new Categoria { Nome = "Cat1", Cor = "#111111", Tipo = TipoTransacao.Entrada, UsuarioId = usuario.Id };
+        var cat2 = new Categoria { Nome = "Cat2", Cor = "#222222", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        var cat3 = new Categoria { Nome = "Cat3", Cor = "#333333", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
         Context.Categorias.AddRange(cat1, cat2, cat3);
         await Context.SaveChangesAsync();
@@ -216,7 +228,8 @@ public class TransacaoServiceTests : ServiceTestBase
         var result = await service.GetDetalhamentoAsync(
             null,
             new DateOnly(2026, 7, 1),
-            new DateOnly(2026, 7, 31)
+            new DateOnly(2026, 7, 31),
+            usuario.Id
         );
 
         Assert.True(Math.Abs(result[0].Total) >= Math.Abs(result[1].Total));
@@ -227,7 +240,8 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task DeleteAsync_DeveRemoverENaoDeixarOrfao()
     {
-        var conta = new Conta { Nome = "Conta Del", Tipo = TipoConta.Pessoal };
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Del", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
         await Context.SaveChangesAsync();
 
@@ -244,7 +258,7 @@ public class TransacaoServiceTests : ServiceTestBase
         var transacaoId = transacao.Id;
 
         var service = new TransacaoService(Context);
-        var deleted = await service.DeleteAsync(transacaoId);
+        var deleted = await service.DeleteAsync(transacaoId, usuario.Id);
 
         Assert.True(deleted);
 
@@ -256,8 +270,9 @@ public class TransacaoServiceTests : ServiceTestBase
     [Fact]
     public async Task DeleteAsync_IdInexistente_DeveRetornarFalse()
     {
+        var usuario = await CriarUsuarioAsync();
         var service = new TransacaoService(Context);
-        var result = await service.DeleteAsync(999);
+        var result = await service.DeleteAsync(999, usuario.Id);
         Assert.False(result);
     }
 }

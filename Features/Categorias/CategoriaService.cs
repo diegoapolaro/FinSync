@@ -1,15 +1,14 @@
 using FinSync.Data;
-using FinSync.Dtos;
-using FinSync.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace FinSync.Services;
+namespace FinSync.Features.Categorias;
 
 public class CategoriaService(FinSyncDbContext context)
 {
-    public async Task<List<CategoriaDto>> GetAllAsync()
+    public async Task<List<CategoriaDto>> GetAllAsync(int usuarioId)
     {
         return await context.Categorias
+            .Where(c => c.UsuarioId == usuarioId)
             .OrderBy(c => c.Tipo)
             .ThenBy(c => c.Nome)
             .Select(c => new CategoriaDto
@@ -22,13 +21,14 @@ public class CategoriaService(FinSyncDbContext context)
             .ToListAsync();
     }
 
-    public async Task<(CategoriaDto? Dto, string? Error)> CreateAsync(CreateCategoriaDto dto)
+    public async Task<(CategoriaDto? Dto, string? Error)> CreateAsync(CreateCategoriaDto dto, int usuarioId)
     {
         var categoria = new Categoria
         {
             Nome = dto.Nome,
             Cor = dto.Cor,
-            Tipo = dto.Tipo
+            Tipo = dto.Tipo,
+            UsuarioId = usuarioId
         };
 
         context.Categorias.Add(categoria);
@@ -43,9 +43,10 @@ public class CategoriaService(FinSyncDbContext context)
         }, null);
     }
 
-    public async Task<(bool Found, string? Error)> UpdateAsync(int id, UpdateCategoriaDto dto)
+    public async Task<(bool Found, string? Error)> UpdateAsync(int id, UpdateCategoriaDto dto, int usuarioId)
     {
-        var categoria = await context.Categorias.FindAsync(id);
+        var categoria = await context.Categorias
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (categoria is null) return (false, null);
 
         categoria.Nome = dto.Nome;

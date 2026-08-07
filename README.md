@@ -28,32 +28,39 @@ FinSync/
 ├── FinSync.csproj                Project file
 ├── appsettings.json              App settings (DB connection, CORS origins)
 ├── finsync.db                    SQLite database (local, not committed)
-├── Models/                       Entity models
-│   ├── Usuario.cs                User (Id, Nome, Email, SenhaHash, DataCriacao)
-│   ├── Transacao.cs              Transaction (Descricao, Valor, Tipo, Data, ContaId)
-│   ├── Conta.cs                  Account (Nome, Tipo, Arquivada)
-│   ├── Categoria.cs              Category (Nome, Cor, Tipo)
-│   ├── TipoTransacao.cs          Enum: Entrada / Saida
-│   └── TipoConta.cs              Enum: Comercial / Pessoal
+├── Features/                     Vertical slices (Model + Dto + Service + Controller by domain)
+│   ├── Auth/                     User entity, AuthDtos, AuthService, AuthController
+│   │   ├── Usuario.cs            User (Id, Nome, Email, SenhaHash, DataCriacao)
+│   │   ├── AuthDtos.cs           RegistrarRequest, LoginRequest, AuthResponse
+│   │   ├── AuthService.cs        Register + Login with BCrypt + JWT
+│   │   └── AuthController.cs     POST /api/auth/registrar, /api/auth/login (JWT)
+│   ├── Transacoes/
+│   │   ├── Transacao.cs          Transaction (Descricao, Valor, Tipo, Data, ContaId)
+│   │   ├── TransacaoDtos.cs      Create/Update/TransacaoDto, PagedResponse<T>, DetalhamentoCategoriaDto
+│   │   ├── TransacaoService.cs   List/Create/Update/Delete + CSV export
+│   │   └── TransacoesController.cs CRUD + /exportar
+│   ├── Contas/
+│   │   ├── Conta.cs              Account (Nome, Tipo, Arquivada, UsuarioId)
+│   │   ├── ContaDtos.cs          Create/Update/ContaDto
+│   │   ├── ContaService.cs       CRUD + /{id}/resumo (balance summary)
+│   │   └── ContasController.cs   CRUD + /{id}/resumo
+│   └── Categorias/
+│       ├── Categoria.cs          Category (Nome, Cor, Tipo, UsuarioId)
+│       ├── CategoriaDtos.cs      Create/Update/CategoriaDto
+│       ├── CategoriaService.cs   CRUD (per-user)
+│       └── CategoriasController.cs CRUD
+├── Shared/
+│   └── Enums/
+│       ├── TipoTransacao.cs      Enum: Entrada / Saida
+│       └── TipoConta.cs          Enum: Comercial / Pessoal
 ├── Data/
 │   ├── FinSyncDbContext.cs       EF Core DbContext with relationships
-│   └── DbSeeder.cs              Seeds default accounts & categories on startup
-├── Dtos/                         Request/response DTOs for each entity
-├── Services/                     Business logic layer
-│   ├── AuthService.cs            Register + Login with BCrypt + JWT
-│   ├── TransacaoService.cs
-│   ├── ContaService.cs
-│   └── CategoriaService.cs
-├── Controllers/                  API endpoints
-│   ├── AuthController.cs         POST /api/auth/registrar, /api/auth/login (JWT)
-│   ├── TransacoesController.cs   CRUD + CSV export
-│   ├── ContasController.cs       CRUD + /{id}/resumo (balance summary)
-│   └── CategoriasController.cs   CRUD
+│   └── DbSeeder.cs               Seeds default accounts & categories on startup
 ├── Handlers/
 │   └── GlobalExceptionHandler.cs ProblemDetails error handling
 ├── Helpers/
 │   └── DateRangeHelper.cs        Date filtering utilities
-├── Migrations/                   EF Core migrations (includes Usuario + Auth)
+├── Migrations/                   EF Core migrations
 ├── tests/
 │   └── FinSync.Tests/            xUnit tests (Services, Helpers)
 ├── client/                       React frontend
@@ -65,21 +72,21 @@ FinSync/
 │       ├── pages/                Route pages
 │       │   ├── Extrato.jsx       Home / statement screen
 │       │   ├── RelatoriosPage.jsx Reports & charts
-│       │   ├── Login.jsx         Login / register screen
+│       │   ├── LoginPage.jsx     Login / register screen
 │       │   ├── AjustesPage.jsx   Settings (profile, accounts, categories, etc.)
 │       │   └── LancamentosPage.jsx Transaction listing
 │       ├── components/
 │       │   ├── layout/           Layout components (sidebar, topbar, bottom nav, etc.)
 │       │   ├── transactions/     Transaction form, list, cards, action area
-│       │   ├── ajustes/          Settings sub-sections (ContasSection, CategoriasSection, etc.)
-│       │   ├── common/           Shared UI (ErrorBanner, SummaryCard, FloatingActions, etc.)
+│       │   ├── settings/         Settings sections
+│       │   ├── common/           Shared UI (ErrorBanner, SummaryCard, Modal, etc.)
 │       │   └── reports/          Chart containers
 │       ├── hooks/
 │       │   └── usePreferencias.js Theme (dark/light) source of truth
-│       ├── contexts/             ThemeContext
+│       ├── contexts/             AuthContext, ThemeContext, ToastContext
 │       ├── services/
 │       │   └── api.js            API client with error parsing
-│       ├── utils/                Formatters, helpers
+│       ├── utils/                Formatters, constants, filters
 │       └── styles/               CSS variables & animations
 └── README.md
 ```

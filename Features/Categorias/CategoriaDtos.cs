@@ -1,7 +1,7 @@
-using FinSync.Models;
 using System.ComponentModel.DataAnnotations;
+using FinSync.Enums;
 
-namespace FinSync.Dtos;
+namespace FinSync.Features.Categorias;
 
 public class CreateCategoriaDto
 {

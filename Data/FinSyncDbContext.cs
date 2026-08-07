@@ -1,4 +1,7 @@
-using FinSync.Models;
+using FinSync.Features.Auth;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
+using FinSync.Features.Transacoes;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinSync.Data;
@@ -42,6 +45,16 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
                   .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(t => t.Data);
+        });
+
+        modelBuilder.Entity<Categoria>(entity =>
+        {
+            entity.HasOne(c => c.Usuario)
+                  .WithMany(u => u.Categorias)
+                  .HasForeignKey(c => c.UsuarioId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(c => c.UsuarioId);
         });
     }
 

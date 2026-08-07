@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using FinSync.Enums;
+using FinSync.Features.Auth;
+using FinSync.Features.Transacoes;
 
-namespace FinSync.Models;
+namespace FinSync.Features.Categorias;
 
 public class Categoria
 {
@@ -15,6 +18,9 @@ public class Categoria
     public string Cor { get; set; } = "#96d4b2";
 
     public TipoTransacao Tipo { get; set; }
+
+    public int UsuarioId { get; set; }
+    public Usuario? Usuario { get; set; }
 
     public ICollection<Transacao> Transacoes { get; set; } = [];
 

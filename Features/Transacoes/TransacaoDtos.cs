@@ -1,7 +1,7 @@
-using FinSync.Models;
 using System.ComponentModel.DataAnnotations;
+using FinSync.Enums;
 
-namespace FinSync.Dtos;
+namespace FinSync.Features.Transacoes;
 
 public class CreateTransacaoDto
 {
@@ -43,7 +43,7 @@ public class UpdateTransacaoDto
 
 public class TransacaoDto
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
     public string Descricao { get; set; } = string.Empty;
     public decimal Valor { get; set; }
     public TipoTransacao Tipo { get; set; }

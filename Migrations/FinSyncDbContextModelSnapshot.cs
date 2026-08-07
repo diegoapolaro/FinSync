@@ -17,7 +17,38 @@ namespace FinSync.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
-            modelBuilder.Entity("FinSync.Models.Categoria", b =>
+            modelBuilder.Entity("FinSync.Features.Auth.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("FinSync.Features.Categorias.Categoria", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -42,12 +73,17 @@ namespace FinSync.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Categorias");
                 });
 
-            modelBuilder.Entity("FinSync.Models.Conta", b =>
+            modelBuilder.Entity("FinSync.Features.Contas.Conta", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,7 +118,7 @@ namespace FinSync.Migrations
                     b.ToTable("Contas");
                 });
 
-            modelBuilder.Entity("FinSync.Models.Transacao", b =>
+            modelBuilder.Entity("FinSync.Features.Transacoes.Transacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -125,40 +161,20 @@ namespace FinSync.Migrations
                     b.ToTable("Transacoes");
                 });
 
-            modelBuilder.Entity("FinSync.Models.Usuario", b =>
+            modelBuilder.Entity("FinSync.Features.Categorias.Categoria", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                    b.HasOne("FinSync.Features.Auth.Usuario", "Usuario")
+                        .WithMany("Categorias")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("SenhaHash")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("Usuarios");
+                    b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("FinSync.Models.Conta", b =>
+            modelBuilder.Entity("FinSync.Features.Contas.Conta", b =>
                 {
-                    b.HasOne("FinSync.Models.Usuario", "Usuario")
+                    b.HasOne("FinSync.Features.Auth.Usuario", "Usuario")
                         .WithMany("Contas")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -167,14 +183,14 @@ namespace FinSync.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("FinSync.Models.Transacao", b =>
+            modelBuilder.Entity("FinSync.Features.Transacoes.Transacao", b =>
                 {
-                    b.HasOne("FinSync.Models.Categoria", "Categoria")
+                    b.HasOne("FinSync.Features.Categorias.Categoria", "Categoria")
                         .WithMany("Transacoes")
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("FinSync.Models.Conta", "Conta")
+                    b.HasOne("FinSync.Features.Contas.Conta", "Conta")
                         .WithMany("Transacoes")
                         .HasForeignKey("ContaId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -185,19 +201,21 @@ namespace FinSync.Migrations
                     b.Navigation("Conta");
                 });
 
-            modelBuilder.Entity("FinSync.Models.Categoria", b =>
+            modelBuilder.Entity("FinSync.Features.Auth.Usuario", b =>
                 {
-                    b.Navigation("Transacoes");
-                });
+                    b.Navigation("Categorias");
 
-            modelBuilder.Entity("FinSync.Models.Conta", b =>
-                {
-                    b.Navigation("Transacoes");
-                });
-
-            modelBuilder.Entity("FinSync.Models.Usuario", b =>
-                {
                     b.Navigation("Contas");
+                });
+
+            modelBuilder.Entity("FinSync.Features.Categorias.Categoria", b =>
+                {
+                    b.Navigation("Transacoes");
+                });
+
+            modelBuilder.Entity("FinSync.Features.Contas.Conta", b =>
+                {
+                    b.Navigation("Transacoes");
                 });
 #pragma warning restore 612, 618
         }

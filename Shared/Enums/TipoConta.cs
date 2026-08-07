@@ -1,4 +1,4 @@
-namespace FinSync.Models;
+namespace FinSync.Enums;
 
 public enum TipoConta
 {

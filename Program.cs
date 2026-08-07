@@ -1,7 +1,10 @@
 using System.Text;
 using FinSync.Data;
+using FinSync.Features.Auth;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
+using FinSync.Features.Transacoes;
 using FinSync.Handlers;
-using FinSync.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

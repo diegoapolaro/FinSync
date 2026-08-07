@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
 
-namespace FinSync.Models;
+namespace FinSync.Features.Auth;
 
 public class Usuario
 {
@@ -20,4 +22,5 @@ public class Usuario
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
     public ICollection<Conta> Contas { get; set; } = [];
+    public ICollection<Categoria> Categorias { get; set; } = [];
 }

@@ -1,4 +1,5 @@
-using FinSync.Models;
+using FinSync.Enums;
+using FinSync.Features.Transacoes;
 using Xunit;
 
 namespace FinSync.Tests;
