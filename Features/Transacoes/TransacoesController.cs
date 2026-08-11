@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,11 @@ public class TransacoesController(TransacaoService transacaoService) : Controlle
     [HttpGet("exportar")]
     public async Task<IActionResult> Exportar(int? contaId, string periodo = "mes_atual", string formato = "csv")
     {
+        if (!string.Equals(formato, "csv", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest("Formato não suportado.");
+        }
+
         var bytes = await transacaoService.ExportarCsvAsync(contaId, periodo, UsuarioId);
         return File(bytes, "text/csv", $"extrato_{DateTime.Today:yyyyMMdd}.csv");
     }

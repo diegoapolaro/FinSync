@@ -25,7 +25,18 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
         };
 
         context.Usuarios.Add(usuario);
-        await context.SaveChangesAsync();
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            if (await context.Usuarios.AnyAsync(u => u.Email == request.Email))
+            {
+                return (null, "Este email já está cadastrado.");
+            }
+            throw;
+        }
 
         var token = GerarToken(usuario);
 

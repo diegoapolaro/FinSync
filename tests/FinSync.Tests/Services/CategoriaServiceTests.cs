@@ -175,6 +175,37 @@ public class CategoriaServiceTests : ServiceTestBase
     }
 
     [Fact]
+    public async Task DeleteAsync_DeveRemoverCategoriaPropria()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var categoria = new Categoria { Nome = "DeleteMe", Cor = "#ABCDEF", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        Context.Categorias.Add(categoria);
+        await Context.SaveChangesAsync();
+
+        var service = new CategoriaService(Context);
+        var removed = await service.DeleteAsync(categoria.Id, usuario.Id);
+
+        Assert.True(removed);
+        Assert.Null(await Context.Categorias.FindAsync(categoria.Id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_CategoriaDeOutroUsuario_DeveRetornarFalse()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var outroUsuario = await CriarUsuarioAsync("outro@finsync.com");
+        var categoria = new Categoria { Nome = "Alheia", Cor = "#112233", Tipo = TipoTransacao.Saida, UsuarioId = outroUsuario.Id };
+        Context.Categorias.Add(categoria);
+        await Context.SaveChangesAsync();
+
+        var service = new CategoriaService(Context);
+        var removed = await service.DeleteAsync(categoria.Id, usuario.Id);
+
+        Assert.False(removed);
+        Assert.NotNull(await Context.Categorias.FindAsync(categoria.Id));
+    }
+
+    [Fact]
     public async Task CreateAsync_ComCorInvalida_PersisteMesmoAssim_PoisValidacaoENoController()
     {
         var usuario = await CriarUsuarioAsync();

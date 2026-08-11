@@ -17,12 +17,20 @@ public class CategoriasController(CategoriaService categoriaService) : Controlle
         return Ok(await categoriaService.GetAllAsync(UsuarioId));
     }
 
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<CategoriaDto>> GetCategoria(int id)
+    {
+        var categoria = await categoriaService.GetByIdAsync(id, UsuarioId);
+        if (categoria is null) return NotFound();
+        return Ok(categoria);
+    }
+
     [HttpPost]
     public async Task<ActionResult<CategoriaDto>> PostCategoria(CreateCategoriaDto dto)
     {
         var (categoria, error) = await categoriaService.CreateAsync(dto, UsuarioId);
         if (error is not null) return BadRequest(error);
-        return CreatedAtAction(nameof(GetCategorias), new { id = categoria!.Id }, categoria);
+        return CreatedAtAction(nameof(GetCategoria), new { id = categoria!.Id }, categoria);
     }
 
     [HttpPut("{id:int}")]
@@ -31,6 +39,13 @@ public class CategoriasController(CategoriaService categoriaService) : Controlle
         var (found, error) = await categoriaService.UpdateAsync(id, dto, UsuarioId);
         if (!found) return NotFound();
         if (error is not null) return BadRequest(error);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteCategoria(int id)
+    {
+        if (!await categoriaService.DeleteAsync(id, UsuarioId)) return NotFound();
         return NoContent();
     }
 }

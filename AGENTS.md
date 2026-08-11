@@ -201,7 +201,7 @@ FinSync/
 ## 🚀 Próximos Passos (Ordem sugerida)
 
 1. ✅ ~~Criar Model + Controller de Usuario + Autenticação (JWT)~~ **Concluído**
-2. ~~**Isolar dados por usuário** — adicionar UsuarioId em Transacoes/Contas/Categorias e filtrar por usuário logado~~ **Concluído**
+2. ~~**Isolar dados por usuário** — filtrar transações pelo UsuarioId da conta proprietária, mantendo UsuarioId em Contas e Categorias~~ **Concluído**
 3. **Migrar de SQLite para PostgreSQL** (ou manter SQLite se for uso pessoal/local só)
 4. **Expandir cobertura de testes** — AuthService, testes de frontend
 5. **Revisar CORS e variáveis de ambiente** antes de qualquer deploy real
@@ -236,5 +236,5 @@ Diferente de tutoriais genéricos, esse projeto é:
 
 ---
 
-*Última atualização: 23 de Julho de 2026*  
+*Última atualização: 07/08/2026*
 *Status: Produto funcional com autenticação JWT, 4 controllers, paginação, dados por usuário e 30 testes de serviço passando. Backend em slices verticais (Features/).*

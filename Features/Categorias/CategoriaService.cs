@@ -43,6 +43,33 @@ public class CategoriaService(FinSyncDbContext context)
         }, null);
     }
 
+    public async Task<CategoriaDto?> GetByIdAsync(int id, int usuarioId)
+    {
+        var categoria = await context.Categorias
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
+
+        if (categoria is null) return null;
+
+        return new CategoriaDto
+        {
+            Id = categoria.Id,
+            Nome = categoria.Nome,
+            Cor = categoria.Cor,
+            Tipo = categoria.Tipo
+        };
+    }
+
+    public async Task<bool> DeleteAsync(int id, int usuarioId)
+    {
+        var categoria = await context.Categorias
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
+        if (categoria is null) return false;
+
+        context.Categorias.Remove(categoria);
+        await context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<(bool Found, string? Error)> UpdateAsync(int id, UpdateCategoriaDto dto, int usuarioId)
     {
         var categoria = await context.Categorias

@@ -116,6 +116,16 @@ public class TransacaoService(FinSyncDbContext context)
             return (null, $"A conta com id {dto.ContaId} nao existe.");
         }
 
+        if (dto.CategoriaId is not null)
+        {
+            var categoriaExiste = await context.Categorias
+                .AnyAsync(c => c.Id == dto.CategoriaId && c.UsuarioId == usuarioId);
+            if (!categoriaExiste)
+            {
+                return (null, $"A categoria com id {dto.CategoriaId} nao existe.");
+            }
+        }
+
         var transacao = new Transacao
         {
             Descricao = dto.Descricao,
@@ -165,6 +175,16 @@ public class TransacaoService(FinSyncDbContext context)
         if (!contaExiste)
         {
             return (true, $"A conta com id {dto.ContaId} nao existe.");
+        }
+
+        if (dto.CategoriaId is not null)
+        {
+            var categoriaExiste = await context.Categorias
+                .AnyAsync(c => c.Id == dto.CategoriaId && c.UsuarioId == usuarioId);
+            if (!categoriaExiste)
+            {
+                return (true, $"A categoria com id {dto.CategoriaId} nao existe.");
+            }
         }
 
         transacao.Descricao = dto.Descricao;
@@ -281,7 +301,8 @@ public class TransacaoService(FinSyncDbContext context)
 
         foreach (var t in transacoes)
         {
-            sb.AppendLine($"{t.Id},\"{t.Descricao}\",{t.Valor.ToString(System.Globalization.CultureInfo.InvariantCulture)},{t.Tipo},{t.Data:yyyy-MM-dd},{t.ContaId}");
+            var descricao = t.Descricao.Replace("\"", "\"\"");
+            sb.AppendLine($"{t.Id},\"{descricao}\",{t.Valor.ToString(System.Globalization.CultureInfo.InvariantCulture)},{t.Tipo},{t.Data:yyyy-MM-dd},{t.ContaId}");
         }
 
         return System.Text.Encoding.UTF8.GetBytes(sb.ToString());
