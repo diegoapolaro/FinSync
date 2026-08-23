@@ -1,11 +1,14 @@
 import { createContext, useContext, useEffect } from 'react';
 import usePreferencias from '../hooks/usePreferencias';
 
-const TemaContext = createContext(null);
+const TemaContext = createContext({
+  tema: 'claro',
+  alternarTema: () => {},
+});
 
 export function TemaProvider({ children }) {
   const { prefs, atualizar } = usePreferencias();
-  const tema = prefs.tema || 'claro';
+  const tema = prefs?.tema || 'claro';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -29,6 +32,6 @@ export function TemaProvider({ children }) {
 
 export function useTema() {
   const ctx = useContext(TemaContext);
-  if (!ctx) throw new Error('useTema deve ser usado dentro de TemaProvider');
-  return ctx;
+  return ctx || { tema: 'claro', alternarTema: () => {} };
 }
+
