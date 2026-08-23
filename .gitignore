@@ -24,9 +24,9 @@ client/dist/
 client/.vite/
 coverage/
 *.js.map
-package-lock.json
 yarn.lock
 .yarn/
+
 
 # OS
 .DS_Store
