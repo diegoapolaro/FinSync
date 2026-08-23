@@ -70,6 +70,14 @@ export async function registrar(nome, email, senha) {
   return handleResponse(res);
 }
 
+export async function alterarSenha(senhaAtual, novaSenha) {
+  return authFetch(url('/auth/alterar-senha'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senhaAtual, novaSenha }),
+  });
+}
+
 export async function getContas() {
   return authFetch(url('/contas'));
 }
@@ -100,19 +108,20 @@ export async function deleteConta(id) {
   });
 }
 
-export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1, pageSize = 20) {
+export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1, pageSize = 20, categoriaId = null) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
   if (data) params.set('data', data);
   if (dataInicio) params.set('dataInicio', dataInicio);
   if (dataFim) params.set('dataFim', dataFim);
+  if (categoriaId) params.set('categoriaId', categoriaId);
   params.set('page', page);
   params.set('pageSize', pageSize);
   return authFetch(url(`/transacoes?${params}`));
 }
 
-export async function getTransacoesRange(contaId, dataInicio, dataFim, page = 1, pageSize = 20) {
-  return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize);
+export async function getTransacoesRange(contaId, dataInicio, dataFim, page = 1, pageSize = 20, categoriaId = null) {
+  return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize, categoriaId);
 }
 
 export async function getTransacao(id) {
