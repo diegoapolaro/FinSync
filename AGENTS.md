@@ -15,10 +15,11 @@ Cada usuário tem suas próprias Contas (livros), Categorias e Transações, iso
 ### Back-End
 - **Linguagem:** C#
 - **Framework:** ASP.NET Core Web API (.NET 10)
-- **Banco de Dados:** SQLite (`finsync.db`, local — migração pra PostgreSQL/SQL Server planejada para produção)
-- **ORM:** Entity Framework Core (migrations + seed automático)
+- **Banco de Dados:** PostgreSQL no Supabase (produção e dev remoto) / Npgsql + EF Core
+- **ORM:** Entity Framework Core (migrations automáticas)
 - **Autenticação:** JWT (Bearer token) + BCrypt (hash de senha)
 - **Documentação API:** OpenAPI com Scalar.AspNetCore (`/scalar/v1` em dev)
+- **Hospedagem:** Azure App Service Linux (.NET 10 runtime, `finsync-api.azurewebsites.net`)
 
 ### Front-End
 - **Framework:** React 19 + Vite
@@ -26,6 +27,7 @@ Cada usuário tem suas próprias Contas (livros), Categorias e Transações, iso
 - **Roteamento:** react-router-dom
 - **Lint/Format:** Oxlint + Prettier
 - **Testes:** Vitest + React Testing Library (client), xUnit (backend)
+- **Hospedagem:** Vercel (`fin-sync-tan.vercel.app`)
 
 ### Ambiente
 - **Editor:** VS Code (C# Dev Kit)
@@ -50,10 +52,10 @@ Cada usuário tem suas próprias Contas (livros), Categorias e Transações, iso
 
 ```
 FinSync/
-├── Program.cs                    → Configuração, CORS, seed inicial, JWT
+├── Program.cs                    → Configuração, CORS, JWT, DbContext PostgreSQL
 ├── FinSync.csproj
-├── appsettings.json               → Connection string SQLite + JWT config
-├── finsync.db                     → Banco SQLite local (não versionar)
+├── appsettings.json               → Configuração base / templates
+├── vercel.json                    → Configuração de build e SPA rewrites para Vercel
 ├── Features/                      → Slices verticais por domínio (Model + Dto + Service + Controller)
 │   ├── Auth/
 │   │   ├── Usuario.cs             → Id, Nome, Email, SenhaHash, DataCriacao
@@ -83,8 +85,8 @@ FinSync/
 │   └── DbSeeder.cs                → Seed automático de Usuario/Contas/Categorias
 ├── Handlers/GlobalExceptionHandler.cs
 ├── Helpers/DateRangeHelper.cs
-├── Migrations/                    → EF Core (InitialCreate única até o momento)
-├── tests/FinSync.Tests/           → xUnit (Helpers, Services) — 36 testes passando
+├── Migrations/                    → EF Core Npgsql (InitialPostgres)
+├── tests/FinSync.Tests/           → xUnit (Helpers, Services) — 39 testes passando
 └── client/
     ├── src/
     │   ├── pages/                 → Extrato, RelatoriosPage, AjustesPage, LoginPage, LancamentosPage
@@ -103,7 +105,7 @@ FinSync/
     │   │   └── formatters.js      → formatação monetária, datas e rótulos de período
     │   ├── styles/
     │   └── test/
-    └── package.json               → Vitest com 16 testes passando
+    └── package.json               → Vitest com 34 testes passando
 ```
 
 **Padrão arquitetural:** vertical slices (feature-first) — Controller, Service, Dto e Entidade juntos por domínio dentro de `Features/`. Infra compartilhada em `Data/`, `Handlers/`, `Helpers/`; enums em `Shared/Enums/`.
@@ -123,16 +125,17 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
 
 ## Status Atual
 
-- **Back-end:** 4 controllers (Auth, Transacoes, Contas, Categorias), EF Core + SQLite, seed automático, JWT + BCrypt, endpoint de alteração de senha autenticada (`PUT /api/auth/alterar-senha`), paginação server-side, filtros por data e `categoriaId`, 39 testes xUnit passando.
-- **Front-end:** Extrato com filtro por categoria integrado, Relatórios, Ajustes modularizado em submódulos (`components/settings/`), Lançamentos e Login funcionais; fluxo real de alteração de senha integrado; persistência de preferências de usuário (Idioma, Moeda, Formato de Data, Notificações) conectadas e reativas via `usePreferencias`; tema claro/escuro via Tailwind e variáveis CSS; 34 testes Vitest passando.
-- **Auth:** JWT implementado, persistência de sessão segura via `sessionStorage`, alteração de senha segura via BCrypt, dados isolados por usuário (Contas/Categorias/Transações).
+- **Back-end no Azure:** API .NET 10 implantada com sucesso no Azure App Service (`https://finsync-api.azurewebsites.net`), integrada ao banco PostgreSQL remoto no Supabase. CORS liberado para o domínio do Vercel e localhost.
+- **Front-end no Vercel:** Configuração SPA criada com `vercel.json` e `VITE_API_BASE_URL` direcionado para a API de produção.
+- **Testes:** 39 testes xUnit (.NET) e 34 testes Vitest (React) 100% aprovados.
+- **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, senhas com BCrypt, sessões isoladas por usuário.
 
 ---
 
 ## Débitos Técnicos Conhecidos (Ordem de Prioridade)
 
 1. **Gerenciamento Incompleto de Contas Arquivadas**:
-   - O endpoint `PATCH /api/contas/{id}/arquivar` existe, mas `GET /api/contas` filtra estaticamente `!c.Arquivada`. Não há suporte a `incluirArquivadas=true` na API nem UI no front-end para listar e desarquivar contas.
+   - O endpoint `PATCH /api/contas/{id}/arquivar` existe, mas `GET /api/contas` filtra estaticamente `!c.Arquivada`. Suportar `incluirArquivadas=true` na API e UI no front-end para listar e desarquivar contas.
 2. **Cobertura de Testes Front-End Adicional**:
    - Testes unitários e de integração de `Extrato`, `AjustesPage`, `usePreferencias`, `api` e `formatters` implementados (34 testes no frontend e 39 no backend); expandir para `LancamentosPage` e `LoginPage`.
 3. **Vulnerabilidades de Dependências NuGet (Alerta NU1903)**:
@@ -145,17 +148,16 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
    - `@import url('https://fonts.googleapis.com/css2...')` ainda é carregada em `client/src/index.css`. Self-host via pacotes `@fontsource` é recomendado para estabilidade e performance offline.
 7. **Ausência de TypeScript / PropTypes nos componentes compartilhados**:
    - Componentes como `SummaryCard`, `ChartContainer`, `TransactionTable`, `PeriodoPicker` não têm validação estrita de tipos de props.
-8. **SQLite em produção não escala com alta concorrência**:
-   - Adequado para desenvolvimento local; avaliar migração para PostgreSQL antes de qualquer deploy em produção.
 
 ---
 
 ## Próximos Passos (Ordem Sugerida)
 
-1. **Suportar Contas Arquivadas na API e Front**: Permitir listar e restaurar contas arquivadas (`incluirArquivadas=true`).
-2. **Expandir testes no Front-End**: Cobrir `LancamentosPage` e `LoginPage` com React Testing Library.
-3. **Atualizar pacotes NuGet** para sanar os avisos de segurança NU1903.
-4. **Exportação em PDF** e notificações inteligentes.
+1. **Push do Git e Deploy Automático no Vercel**: Commitar as mudanças para acionar a build do frontend no Vercel.
+2. **Suportar Contas Arquivadas na API e Front**: Permitir listar e restaurar contas arquivadas (`incluirArquivadas=true`).
+3. **Expandir testes no Front-End**: Cobrir `LancamentosPage` e `LoginPage` com React Testing Library.
+4. **Atualizar pacotes NuGet** para sanar os avisos de segurança NU1903.
+5. **Exportação em PDF** e notificações inteligentes.
 
 ---
 
@@ -164,16 +166,16 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
 - **Backend:** métodos async sempre com sufixo `Async`; `Nullable` habilitado; primary constructors nos Services (`public class X(Y y)`); enums em vez de strings soltas; DTOs separados por Create/Update/Response
 - **Frontend:** tipos de transação sempre via `TIPO_TRANSACAO` de `utils/constants.js` — nunca comparar string literal diretamente (`'Entrada'`/`'Saida'`, atenção ao acento: o backend serializa **sem acento**); tema sempre via `usePreferencias.js`, nunca acessar `localStorage` diretamente em outro lugar
 - **Ambos:** ao alterar algo que impacta contrato de API (DTO, enum, rota), atualizar os dois lados na mesma tarefa
-- **Segurança:** nunca salvar senha ou token em `localStorage` (usar `sessionStorage`); nunca commitar `finsync.db`, `appsettings.Development.json` ou `client/dist`
+- **Segurança:** nunca salvar senha ou token em `localStorage` (usar `sessionStorage`); nunca commitar credenciais reais ou `appsettings.Development.json`
 
 ---
 
-## URLs de Desenvolvimento
+## URLs do Projeto
 
-- API local: `http://localhost:5154`
-- Documentação interativa: `http://localhost:5154/scalar/v1`
-- OpenAPI JSON: `http://localhost:5154/openapi/v1.json`
-- Front-end (Vite dev): `http://localhost:5173`
+- API Produção (Azure): `https://finsync-api.azurewebsites.net`
+- Documentação Scalar (Dev local): `http://localhost:5154/scalar/v1`
+- Front-end Produção (Vercel): `https://fin-sync-tan.vercel.app`
+- Front-end Local: `http://localhost:5173`
 
 ---
 

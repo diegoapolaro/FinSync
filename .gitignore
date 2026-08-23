@@ -1,6 +1,9 @@
 # .NET
 bin/
 obj/
+publish/
+publish_clean/
+*.zip
 *.user
 *.suo
 *.userosscache
@@ -9,12 +12,17 @@ obj/
 *.vs/
 .vscode/
 **/Properties/launchSettings.json
+TestResults/
+[Dd]ebug/
+[Rr]elease/
 
 # Node.js / React
 node_modules/
 client/node_modules/
 client/build/
 client/dist/
+client/.vite/
+coverage/
 *.js.map
 package-lock.json
 yarn.lock
@@ -23,6 +31,7 @@ yarn.lock
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDE
 .idea/
@@ -31,15 +40,27 @@ Thumbs.db
 
 # Config & secrets
 appsettings.Development.json
+appsettings.*.local.json
+appsettings.Production.json
+appsettings.Local.json
 *.env
+*.env.*
+!.env.example
+!**/.env.example
 *.local.*
+*.pfx
+*.cer
+*.key
 
 # Database
 finsync.db
 finsync.db-shm
 finsync.db-wal
+*.db
 *.sqlite
+*.sqlite3
 
 # HTTP test files
 FinSync.http
 *.http
+
