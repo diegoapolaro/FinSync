@@ -1,10 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ReceiptText, PlusCircle, BarChart3, Settings } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const navItems = [
-  { id: '', label: 'Extrato', icon: 'receipt_long' },
-  { id: 'lancamentos', label: 'Lançamentos', icon: 'add_box' },
-  { id: 'relatorios', label: 'Relatórios', icon: 'analytics' },
-  { id: 'ajustes', label: 'Ajustes', icon: 'settings' },
+  { id: '', label: 'Extrato', Icon: ReceiptText },
+  { id: 'lancamentos', label: 'Lançar', Icon: PlusCircle },
+  { id: 'relatorios', label: 'Relatórios', Icon: BarChart3 },
+  { id: 'ajustes', label: 'Ajustes', Icon: Settings },
 ];
 
 export default function BottomNav() {
@@ -13,24 +15,26 @@ export default function BottomNav() {
   const pagina = location.pathname.replace(/^\/+/, '') || '';
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-center items-center gap-md px-4 py-3 bg-surface-container/90 backdrop-blur-md border-t border-outline-variant">
+    <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 bg-background/95 backdrop-blur-lg border-t shadow-lg">
       {navItems.map((item) => {
         const isActive = pagina === item.id;
+        const { Icon } = item;
         return (
           <button
             key={item.id}
             type="button"
             onClick={() => navigate(`/${item.id}`)}
-            className={
+            className={cn(
+              'flex flex-col items-center justify-center py-1.5 px-3 rounded-md transition-colors',
               isActive
-                ? 'btn-base flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-lg px-6 py-2 scale-90'
-                : 'btn-base flex flex-col items-center justify-center text-on-surface-variant px-6 py-2 hover:text-primary'
-            }
+                ? 'bg-primary text-primary-foreground font-semibold'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
           >
-            <span className="material-symbols-outlined" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-              {item.icon}
+            <Icon className={cn('w-5 h-5', isActive ? 'stroke-[2.5]' : 'stroke-[1.8]')} />
+            <span className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider">
+              {item.label}
             </span>
-            <span className="font-label-caps text-[10px] mt-1 uppercase">{item.label}</span>
           </button>
         );
       })}

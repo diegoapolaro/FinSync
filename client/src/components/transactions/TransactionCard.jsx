@@ -1,40 +1,59 @@
+import { Trash2 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { TIPO_TRANSACAO } from '../../utils/constants';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { cn } from '@/lib/utils';
 
 function formatFullDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
 export default function TransactionCard({ transacao, onDelete }) {
   const isEntrada = transacao.tipo === TIPO_TRANSACAO.ENTRADA;
 
   return (
-    <div
-      className={
-        'group relative flex items-center p-3.5 rounded-xl shadow-card hover:bg-surface-variant border-l-4 transition-all ' +
-        (isEntrada ? 'border-entrada' : 'border-saida')
-      }
-      style={{ backgroundColor: 'var(--bg-card)' }}
-    >
-      <div className="flex-grow min-w-0">
-        <p className="font-medium text-on-surface truncate">{transacao.descricao}</p>
-        <p className="text-xs text-on-surface-variant mt-0.5">
-          {formatFullDate(transacao.data)}
-          {transacao.categoriaNome && <> &mdash; {transacao.categoriaNome}</>}
+    <Card className="group relative flex items-center p-4 hover:shadow-md transition-shadow">
+      <div
+        className="w-1.5 self-stretch rounded-full mr-3.5 shrink-0"
+        style={{
+          backgroundColor: isEntrada ? '#2ead4b' : '#d03238',
+        }}
+      />
+      <div className="flex-grow min-w-0 pr-2">
+        <p className="font-semibold text-foreground truncate text-sm">
+          {transacao.descricao}
         </p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-xs font-mono text-muted-foreground">
+            {formatFullDate(transacao.data)}
+          </span>
+          {transacao.categoriaNome && (
+            <Badge variant={isEntrada ? 'positive' : 'destructive'} className="text-[10px] py-0 px-2">
+              {transacao.categoriaNome}
+            </Badge>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0 ml-3">
-        <span className={'font-mono text-sm font-semibold ' + (isEntrada ? 'text-entrada' : 'text-saida')}>
-          {isEntrada ? '+ ' : '- '}{formatCurrency(transacao.valor)}
+      <div className="flex items-center gap-2 shrink-0">
+        <span
+          className={cn(
+            'font-mono text-sm font-bold',
+            isEntrada ? 'text-[#2ead4b] dark:text-[#3ec75f]' : 'text-[#d03238] dark:text-[#ff5c62]'
+          )}
+        >
+          {isEntrada ? '+ ' : '- '}
+          {formatCurrency(transacao.valor)}
         </span>
         <button
           onClick={() => onDelete(transacao.id)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-saida/10 text-on-surface-variant hover:text-saida"
+          className="p-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+          title="Excluir"
         >
-          <span className="material-symbols-outlined text-lg">delete</span>
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Download, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 export default function DesktopHeader() {
   const { user, logout } = useAuth();
@@ -18,54 +21,68 @@ export default function DesktopHeader() {
   }
 
   return (
-    <header className="hidden md:flex justify-between items-center px-margin-desktop py-4 w-full border-b border-outline-variant bg-surface">
-      <div className="flex items-center gap-md">
+    <header className="hidden md:flex justify-between items-center px-8 py-4 w-full border-b bg-background/95">
+      <div className="flex items-center gap-3">
         {location.pathname === '/' && (
           <>
-            <h1 className="font-headline-lg text-headline-lg text-primary uppercase">Extrato Mensal</h1>
-            <div className="px-3 py-1 bg-surface-container-high rounded text-on-surface-variant font-data-md text-data-md">
+            <h1 className="font-semibold text-2xl tracking-tight text-foreground">
+              Extrato
+            </h1>
+            <div className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-xs font-mono">
               {mesAno}
             </div>
           </>
         )}
       </div>
-      <div className="flex items-center gap-md">
-        <div className="relative group">
-          <input
-            className="input-base bg-surface-container-low border-none rounded-lg font-body-sm text-body-sm px-md py-2 w-64 focus:ring-2 focus:ring-primary/20"
+
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <Input
+            className="h-9 pl-9 pr-4 w-64 rounded-md text-sm"
             placeholder="Pesquisar transação..."
             type="text"
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
             onKeyDown={handleSearchKeyDown}
           />
-          <span className="material-symbols-outlined absolute right-3 top-2 text-on-surface-variant">search</span>
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-3" />
         </div>
-        <button
-          onClick={() => navigate('/ajustes')}
-            className="btn-base p-2 hover:bg-surface-container-high rounded-full"
-          title="Exportar CSV"
+
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={() => navigate('/ajustes#exportar')}
+          title="Exportar dados"
         >
-          <span className="material-symbols-outlined text-on-surface-variant">ios_share</span>
-        </button>
-        <button
+          <Download className="w-4 h-4 text-muted-foreground" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="iconSm"
           onClick={() => navigate('/ajustes')}
-            className="btn-base p-2 hover:bg-surface-container-high rounded-full"
           title="Configurações"
         >
-          <span className="material-symbols-outlined text-on-surface-variant">settings</span>
-        </button>
+          <Settings className="w-4 h-4 text-muted-foreground" />
+        </Button>
+
+        <div className="h-6 w-px bg-border mx-1" />
+
         <div className="flex items-center gap-2">
-          <span className="text-on-surface-variant font-body-sm text-body-sm truncate max-w-[120px]">
+          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center font-semibold text-primary-foreground text-xs">
+            {user?.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <span className="text-xs font-semibold text-foreground truncate max-w-[120px]">
             {user?.nome}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="iconSm"
             onClick={logout}
-            className="btn-base p-2 hover:bg-surface-container-high rounded-full"
             title="Sair"
           >
-            <span className="material-symbols-outlined text-on-surface-variant">logout</span>
-          </button>
+            <LogOut className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+          </Button>
         </div>
       </div>
     </header>

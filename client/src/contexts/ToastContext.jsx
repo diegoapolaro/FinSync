@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useState } from 'react';
+import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const ToastContext = createContext(null);
 
@@ -22,31 +24,39 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
-      <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            role="alert"
-            className={`px-4 py-3 shadow-lg border-l-4 text-sm font-body-md text-body-md animate-slide-up ${
-              toast.type === 'error'
-                ? 'bg-error-container text-on-error-container border-error'
-                : toast.type === 'success'
-                  ? 'bg-tertiary-fixed-dim text-on-tertiary-fixed border-tertiary'
-                  : 'bg-surface-container-high text-on-surface border-outline'
-            }`}
-          >
-            <div className="flex justify-between items-center gap-3">
-              <span>{toast.message}</span>
+      <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+        {toasts.map((toast) => {
+          const isSuccess = toast.type === 'success';
+          return (
+            <div
+              key={toast.id}
+              role="alert"
+              className={cn(
+                'pointer-events-auto px-4 py-3 rounded-full shadow-elevation border flex items-center justify-between gap-3 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200',
+                isSuccess
+                  ? 'bg-[#0e0f0c] text-[#9fe870] border-[#9fe870]/30'
+                  : 'bg-[#d03238] text-white border-destructive/30'
+              )}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                {isSuccess ? (
+                  <CheckCircle2 className="w-4 h-4 text-[#9fe870] shrink-0 stroke-[2.5]" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-white shrink-0 stroke-[2.5]" />
+                )}
+                <span className="truncate">{toast.message}</span>
+              </div>
               <button
                 type="button"
                 onClick={() => removeToast(toast.id)}
-                className="btn-base text-current opacity-60 hover:opacity-100 shrink-0"
+                className="opacity-70 hover:opacity-100 shrink-0 p-1"
               >
-                <span className="material-symbols-outlined text-lg">close</span>
+                <X className="w-3.5 h-3.5" />
+                <span className="sr-only">Fechar</span>
               </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

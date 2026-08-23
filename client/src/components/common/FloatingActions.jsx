@@ -1,21 +1,28 @@
+import { Plus, Minus } from 'lucide-react';
+import { Button } from '../ui/button';
+
 export default function FloatingActions({ onEntrada, onSaida, empty }) {
   if (empty) {
     return (
-      <div className="flex gap-3 mt-6">
-        <button
+      <div className="flex gap-4 mt-8 max-w-md mx-auto">
+        <Button
           onClick={onEntrada}
-          className="flex-1 bg-entrada text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-card hover:brightness-110 transition-all font-label-caps text-[12px] tracking-[0.1em]"
+          variant="default"
+          size="default"
+          className="flex-1"
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'wght' 700" }}>add</span>
-          + ENTRADA
-        </button>
-        <button
+          <Plus className="w-5 h-5 stroke-[2.5]" />
+          Nova Entrada
+        </Button>
+        <Button
           onClick={onSaida}
-          className="flex-1 bg-saida text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-card hover:brightness-110 transition-all font-label-caps text-[12px] tracking-[0.1em]"
+          variant="secondary"
+          size="default"
+          className="flex-1"
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'wght' 700" }}>remove</span>
-          - SAÍDA
-        </button>
+          <Minus className="w-5 h-5 stroke-[2.5]" />
+          Nova Saída
+        </Button>
       </div>
     );
   }
@@ -23,37 +30,47 @@ export default function FloatingActions({ onEntrada, onSaida, empty }) {
   return (
     <>
       {/* Desktop: fixed bottom-right */}
-      <div className="hidden md:flex fixed bottom-8 right-8 flex-col gap-3 z-50">
-        <button
+      <div className="hidden md:flex fixed bottom-8 right-8 gap-3 z-50">
+        <Button
           onClick={onEntrada}
-          className="flex items-center gap-2.5 px-6 py-3.5 bg-entrada text-white rounded-full shadow-lg hover:shadow-xl hover:brightness-110 transition-all group"
+          variant="default"
+          size="default"
+          className="shadow-md"
         >
-          <span className="material-symbols-outlined group-hover:rotate-90 transition-transform" style={{ fontVariationSettings: "'wght' 600" }}>add</span>
-          <span className="font-label-caps text-[12px] tracking-[0.1em]">+ ENTRADA</span>
-        </button>
-        <button
+          <Plus className="w-5 h-5 stroke-[2.5]" />
+          Entrada
+        </Button>
+        <Button
           onClick={onSaida}
-          className="flex items-center gap-2.5 px-6 py-3.5 bg-saida text-white rounded-full shadow-lg hover:shadow-xl hover:brightness-110 transition-all group"
+          variant="outline"
+          size="default"
+          className="shadow-md"
         >
-          <span className="material-symbols-outlined group-hover:rotate-180 transition-transform" style={{ fontVariationSettings: "'wght' 600" }}>remove</span>
-          <span className="font-label-caps text-[12px] tracking-[0.1em]">- SAÍDA</span>
-        </button>
+          <Minus className="w-5 h-5 stroke-[2.5]" />
+          Saída
+        </Button>
       </div>
 
-      {/* Mobile: floating bottom-left */}
-      <div className="md:hidden fixed bottom-24 left-4 z-50 flex flex-col gap-2">
-        <button
+      {/* Mobile: floating bottom-right */}
+      <div className="md:hidden fixed bottom-20 right-4 z-50 flex flex-col gap-2">
+        <Button
           onClick={onEntrada}
-          className="w-12 h-12 rounded-full bg-entrada text-white shadow-lg flex items-center justify-center hover:brightness-110 transition-all"
+          variant="default"
+          size="icon"
+          className="h-11 w-11 shadow-md"
+          title="Nova Entrada"
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'wght' 700" }}>add</span>
-        </button>
-        <button
+          <Plus className="w-6 h-6 stroke-[2.5]" />
+        </Button>
+        <Button
           onClick={onSaida}
-          className="w-12 h-12 rounded-full bg-saida text-white shadow-lg flex items-center justify-center hover:brightness-110 transition-all"
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 shadow-md"
+          title="Nova Saída"
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'wght' 700" }}>remove</span>
-        </button>
+          <Minus className="w-6 h-6 stroke-[2.5]" />
+        </Button>
       </div>
     </>
   );

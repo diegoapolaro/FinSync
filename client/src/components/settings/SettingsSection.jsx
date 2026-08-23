@@ -1,20 +1,21 @@
-export default function SettingsSection({ id, title, icon, color, children, className = '' }) {
+import { cn } from '@/lib/utils';
+
+export default function SettingsSection({ id, title, icon: Icon, children, className = '' }) {
   return (
-    <section id={id} className={'scroll-mt-28 ' + className}>
-      <div
-        className="border-t-4 pt-5 mb-5"
-        style={{ borderTopColor: color || 'var(--color-primaria)' }}
-      >
-        <div className="flex items-center gap-2.5 mb-1">
-          {icon && (
-            <span className="material-symbols-outlined" style={{ color: color || 'var(--color-primaria)', fontSize: 22 }}>
-              {icon}
-            </span>
-          )}
-          <h2 className="text-lg font-bold uppercase tracking-wider" style={{ color: color || 'var(--color-primaria)' }}>
-            {title}
-          </h2>
-        </div>
+    <section id={id} className={cn('scroll-mt-28 space-y-4', className)}>
+      <div className="flex items-center gap-2 pb-3 border-b">
+        {Icon && (
+          <span className="text-foreground">
+            {typeof Icon === 'string' ? (
+              <span className="material-symbols-outlined text-xl">{Icon}</span>
+            ) : (
+            <Icon className="w-5 h-5" />
+            )}
+          </span>
+        )}
+        <h2 className="text-base font-semibold text-foreground">
+          {title}
+        </h2>
       </div>
       {children}
     </section>

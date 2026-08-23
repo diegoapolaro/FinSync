@@ -24,7 +24,7 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="bg-app text-on-surface antialiased min-h-screen overflow-hidden">
+    <div className="bg-muted/30 text-foreground antialiased min-h-screen overflow-hidden font-sans">
       <MobileTopBar />
 
       <DesktopSidebar
@@ -33,10 +33,10 @@ export default function Layout() {
         onSelectConta={setContaSelecionadaId}
       />
 
-      <div className="md:ml-[280px] flex flex-col h-screen">
+      <div className="md:ml-64 flex flex-col h-screen">
         <DesktopHeader />
 
-        <main className="flex-1 overflow-y-auto page-transition-wrapper">
+        <main className="flex-1 overflow-y-auto">
           <Outlet context={{
             contas,
             contaSelecionadaId,

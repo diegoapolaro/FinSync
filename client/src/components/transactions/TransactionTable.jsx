@@ -1,10 +1,21 @@
+import { Trash2 } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { TIPO_TRANSACAO } from '../../utils/constants';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '../ui/table';
+import { Badge } from '../ui/badge';
+import { Card } from '../ui/card';
 
 function formatShortDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   return d
-    .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })
+    .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
     .replace('.', '');
 }
 
@@ -15,92 +26,84 @@ export default function TransactionTable({
   emptyMessage = 'Nenhuma movimentação neste período.',
 }) {
   return (
-    <div
-      className="rounded-xl shadow-card border border-line overflow-hidden"
-      style={{ backgroundColor: 'var(--bg-card)' }}
-    >
-      <table className="w-full border-collapse text-left">
-        <thead className="bg-surface-variant font-label-caps text-[11px] text-on-surface-variant border-b border-line">
-          <tr>
-            <th className="py-3.5 px-4 font-bold uppercase w-4" />
-            <th className="py-3.5 px-4 font-bold uppercase">Descrição</th>
-            <th className="py-3.5 px-4 font-bold uppercase w-40">Categoria</th>
-            <th className="py-3.5 px-4 font-bold uppercase w-28">Data</th>
-            <th className="py-3.5 px-4 font-bold uppercase text-right w-36">Valor</th>
-            <th className="py-3.5 px-4 font-bold uppercase w-14" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-line/40">
+    <Card className="overflow-hidden border border-border/60">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-4 px-4" />
+            <TableHead className="text-xs font-semibold uppercase tracking-wider">Descrição</TableHead>
+            <TableHead className="w-44 text-xs font-semibold uppercase tracking-wider">Categoria</TableHead>
+            <TableHead className="w-36 text-xs font-semibold uppercase tracking-wider">Data</TableHead>
+            <TableHead className="w-40 text-right text-xs font-semibold uppercase tracking-wider">Valor</TableHead>
+            <TableHead className="w-14" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {carregando && (
-            <tr>
-              <td colSpan={6} className="text-center py-12 text-sm text-on-surface-variant">
-                <span className="spinner inline-block align-middle mr-2" />
-                Carregando...
-              </td>
-            </tr>
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-16 text-muted-foreground text-sm">
+                <span className="inline-block w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin align-middle mr-2" />
+                Carregando transações...
+              </TableCell>
+            </TableRow>
           )}
           {!carregando && transacoes.length === 0 && (
-            <tr>
-              <td colSpan={6} className="text-center py-12 text-sm text-on-surface-variant">
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-16 text-muted-foreground text-sm">
                 {emptyMessage}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )}
           {!carregando &&
             transacoes.map((t) => {
               const isEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
               return (
-                <tr key={t.id} className="group hover:bg-surface-variant transition-colors">
-                  <td className="py-3.5 px-4">
+                <TableRow key={t.id} className="group hover:bg-muted/40 transition-colors">
+                  <TableCell className="px-4 py-4">
                     <div
-                      className="w-1 h-8 rounded-full"
+                      className="w-1.5 h-8 rounded-full"
                       style={{
-                        backgroundColor: isEntrada ? 'var(--color-entrada)' : 'var(--color-saida)',
+                        backgroundColor: isEntrada ? '#2ead4b' : '#d03238',
                       }}
                     />
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-on-surface">{t.descricao}</span>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={
-                        'px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider border ' +
-                        (isEntrada
-                          ? 'bg-entrada/5 text-entrada border-entrada/20'
-                          : 'bg-saida/5 text-saida border-saida/20')
-                      }
+                  </TableCell>
+                  <TableCell className="py-4 font-semibold text-foreground">
+                    {t.descricao}
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <Badge
+                      variant={isEntrada ? 'positive' : 'destructive'}
+                      className="font-medium"
                     >
-                      {t.categoriaNome || 'GERAL'}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 font-mono text-sm text-on-surface-variant">
+                      {t.categoriaNome || 'Geral'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="py-4 font-mono text-xs text-muted-foreground">
                     {formatShortDate(t.data)}
-                  </td>
-                  <td
+                  </TableCell>
+                  <TableCell
                     className={
-                      'py-3.5 px-4 font-mono text-sm font-semibold text-right ' +
-                      (isEntrada ? 'text-entrada' : 'text-saida')
+                      'py-4 font-mono text-sm font-bold text-right ' +
+                      (isEntrada ? 'text-[#2ead4b] dark:text-[#3ec75f]' : 'text-[#d03238] dark:text-[#ff5c62]')
                     }
                   >
                     {isEntrada ? '+ ' : '- '}
                     {formatCurrency(t.valor)}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
+                  </TableCell>
+                  <TableCell className="py-4 text-right">
                     <button
                       onClick={() => onDelete(t.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-saida/10 text-on-surface-variant hover:text-saida"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      title="Excluir transação"
                     >
-                      <span className="material-symbols-outlined text-lg">delete</span>
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </Card>
   );
 }

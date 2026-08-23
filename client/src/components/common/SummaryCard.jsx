@@ -1,65 +1,58 @@
+import { ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
+import { Card } from '../ui/card';
+import { cn } from '@/lib/utils';
 
 const variants = {
   entrada: {
     label: 'Entradas',
-    icon: 'arrow_circle_up',
-    iconBg: 'bg-entrada/10',
-    textColor: 'text-entrada',
-    borderColor: 'border-entrada',
+    Icon: ArrowUpRight,
+    iconBg: 'bg-[#e2f6d5] text-[#054d28] dark:bg-[#122b10] dark:text-[#9fe870]',
+    textColor: 'text-[#2ead4b] dark:text-[#3ec75f]',
   },
   saida: {
     label: 'Saídas',
-    icon: 'arrow_circle_down',
-    iconBg: 'bg-saida/10',
-    textColor: 'text-saida',
-    borderColor: 'border-saida',
+    Icon: ArrowDownRight,
+    iconBg: 'bg-[#ffebee] text-[#d03238] dark:bg-[#320707] dark:text-[#ff8080]',
+    textColor: 'text-[#d03238] dark:text-[#ff5c62]',
   },
   saldo: {
-    label: 'Saldo Atual',
-    icon: 'account_balance_wallet',
-    iconBg: 'bg-azul/10',
-    textColor: 'text-azul',
-    borderColor: 'border-azul',
+    label: 'Saldo Total',
+    Icon: Wallet,
+    iconBg: 'bg-[#e8ebe6] text-[#0e0f0c] dark:bg-[#1f241f] dark:text-[#9fe870]',
+    textColor: 'text-foreground',
   },
 };
 
 export default function SummaryCard({ tipo, value }) {
   const v = variants[tipo] || variants.entrada;
+  const { Icon } = v;
+
   return (
-    <div
-      className={
-        'rounded-xl shadow-card border-l-4 ' +
-        v.borderColor +
-        ' p-5 flex items-center justify-between group hover:shadow-card-hover transition-all'
-      }
-      style={{ backgroundColor: 'var(--bg-card)' }}
-    >
-      <div>
-        <p className="font-label-caps text-[11px] text-on-surface-variant uppercase tracking-[0.1em] mb-1.5">
+    <Card className="p-5 transition-shadow hover:shadow-md group">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">
           {v.label}
-        </p>
+        </span>
+        <div
+          className={cn(
+            'w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105',
+            v.iconBg
+          )}
+        >
+          <Icon className="w-5 h-5 stroke-[2.5]" />
+        </div>
+      </div>
+      <div className="mt-3">
         <h3
-          className={
-            'font-[IBM_Plex_Mono] text-[28px] leading-none font-semibold ' +
+          className={cn(
+            'font-mono text-2xl md:text-3xl font-bold tracking-tight',
             v.textColor
-          }
+          )}
         >
           {formatCurrency(value)}
         </h3>
       </div>
-      <div
-        className={
-          'w-11 h-11 rounded-full flex items-center justify-center ' + v.iconBg
-        }
-      >
-        <span
-          className={'material-symbols-outlined ' + v.textColor}
-          style={{ fontVariationSettings: "'FILL' 1", fontSize: 24 }}
-        >
-          {v.icon}
-        </span>
-      </div>
-    </div>
+    </Card>
   );
 }

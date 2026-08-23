@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Receipt } from 'lucide-react';
 import { deleteTransacao, getResumoPeriodo, getTransacoesRange } from '../services/api';
 import {
   primeiroDiaMes,
@@ -13,13 +14,15 @@ import ResponsiveGrid from '../components/common/ResponsiveGrid';
 import PeriodoPicker from '../components/common/PeriodoPicker';
 import TransactionTable from '../components/transactions/TransactionTable';
 import TransactionCard from '../components/transactions/TransactionCard';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 
 export default function Extrato() {
   const navigate = useNavigate();
   const { contaSelecionadaId } = useOutletContext();
 
   const hoje = useMemo(() => new Date(), []);
-  const [filtroTipo, setFiltroTipo] = useState('mes'); // 'mes' | 'dia' | 'periodo'
+  const [filtroTipo, setFiltroTipo] = useState('mes');
   const [dataSelecionada, setDataSelecionada] = useState(() => new Date());
   const [dataInicio, setDataInicio] = useState(() => primeiroDiaMes(hoje));
   const [dataFim, setDataFim] = useState(() => new Date());
@@ -143,48 +146,45 @@ export default function Extrato() {
     const from = (pagina - 1) * pageSize + 1;
     const to = Math.min(pagina * pageSize, total);
     return (
-      <div
-        className="flex items-center justify-between gap-4 mt-4 px-4 py-3 rounded-xl border border-line"
-        style={{ backgroundColor: 'var(--bg-card)' }}
-      >
-        <span className="text-xs text-on-surface-variant">
+      <div className="flex items-center justify-between gap-4 mt-6 px-5 py-3.5 rounded-full border border-border/60 bg-card shadow-sm">
+        <span className="text-xs font-mono text-muted-foreground">
           {from}&ndash;{to} de {total}
         </span>
         <div className="flex items-center gap-1.5">
-          <button
+          <Button
+            variant="outline"
+            size="iconSm"
             onClick={() => irParaPagina(pagina - 1)}
             disabled={pagina <= 1}
-            className="w-7 h-7 flex items-center justify-center rounded border border-line disabled:opacity-30 text-sm"
-            style={{ backgroundColor: 'var(--bg-card)' }}
+            title="Página anterior"
           >
-            <span className="material-symbols-outlined text-sm">chevron_left</span>
-          </button>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
           {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
             const start = Math.max(0, Math.min(pagina - 3, totalPages - 5));
             const pageNum = start + i + 1;
             if (pageNum > totalPages) return null;
             return (
-              <button
+              <Button
                 key={pageNum}
+                variant={pageNum === pagina ? 'default' : 'outline'}
+                size="iconSm"
                 onClick={() => irParaPagina(pageNum)}
-                className={
-                  'w-7 h-7 flex items-center justify-center rounded text-xs font-mono ' +
-                  (pageNum === pagina ? 'bg-entrada text-white' : 'border border-line')
-                }
-                style={pageNum !== pagina ? { backgroundColor: 'var(--bg-card)' } : undefined}
+                className="font-mono text-xs font-bold"
               >
                 {pageNum}
-              </button>
+              </Button>
             );
           })}
-          <button
+          <Button
+            variant="outline"
+            size="iconSm"
             onClick={() => irParaPagina(pagina + 1)}
             disabled={pagina >= paginaMeta.totalPages}
-            className="w-7 h-7 flex items-center justify-center rounded border border-line disabled:opacity-30 text-sm"
-            style={{ backgroundColor: 'var(--bg-card)' }}
+            title="Próxima página"
           >
-            <span className="material-symbols-outlined text-sm">chevron_right</span>
-          </button>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     );
@@ -193,9 +193,9 @@ export default function Extrato() {
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden">
-        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar">
-          <div className="mb-5 flex justify-end">{picker}</div>
+      <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden bg-background">
+        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar max-w-7xl w-full mx-auto">
+          <div className="mb-6 flex justify-end">{picker}</div>
 
           <ResponsiveGrid cols={3} gap={4}>
             <SummaryCard tipo="entrada" value={totalEntradas} />
@@ -203,7 +203,7 @@ export default function Extrato() {
             <SummaryCard tipo="saldo" value={saldo} />
           </ResponsiveGrid>
 
-          <div className="mt-6">
+          <div className="mt-8">
             <TransactionTable
               transacoes={transacoesDoPeriodo}
               carregando={carregando}
@@ -223,7 +223,7 @@ export default function Extrato() {
       </div>
 
       {/* Mobile */}
-      <div className="md:hidden px-4 pt-4 pb-28">
+      <div className="md:hidden px-4 pt-4 pb-32 bg-background min-h-screen">
         <div className="mb-4 flex justify-end">{picker}</div>
 
         <ResponsiveGrid cols={1} gap={3}>
@@ -232,39 +232,46 @@ export default function Extrato() {
           <SummaryCard tipo="saida" value={totalSaidas} />
         </ResponsiveGrid>
 
-        <div className="mt-1">
+        <div className="mt-6">
           {!contaSelecionadaId && !carregando && (
-            <p className="text-sm text-on-surface-variant text-center py-8">
-              Selecione uma conta para começar.
-            </p>
+            <Card className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Selecione uma conta para começar.
+              </p>
+            </Card>
           )}
 
           {carregando && (
-            <p className="text-sm text-on-surface-variant text-center py-8">
-              <span className="spinner inline-block align-middle mr-2" />
-              Carregando...
-            </p>
+            <div className="text-center py-12 text-muted-foreground text-sm">
+              <span className="inline-block w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin align-middle mr-2" />
+              Carregando transações...
+            </div>
           )}
 
           {!carregando && transacoesDoPeriodo.length === 0 && contaSelecionadaId && (
-            <div className="text-center py-8">
-              <span className="material-symbols-outlined text-line text-4xl mb-3">
-                receipt_long
-              </span>
-              <p className="text-sm text-on-surface-variant mb-4">{mensagemVazia}</p>
+            <Card className="p-8 text-center flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-3">
+                <Receipt className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">{mensagemVazia}</p>
               <FloatingActions
                 onEntrada={handleNovaEntrada}
                 onSaida={handleNovaSaida}
                 empty={true}
               />
-            </div>
+            </Card>
           )}
 
           {!carregando && transacoesDoPeriodo.length > 0 && (
-            <div className="space-y-2.5 mt-4">
-              <p className="font-label-caps text-[11px] text-on-surface-variant uppercase tracking-[0.1em]">
-                MOVIMENTAÇÕES
-              </p>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Movimentações
+                </span>
+                <span className="text-xs font-mono text-muted-foreground">
+                  {transacoesDoPeriodo.length} registro(s)
+                </span>
+              </div>
               {transacoesDoPeriodo.map((t) => (
                 <TransactionCard key={t.id} transacao={t} onDelete={handleDelete} />
               ))}

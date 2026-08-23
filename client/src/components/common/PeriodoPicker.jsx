@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import { Calendar, ChevronDown } from 'lucide-react';
 import { useTema } from '../../contexts/ThemeContext';
 import { formatDateOnly } from '../../utils/filterTransacoes';
 import { formatPeriodoLabel } from '../../utils/formatters';
+import { cn } from '@/lib/utils';
 
 const MODOS = [
   { valor: 'mes', label: 'Este Mês' },
-  { valor: 'dia', label: 'Dia Específico' },
+  { valor: 'dia', label: 'Dia' },
   { valor: 'periodo', label: 'Período' },
 ];
 
@@ -44,7 +46,7 @@ export default function PeriodoPicker({
   const colorScheme = tema === 'escuro' ? 'dark' : 'light';
 
   const inputClass =
-    'px-3 py-2 rounded-lg border border-line bg-input-surface text-sm text-on-surface transition-colors focus:outline-none focus:border-primaria focus:ring-2 focus:ring-primaria/20';
+    'h-9 px-3 py-1.5 rounded-md border border-input bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-ring shadow-sm';
 
   function selecionarModo(modo) {
     setFiltroTipo(modo);
@@ -67,57 +69,54 @@ export default function PeriodoPicker({
 
   function renderModos(stacked = false) {
     return (
-      <div className={'flex gap-1.5 ' + (stacked ? 'flex-col' : '')}>
-        {MODOS.map((modo) => (
-          <button
-            key={modo.valor}
-            type="button"
-            onClick={() => selecionarModo(modo.valor)}
-            className={
-              'px-3 py-1.5 rounded-lg text-xs uppercase tracking-wide transition-colors ' +
-              (stacked ? 'text-left ' : '') +
-              (filtroTipo === modo.valor
-                ? 'bg-primaria text-white font-bold shadow'
-                : 'bg-surface-variant text-on-surface-variant font-medium hover:text-primaria')
-            }
-          >
-            {modo.label}
-          </button>
-        ))}
+      <div className={cn('inline-flex p-1 rounded-md bg-muted border', stacked ? 'flex-col gap-1 w-full' : 'gap-1')}>
+        {MODOS.map((modo) => {
+          const active = filtroTipo === modo.valor;
+          return (
+            <button
+              key={modo.valor}
+              type="button"
+              onClick={() => selecionarModo(modo.valor)}
+              className={cn(
+                'px-3 py-1.5 rounded-sm text-xs font-medium transition-colors',
+                stacked ? 'text-left py-2' : '',
+                active
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+              )}
+            >
+              {modo.label}
+            </button>
+          );
+        })}
       </div>
     );
   }
 
   return (
     <div ref={containerRef} className="relative flex flex-wrap items-center gap-2">
-      {/* Mobile: botão que abre o popover */}
+      {/* Mobile: trigger button */}
       <button
         type="button"
         onClick={() => setAberto(!aberto)}
-        className="md:hidden flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-line shadow-card text-sm transition-colors"
-        style={{ backgroundColor: 'var(--bg-card)' }}
+        className="md:hidden flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background shadow-sm text-xs font-medium text-foreground hover:bg-muted transition-colors"
       >
-        <span className="text-on-surface-variant">Período:</span>
-        <span className="font-mono font-semibold text-on-surface">{label}</span>
-        <span
-          className={
-            'material-symbols-outlined text-base text-on-surface-variant transition-transform ' +
-            (aberto ? 'rotate-180' : '')
-          }
-        >
-          expand_more
-        </span>
+        <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+        <span className="font-mono font-semibold">{label}</span>
+        <ChevronDown
+          className={cn(
+            'w-3.5 h-3.5 text-muted-foreground transition-transform',
+            aberto && 'rotate-180'
+          )}
+        />
       </button>
 
-      {/* Desktop: campo + controles inline */}
+      {/* Desktop: inline controls */}
       <div className="hidden md:flex flex-wrap items-center gap-2">
-        <span
-          className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-line shadow-card text-sm"
-          style={{ backgroundColor: 'var(--bg-card)' }}
-        >
-          <span className="text-on-surface-variant">Período:</span>
-          <span className="font-mono font-semibold text-on-surface">{label}</span>
-        </span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-input bg-background shadow-sm text-xs">
+          <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="font-mono font-semibold text-foreground">{label}</span>
+        </div>
 
         {renderModos()}
 
@@ -132,7 +131,7 @@ export default function PeriodoPicker({
         )}
 
         {filtroTipo === 'periodo' && (
-          <>
+          <div className="flex items-center gap-1.5">
             <input
               type="date"
               value={formatDateOnly(dataInicio)}
@@ -142,7 +141,7 @@ export default function PeriodoPicker({
               style={{ colorScheme }}
               aria-label="Data de início"
             />
-            <span className="text-xs text-on-surface-variant">até</span>
+            <span className="text-xs text-muted-foreground font-medium">até</span>
             <input
               type="date"
               value={formatDateOnly(dataFim)}
@@ -152,32 +151,27 @@ export default function PeriodoPicker({
               style={{ colorScheme }}
               aria-label="Data de fim"
             />
-          </>
+          </div>
         )}
       </div>
 
       {/* Mobile: popover */}
       {aberto && (
-        <div
-          className="md:hidden absolute right-0 top-full mt-2 z-40 w-72 p-4 rounded-xl border border-line shadow-card-hover"
-          style={{ backgroundColor: 'var(--bg-card)' }}
-        >
-          <p className="flex items-center gap-2 mb-3 pb-3 border-b border-line/40">
-            <span className="material-symbols-outlined text-base text-primaria">
-              calendar_month
+        <div className="md:hidden absolute right-0 top-full mt-2 z-40 w-72 p-4 rounded-lg border bg-card shadow-lg animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-border/50">
+            <Calendar className="w-4 h-4 text-primary" />
+            <span className="text-xs font-semibold text-foreground">
+              Período: <span className="font-mono">{label}</span>
             </span>
-            <span className="text-sm text-on-surface-variant">
-              Período: <span className="font-mono font-semibold text-on-surface">{label}</span>
-            </span>
-          </p>
+          </div>
 
           {renderModos(true)}
 
           {filtroTipo === 'dia' && (
-            <label className="block mt-3">
-              <span className="block text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
-                Dia
-              </span>
+            <div className="mt-3">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                Selecione o Dia
+              </label>
               <input
                 type="date"
                 value={formatDateOnly(dataSelecionada)}
@@ -187,15 +181,15 @@ export default function PeriodoPicker({
                 className={inputClass + ' w-full'}
                 style={{ colorScheme }}
               />
-            </label>
+            </div>
           )}
 
           {filtroTipo === 'periodo' && (
-            <div className="mt-3 flex flex-col gap-2.5">
-              <label className="block">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
+            <div className="mt-3 space-y-2">
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                   De
-                </span>
+                </label>
                 <input
                   type="date"
                   value={formatDateOnly(dataInicio)}
@@ -204,11 +198,11 @@ export default function PeriodoPicker({
                   className={inputClass + ' w-full'}
                   style={{ colorScheme }}
                 />
-              </label>
-              <label className="block">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant mb-1.5">
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                   Até
-                </span>
+                </label>
                 <input
                   type="date"
                   value={formatDateOnly(dataFim)}
@@ -217,7 +211,7 @@ export default function PeriodoPicker({
                   className={inputClass + ' w-full'}
                   style={{ colorScheme }}
                 />
-              </label>
+              </div>
             </div>
           )}
         </div>
