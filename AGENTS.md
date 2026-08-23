@@ -123,51 +123,39 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
 
 ## Status Atual
 
-- **Back-end:** 4 controllers (Auth, Transacoes, Contas, Categorias), EF Core + SQLite, seed automático, JWT + BCrypt, paginação server-side, filtros por data e `categoriaId`, 36 testes xUnit passando.
-- **Front-end:** Extrato, Relatórios, Ajustes, Lançamentos e Login funcionais; roteamento real; componentes modulares; tema claro/escuro via Tailwind e variáveis CSS; 16 testes Vitest passando (utilitários de filtro, formatação e renderização de App).
-- **Auth:** JWT implementado, persistência de sessão segura via `sessionStorage`, dados isolados por usuário (Contas/Categorias/Transações).
+- **Back-end:** 4 controllers (Auth, Transacoes, Contas, Categorias), EF Core + SQLite, seed automático, JWT + BCrypt, endpoint de alteração de senha autenticada (`PUT /api/auth/alterar-senha`), paginação server-side, filtros por data e `categoriaId`, 39 testes xUnit passando.
+- **Front-end:** Extrato com filtro por categoria integrado, Relatórios, Ajustes modularizado em submódulos (`components/settings/`), Lançamentos e Login funcionais; fluxo real de alteração de senha integrado; persistência de preferências de usuário (Idioma, Moeda, Formato de Data, Notificações) conectadas e reativas via `usePreferencias`; tema claro/escuro via Tailwind e variáveis CSS; 34 testes Vitest passando.
+- **Auth:** JWT implementado, persistência de sessão segura via `sessionStorage`, alteração de senha segura via BCrypt, dados isolados por usuário (Contas/Categorias/Transações).
 
 ---
 
 ## Débitos Técnicos Conhecidos (Ordem de Prioridade)
 
-1. **UI falsa de "Alterar Senha" em AjustesPage**:
-   - O formulário em `AjustesPage.jsx` apenas exibe toast simulado de sucesso. Falta implementar o endpoint seguro no back-end (`PUT /api/auth/alterar-senha` ou `POST /api/auth/senha` com validação da senha atual via BCrypt) e conectar ao `services/api.js`.
-2. **Modularização de `AjustesPage.jsx` (~826 linhas)**:
-   - A página de ajustes concentra toda a lógica de Contas, Categorias, Modais e Formulários em um único arquivo. Necessário extrair em submódulos (`ContasSection.jsx`, `CategoriasSection.jsx`, `SegurancaSection.jsx`, `ExportarSection.jsx`, `NotificacoesSection.jsx`).
-3. **Filtro por Categoria não exposto no Front-end**:
-   - O back-end já aceita `categoriaId` em `GET /api/transacoes`, mas `client/src/services/api.js` não expõe o parâmetro e a tela `Extrato.jsx` não possui seletor/dropdown para filtrar transações por categoria.
-4. **Preferências do Usuário Desconectadas em AjustesPage**:
-   - Os seletores de Idioma, Moeda e switches de Notificações não estão vinculados ao `usePreferencias` (`atualizar`), perdendo as alterações do usuário ao recarregar a tela.
-5. **Gerenciamento Incompleto de Contas Arquivadas**:
+1. **Gerenciamento Incompleto de Contas Arquivadas**:
    - O endpoint `PATCH /api/contas/{id}/arquivar` existe, mas `GET /api/contas` filtra estaticamente `!c.Arquivada`. Não há suporte a `incluirArquivadas=true` na API nem UI no front-end para listar e desarquivar contas.
-6. **Cobertura de Testes Front-End**:
-   - Embora os testes unitários de utilitários e back-end estejam em dia (36 testes no backend), faltam testes de componentes e fluxos de tela (`AjustesPage`, `Extrato`, `LancamentosPage`, `LoginPage`).
-7. **Vulnerabilidades de Dependências NuGet (Alerta NU1903)**:
+2. **Cobertura de Testes Front-End Adicional**:
+   - Testes unitários e de integração de `Extrato`, `AjustesPage`, `usePreferencias`, `api` e `formatters` implementados (34 testes no frontend e 39 no backend); expandir para `LancamentosPage` e `LoginPage`.
+3. **Vulnerabilidades de Dependências NuGet (Alerta NU1903)**:
    - Pacotes `Microsoft.OpenApi` e `SQLitePCLRaw.lib.e_sqlite3` apresentam avisos de vulnerabilidade conhecidos que devem ser atualizados.
-8. **Exportação só em CSV (PDF não implementado)**:
+4. **Exportação só em CSV (PDF não implementado)**:
    - A UI exibe opção de PDF, mas a API retorna `BadRequest("Formato não suportado.")`. Necessário implementar exportação em PDF ou remover a opção temporariamente da interface.
-9. **Notificações são apenas Toggles Locais**:
+5. **Notificações são apenas Toggles Locais**:
    - Não há lógica de disparo em background (ex.: lembrete diário de lançamentos ou alerta de saldo baixo ao cadastrar transação).
-10. **Google Fonts carregada externamente**:
-    - `@import url('https://fonts.googleapis.com/css2...')` ainda é carregada em `client/src/index.css`. Self-host via pacotes `@fontsource` é recomendado para estabilidade e performance offline.
-11. **Ausência de TypeScript / PropTypes nos componentes compartilhados**:
-    - Componentes como `SummaryCard`, `ChartContainer`, `TransactionTable`, `PeriodoPicker` não têm validação estrita de tipos de props.
-12. **SQLite em produção não escala com alta concorrência**:
-    - Adequado para desenvolvimento local; avaliar migração para PostgreSQL antes de qualquer deploy em produção.
+6. **Google Fonts carregada externamente**:
+   - `@import url('https://fonts.googleapis.com/css2...')` ainda é carregada em `client/src/index.css`. Self-host via pacotes `@fontsource` é recomendado para estabilidade e performance offline.
+7. **Ausência de TypeScript / PropTypes nos componentes compartilhados**:
+   - Componentes como `SummaryCard`, `ChartContainer`, `TransactionTable`, `PeriodoPicker` não têm validação estrita de tipos de props.
+8. **SQLite em produção não escala com alta concorrência**:
+   - Adequado para desenvolvimento local; avaliar migração para PostgreSQL antes de qualquer deploy em produção.
 
 ---
 
 ## Próximos Passos (Ordem Sugerida)
 
-1. **Implementar "Alterar Senha" de ponta a ponta**: Criar endpoint no back-end com hash BCrypt e integrar com o formulário em `AjustesPage`.
-2. **Modularizar `AjustesPage.jsx`**: Dividir o arquivo de 826 linhas em componentes de seção menores em `components/settings/`.
-3. **Integrar Filtro de Categoria no Extrato**: Atualizar `services/api.js` e adicionar filtro na interface de `Extrato.jsx`.
-4. **Persistir Preferências em AjustesPage**: Conectar Idioma, Moeda e Notificações ao `usePreferencias`.
-5. **Suportar Contas Arquivadas na API e Front**: Permitir listar e restaurar contas arquivadas.
-6. **Expandir testes no Front-End**: Testar componentes chave com React Testing Library.
-7. **Atualizar pacotes NuGet** para sanar os avisos de segurança NU1903.
-8. **Exportação em PDF** e notificações inteligentes.
+1. **Suportar Contas Arquivadas na API e Front**: Permitir listar e restaurar contas arquivadas (`incluirArquivadas=true`).
+2. **Expandir testes no Front-End**: Cobrir `LancamentosPage` e `LoginPage` com React Testing Library.
+3. **Atualizar pacotes NuGet** para sanar os avisos de segurança NU1903.
+4. **Exportação em PDF** e notificações inteligentes.
 
 ---
 
