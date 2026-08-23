@@ -34,3 +34,13 @@ public class AuthResponse
     public string Nome { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 }
+
+public class AlterarSenhaRequest
+{
+    [Required]
+    public string SenhaAtual { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(100, MinimumLength = 6)]
+    public string NovaSenha { get; set; } = string.Empty;
+}

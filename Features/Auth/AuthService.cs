@@ -67,6 +67,25 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
         }, null);
     }
 
+    public async Task<(bool Success, string? Error)> AlterarSenhaAsync(int usuarioId, AlterarSenhaRequest request)
+    {
+        var usuario = await context.Usuarios.FindAsync(usuarioId);
+        if (usuario is null)
+        {
+            return (false, "Usuário não encontrado.");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(request.SenhaAtual, usuario.SenhaHash))
+        {
+            return (false, "Senha atual incorreta.");
+        }
+
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword(request.NovaSenha);
+        await context.SaveChangesAsync();
+
+        return (true, null);
+    }
+
     private string GerarToken(Usuario usuario)
     {
         var jwtSettings = configuration.GetSection("Jwt");

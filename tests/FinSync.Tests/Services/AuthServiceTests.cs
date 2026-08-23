@@ -124,4 +124,70 @@ public class AuthServiceTests : ServiceTestBase
         Assert.Null(response);
         Assert.Equal("Email ou senha inválidos.", error);
     }
+
+    [Fact]
+    public async Task AlterarSenhaAsync_SenhaAtualCorreta_DeveAtualizarSenhaComSucesso()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var senhaAntiga = "Senha123!";
+        var senhaNova = "NovaSenha456!";
+        var usuario = await CriarUsuarioAsync("alterarsenha@finsync.com");
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword(senhaAntiga);
+        await Context.SaveChangesAsync();
+
+        var request = new AlterarSenhaRequest
+        {
+            SenhaAtual = senhaAntiga,
+            NovaSenha = senhaNova
+        };
+
+        var (success, error) = await service.AlterarSenhaAsync(usuario.Id, request);
+
+        Assert.True(success);
+        Assert.Null(error);
+
+        var usuarioAtualizado = await Context.Usuarios.FindAsync(usuario.Id);
+        Assert.NotNull(usuarioAtualizado);
+        Assert.True(BCrypt.Net.BCrypt.Verify(senhaNova, usuarioAtualizado!.SenhaHash));
+    }
+
+    [Fact]
+    public async Task AlterarSenhaAsync_SenhaAtualIncorreta_DeveRetornarErro()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("alterarsenhainvalida@finsync.com");
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword("SenhaCorreta123!");
+        await Context.SaveChangesAsync();
+
+        var request = new AlterarSenhaRequest
+        {
+            SenhaAtual = "SenhaErrada!",
+            NovaSenha = "NovaSenha456!"
+        };
+
+        var (success, error) = await service.AlterarSenhaAsync(usuario.Id, request);
+
+        Assert.False(success);
+        Assert.Equal("Senha atual incorreta.", error);
+    }
+
+    [Fact]
+    public async Task AlterarSenhaAsync_UsuarioInexistente_DeveRetornarErro()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+
+        var request = new AlterarSenhaRequest
+        {
+            SenhaAtual = "QualquerSenha",
+            NovaSenha = "NovaSenha456!"
+        };
+
+        var (success, error) = await service.AlterarSenhaAsync(99999, request);
+
+        Assert.False(success);
+        Assert.Equal("Usuário não encontrado.", error);
+    }
 }
