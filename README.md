@@ -1,250 +1,269 @@
 # FinSync
 
-Full-stack web app for tracking personal and business finances (income/expenses). Built as a hands-on learning project — see `AGENTS.md` for the learning roadmap.
+Sistema web full-stack de controle financeiro (entradas e saídas), multiusuário, com suporte à **gestão comercial** (ex: pequenas empresas, pizzaria) e **gestão financeira pessoal**. Inspirado no visual fintech moderno (*Copilot Money style*) com design responsivo, gráficos analíticos e segurança robusta.
 
 ---
 
-## Tech Stack
+## 🌐 URLs do Projeto
 
-| Layer         | Technology                                           |
-| ------------- | ---------------------------------------------------- |
-| Backend       | C#, ASP.NET Core Web API (.NET 10)                   |
-| Database      | SQLite (dev; PostgreSQL planned for production)      |
-| ORM           | Entity Framework Core                                |
-| API Docs      | OpenAPI + Scalar                                     |
-| Frontend      | React 19 + Vite                                      |
-| Styling       | Tailwind CSS                                         |
-| Routing       | react-router-dom                                     |
-| Testing       | Vitest + React Testing Library (client), xUnit (API) |
-| Lint / Format | Oxlint + Prettier                                    |
+- **Frontend (Produção - Vercel):** [https://fin-sync-tan.vercel.app](https://fin-sync-tan.vercel.app)
+- **API Backend (Produção - Azure):** [https://finsync-api.azurewebsites.net](https://finsync-api.azurewebsites.net)
+- **Documentação Interativa da API (Dev Local - Scalar):** `http://localhost:5154/scalar/v1`
 
 ---
 
-## Project Structure
+## 🛠️ Stack Tecnológico
+
+### Back-End
+- **Linguagem & Framework:** C# / ASP.NET Core Web API (.NET 10)
+- **Banco de Dados:** PostgreSQL (Supabase) via Entity Framework Core & Npgsql
+- **Autenticação & Segurança:** JWT Bearer, BCrypt, Google OAuth 2.0 (Google Identity Services com validação de token backend), Rate Limiting (`AddRateLimiter`) e Security Headers
+- **Documentação de API:** OpenAPI + Scalar (`Scalar.AspNetCore`)
+- **Hospedagem:** Azure App Service Linux
+
+### Front-End
+- **Framework:** React 19 + Vite
+- **Estilização:** Tailwind CSS + Radix UI / Shadcn UI primitives + Lucide React
+- **Roteamento:** react-router-dom
+- **Gerenciamento de Estado/Tema:** Context API (`AuthContext`, `ThemeContext`, `ToastContext`), `usePreferencias`
+- **Lint / Formatação:** Oxlint + Prettier
+- **Hospedagem:** Vercel
+
+### Testes Automatizados
+- **Backend:** xUnit + Entity Framework In-Memory (43 testes aprovados)
+- **Frontend:** Vitest + React Testing Library (58 testes aprovados)
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```
 FinSync/
-├── Program.cs                    Entry point, DI, CORS, migrations, seed
-├── FinSync.csproj                Project file
-├── appsettings.json              App settings (DB connection, CORS origins)
-├── finsync.db                    SQLite database (local, not committed)
-├── Features/                     Vertical slices (Model + Dto + Service + Controller by domain)
-│   ├── Auth/                     User entity, AuthDtos, AuthService, AuthController
-│   │   ├── Usuario.cs            User (Id, Nome, Email, SenhaHash, DataCriacao)
-│   │   ├── AuthDtos.cs           RegistrarRequest, LoginRequest, AuthResponse
-│   │   ├── AuthService.cs        Register + Login with BCrypt + JWT
-│   │   └── AuthController.cs     POST /api/auth/registrar, /api/auth/login (JWT)
-│   ├── Transacoes/
-│   │   ├── Transacao.cs          Transaction (Descricao, Valor, Tipo, Data, ContaId)
-│   │   ├── TransacaoDtos.cs      Create/Update/TransacaoDto, PagedResponse<T>, DetalhamentoCategoriaDto
-│   │   ├── TransacaoService.cs   List/Create/Update/Delete + CSV export
-│   │   └── TransacoesController.cs CRUD + /exportar
-│   ├── Contas/
-│   │   ├── Conta.cs              Account (Nome, Tipo, Arquivada, UsuarioId)
-│   │   ├── ContaDtos.cs          Create/Update/ContaDto
-│   │   ├── ContaService.cs       CRUD + /{id}/resumo (balance summary)
-│   │   └── ContasController.cs   CRUD + /{id}/resumo
-│   └── Categorias/
-│       ├── Categoria.cs          Category (Nome, Cor, Tipo, UsuarioId)
-│       ├── CategoriaDtos.cs      Create/Update/CategoriaDto
-│       ├── CategoriaService.cs   CRUD (per-user)
-│       └── CategoriasController.cs CRUD
+├── Program.cs                    → Configuração de DI, CORS, JWT, Rate Limit, DbContext e Scalar
+├── FinSync.csproj                → Definição de pacotes e versão .NET 10
+├── appsettings.json              → Configurações de ambiente (ConnectionStrings, JWT, Google OAuth)
+├── vercel.json                   → Configuração de SPA rewrites e headers para Vercel
+├── Features/                     → Vertical slices por domínio (Model + DTOs + Service + Controller)
+│   ├── Auth/                     → Autenticação local (BCrypt + JWT), Google OAuth e gestão de senhas
+│   │   ├── Usuario.cs            → Entidade Usuario (Id, Nome, Email, SenhaHash, DataCriacao)
+│   │   ├── AuthDtos.cs           → DTOs de login, registro, Google token e alteração de senha
+│   │   ├── AuthService.cs        → Regras de autenticação, geração de JWT e validação Google
+│   │   └── AuthController.cs     → POST /api/auth/registrar, /login, /google, PUT /alterar-senha
+│   ├── Transacoes/               → Lançamentos financeiros com categorização e vínculos de conta
+│   │   ├── Transacao.cs          → Entidade Transacao (Descricao, Valor, Tipo, Data, ContaId, CategoriaId)
+│   │   ├── TransacaoDtos.cs      → DTOs de CRUD, paginação, resumo do período e detalhamento
+│   │   ├── TransacaoService.cs   → CRUD, paginação no servidor, agregações e exportação CSV
+│   │   └── TransacoesController.cs → Endpoints de transações, resumo, detalhamento e exportação
+│   ├── Contas/                   → Carteiras e livros contábeis (Comercial / Pessoal)
+│   │   ├── Conta.cs              → Entidade Conta (Nome, Tipo, Arquivada, UsuarioId)
+│   │   ├── ContaDtos.cs          → DTOs de criação, atualização e resposta de Conta
+│   │   ├── ContaService.cs       → CRUD, cálculo de saldo consolidado e arquivamento
+│   │   └── ContasController.cs   → Endpoints de gestão de contas e resumo de saldo
+│   └── Categorias/               → Categorias financeiras isoladas por usuário
+│       ├── Categoria.cs          → Entidade Categoria (Nome, Cor, Tipo, UsuarioId)
+│       ├── CategoriaDtos.cs      → DTOs de Categoria
+│       ├── CategoriaService.cs   → CRUD isolado por usuário logado
+│       └── CategoriasController.cs → Endpoints de categorias
 ├── Shared/
 │   └── Enums/
-│       ├── TipoTransacao.cs      Enum: Entrada / Saida
-│       └── TipoConta.cs          Enum: Comercial / Pessoal
+│       ├── TipoTransacao.cs      → Enum: Entrada / Saida
+│       └── TipoConta.cs          → Enum: Comercial / Pessoal
 ├── Data/
-│   ├── FinSyncDbContext.cs       EF Core DbContext with relationships
-│   └── DbSeeder.cs               Seeds default accounts & categories on startup
+│   ├── FinSyncDbContext.cs       → DbContext do EF Core com índices e isolamento por usuário
+│   └── DbSeeder.cs               → Seed inicial automático de contas e categorias padrão
 ├── Handlers/
-│   └── GlobalExceptionHandler.cs ProblemDetails error handling
+│   └── GlobalExceptionHandler.cs → Tratamento centralizado de erros em padrão ProblemDetails
 ├── Helpers/
-│   └── DateRangeHelper.cs        Date filtering utilities
-├── Migrations/                   EF Core migrations
+│   └── DateRangeHelper.cs        → Utilitários de cálculo de intervalos de datas
+├── Migrations/                   → Migrações gerenciadas pelo EF Core para PostgreSQL
 ├── tests/
-│   └── FinSync.Tests/            xUnit tests (Services, Helpers)
-├── client/                       React frontend
-│   ├── package.json
-│   ├── vite.config.js            Vite config (proxy to API)
-│   └── src/
-│       ├── main.jsx              Entry point
-│       ├── App.jsx               Root component with routing
-│       ├── pages/                Route pages
-│       │   ├── Extrato.jsx       Home / statement screen
-│       │   ├── RelatoriosPage.jsx Reports & charts
-│       │   ├── LoginPage.jsx     Login / register screen
-│       │   ├── AjustesPage.jsx   Settings (profile, accounts, categories, etc.)
-│       │   └── LancamentosPage.jsx Transaction listing
-│       ├── components/
-│       │   ├── layout/           Layout components (sidebar, topbar, bottom nav, etc.)
-│       │   ├── transactions/     Transaction form, list, cards, action area
-│       │   ├── settings/         Settings sections
-│       │   ├── common/           Shared UI (ErrorBanner, SummaryCard, Modal, etc.)
-│       │   └── reports/          Chart containers
-│       ├── hooks/
-│       │   └── usePreferencias.js Theme (dark/light) source of truth
-│       ├── contexts/             AuthContext, ThemeContext, ToastContext
-│       ├── services/
-│       │   └── api.js            API client with error parsing
-│       ├── utils/                Formatters, constants, filters
-│       └── styles/               CSS variables & animations
-└── README.md
+│   └── FinSync.Tests/            → Testes unitários e de integração xUnit do backend
+└── client/                       → Frontend React (Vite)
+    ├── package.json              → Dependências e scripts de teste / build
+    ├── vite.config.js            → Configuração do Vite e proxy reverso local
+    └── src/
+        ├── pages/                → Extrato, LancamentosPage, RelatoriosPage, AjustesPage, LoginPage
+        ├── components/           → Componentes divididos por domínio (layout, transactions, settings, etc.)
+        ├── contexts/             → AuthContext, ThemeContext, ToastContext
+        ├── hooks/usePreferencias.js → Gerenciador central de preferências e tema escuro/claro
+        ├── services/api.js        → Cliente HTTP com injeção automática de JWT e tratamento de erros
+        └── utils/                → Formatadores monetários, constantes, filtros de data
 ```
 
 ---
 
-## Running Locally
+## 🚀 Como Executar Localmente
 
-### Prerequisites
+### Pré-requisitos
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- [Node.js 20+](https://nodejs.org/) e npm
+- Instância PostgreSQL (local ou Supabase)
 
-- .NET 10 SDK
-- Node.js 24+
-- npm 11+
+### 1. Configurar o Back-End
 
-### 1. Start the API
+Crie ou edite o arquivo `appsettings.Development.json` (ou ajuste as variáveis em `appsettings.json`):
+
+```json
+{
+  "ConnectionStrings": {
+    "FinSync": "Host=localhost;Port=5432;Database=finsync;Username=postgres;Password=suasenha"
+  },
+  "Jwt": {
+    "Key": "sua-chave-secreta-jwt-de-pelo-menos-32-caracteres-para-dev",
+    "Issuer": "FinSync",
+    "Audience": "FinSync"
+  }
+}
+```
+
+Inicie a API:
 
 ```bash
 dotnet run
 ```
 
-The API runs at `http://localhost:5154`.  
-API docs at `http://localhost:5154/scalar/v1`.
+- A API rodará em `http://localhost:5154`.
+- Acesse a documentação interativa em `http://localhost:5154/scalar/v1`.
+- Na inicialização, as migrações do PostgreSQL são aplicadas e as categorias/contas padrão são populadas.
 
-On first run, migrations run automatically and default accounts + categories are seeded.
+### 2. Iniciar o Front-End
 
-### 2. Start the Frontend
-
-Open a second terminal:
+Em outro terminal:
 
 ```bash
 cd client
+npm install
 npm run dev
 ```
 
-The frontend runs at `http://localhost:5173` and proxies `/api/*` to the backend.
+- A aplicação estará disponível em `http://localhost:5173`.
+- O Vite faz proxy automático das requisições `/api/*` para o backend local.
 
-### Running Tests
+---
+
+## 🧪 Executando os Testes
 
 ```bash
-# Backend tests
+# Testes do Back-End (xUnit — 43 testes)
 cd tests/FinSync.Tests
 dotnet test
 
-# Frontend tests
+# Testes do Front-End (Vitest — 58 testes)
 cd client
 npm test
 ```
 
 ---
 
-## API Endpoints
+## 📡 Endpoints da API
 
-### Auth
+### Autenticação (`/api/auth`)
 
-| Method | Endpoint                  | Description             |
-| ------ | ------------------------- | ----------------------- |
-| POST   | `/api/auth/registrar`      | Register new user       |
-| POST   | `/api/auth/login`          | Login, returns JWT token |
+| Método | Endpoint | Autenticado? | Descrição |
+| --- | --- | :---: | --- |
+| `POST` | `/api/auth/registrar` | Não | Cadastro de novo usuário |
+| `POST` | `/api/auth/login` | Não | Autenticação local, retorna token JWT |
+| `POST` | `/api/auth/google` | Não | Autenticação / cadastro via Google OAuth 2.0 |
+| `PUT` | `/api/auth/alterar-senha` | Sim | Alteração de senha da conta |
+| `PUT` | `/api/auth/definir-senha` | Sim | Definição de senha para contas originadas via Google |
 
-All other endpoints require `Authorization: Bearer <token>` header.
+*Todos os demais endpoints exigem o cabeçalho `Authorization: Bearer <token>`.*
 
-### Transações
+### Transações (`/api/transacoes`)
 
-| Method | Endpoint                    | Description       |
-| ------ | --------------------------- | ----------------- |
-| GET    | `/api/transacoes`            | List (filterable) |
-| GET    | `/api/transacoes/{id}`       | Get by ID         |
-| POST   | `/api/transacoes`            | Create            |
-| PUT    | `/api/transacoes/{id}`       | Update            |
-| DELETE | `/api/transacoes/{id}`       | Delete            |
-| GET    | `/api/transacoes/exportar`   | Export as CSV     |
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `GET` | `/api/transacoes` | Lista transações com paginação no servidor (`page`, `pageSize`, `contaId`, `data`, `dataInicio`, `dataFim`, `categoriaId`) |
+| `GET` | `/api/transacoes/{id}` | Busca transação por ID |
+| `POST` | `/api/transacoes` | Cria uma nova transação |
+| `PUT` | `/api/transacoes/{id}` | Atualiza uma transação existente |
+| `DELETE` | `/api/transacoes/{id}` | Remove uma transação |
+| `GET` | `/api/transacoes/resumo-periodo` | Totais de entradas, saídas e balanço consolidado no período |
+| `GET` | `/api/transacoes/detalhamento` | Agrupamento por categoria com valores e percentuais para relatórios |
+| `GET` | `/api/transacoes/exportar` | Exportação de transações em CSV (`contaId`, `periodo`, `formato=csv`) |
 
-Query params: `?pagina=1&tamanhoPagina=20&dataInicio=...&dataFim=...&tipo=Entrada|Saida&contaId=...&categoriaId=...`
+### Contas (`/api/contas`)
 
-### Contas
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `GET` | `/api/contas` | Lista todas as contas ativas do usuário |
+| `GET` | `/api/contas/{id}` | Busca conta específica por ID |
+| `POST` | `/api/contas` | Cria nova conta (Comercial ou Pessoal) |
+| `PUT` | `/api/contas/{id}` | Atualiza nome e dados da conta |
+| `PATCH` | `/api/contas/{id}/arquivar` | Alterna status de arquivamento da conta |
+| `DELETE` | `/api/contas/{id}` | Remove conta (apenas se não houver transações vinculadas) |
+| `GET` | `/api/contas/{id}/resumo` | Retorna o saldo consolidado da conta |
 
-| Method | Endpoint                  | Description         |
-| ------ | ------------------------- | ------------------- |
-| GET    | `/api/contas`              | List all            |
-| GET    | `/api/contas/{id}`         | Get by ID           |
-| POST   | `/api/contas`              | Create              |
-| PUT    | `/api/contas/{id}`         | Update              |
-| DELETE | `/api/contas/{id}`         | Delete              |
-| GET    | `/api/contas/{id}/resumo`  | Balance summary     |
+### Categorias (`/api/categorias`)
 
-### Categorias
-
-| Method | Endpoint                | Description  |
-| ------ | ----------------------- | ------------ |
-| GET    | `/api/categorias`        | List all     |
-| GET    | `/api/categorias/{id}`   | Get by ID    |
-| POST   | `/api/categorias`        | Create       |
-| PUT    | `/api/categorias/{id}`   | Update       |
-| DELETE | `/api/categorias/{id}`   | Delete       |
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `GET` | `/api/categorias` | Lista categorias do usuário logado |
+| `GET` | `/api/categorias/{id}` | Busca categoria por ID |
+| `POST` | `/api/categorias` | Cria categoria com cor hexadecimal e tipo (`Entrada`/`Saida`) |
+| `PUT` | `/api/categorias/{id}` | Atualiza nome, cor ou tipo da categoria |
+| `DELETE` | `/api/categorias/{id}` | Exclui categoria |
 
 ---
 
-## Data Model
+## 📊 Modelos de Dados Principais
 
-### Transacao
-
+### Transação
 ```json
 {
   "id": 1,
-  "descricao": "Venda de pizzas",
-  "valor": 89.90,
+  "descricao": "Venda no Balcão",
+  "valor": 120.50,
   "tipo": "Entrada",
-  "data": "2026-07-01",
+  "data": "2026-08-26",
   "contaId": 1,
-  "contaNome": "Pizzaria"
+  "contaNome": "Comercial",
+  "categoriaId": 3,
+  "categoriaNome": "Vendas",
+  "categoriaCor": "#1C6CFF"
 }
 ```
 
 ### Conta
-
 ```json
 {
   "id": 1,
-  "nome": "Pizzaria",
+  "nome": "Conta Principal",
   "tipo": "Comercial",
   "arquivada": false,
-  "saldo": 2500.00
+  "saldo": 3450.00
 }
 ```
 
 ### Categoria
-
 ```json
 {
   "id": 1,
   "nome": "Alimentação",
-  "cor": "#E53935",
+  "cor": "#FF4433",
   "tipo": "Saida"
 }
 ```
 
 ---
 
-## Implemented Features
+## ✅ Funcionalidades Implementadas
 
-- [x] User registration & login with JWT + BCrypt
-- [x] Transaction CRUD with filtering by date, type, account, and category
-- [x] Pagination on transaction listing
-- [x] Account management (personal / business) with archive support
-- [x] Categories with color coding and type binding (income / expense)
-- [x] CSV export of transactions
-- [x] Monthly reports with weekly breakdown and top expenses chart
-- [x] Dark / light theme toggle (persisted in localStorage)
-- [x] Responsive layout (mobile bottom nav + desktop sidebar)
-- [x] Settings page: profile, accounts, categories, preferences, notifications, export, security
-- [x] Server-side pagination
-- [x] Backend service tests (xUnit)
+- [x] **Autenticação Segura:** Registro e login via JWT com BCrypt, rate limiting e Google OAuth 2.0.
+- [x] **Isolamento Multiusuário:** Dados de contas, categorias e transações 100% isolados por `UsuarioId`.
+- [x] **Gestão de Contas:** Separação entre contas Comerciais e Pessoais, com cálculo de saldo e opção de arquivamento.
+- [x] **Categorização Flexível:** Categorias personalizadas com cores e vínculo ao tipo (Entrada / Saída).
+- [x] **CRUD Completo de Transações:** Filtros avançados por data, conta, categoria e tipo com paginação no servidor.
+- [x] **Relatórios & Analytics:** Gráficos interativos de evolução semanal e detalhamento proporcional de despesas por categoria.
+- [x] **Exportação de Dados:** Geração de extrato detalhado em arquivo `.csv`.
+- [x] **Design & Experiência Fintech:** Interface responsiva moderna com suporte a tema escuro/claro nativo persistido.
+- [x] **Infraestrutura em Produção:** API hospedada no Azure App Service com PostgreSQL no Supabase e frontend na Vercel.
+- [x] **Cobertura de Testes:** 43 testes xUnit (backend) e 58 testes Vitest/Testing Library (frontend).
 
-## Planned Features
+## 🔮 Funcionalidades Planejadas
 
-- [ ] Isolate data per user (UsuarioId in Transacoes/Contas/Categorias)
-- [ ] PostgreSQL migration for production
-- [ ] PDF export
-- [ ] Recurring transactions
-- [ ] Real notifications (low balance alerts, daily reminders)
-- [ ] Frontend tests with Vitest + React Testing Library
+- [ ] Interface visual dedicada para gerenciar e restaurar contas arquivadas (`incluirArquivadas=true`).
+- [ ] Exportação de relatórios e extratos em formato PDF.
+- [ ] Lançamentos recorrentes e parcelados com agendamento automático.
+- [ ] Notificações inteligentes em background (alertas de saldo baixo e lembretes de lançamentos).
+- [ ] Self-hosting das fontes tipográficas via `@fontsource/inter`.
