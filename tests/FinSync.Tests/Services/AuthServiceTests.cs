@@ -22,7 +22,8 @@ public class AuthServiceTests : ServiceTestBase
             {
                 ["Jwt:Key"] = "finsync-test-super-secret-key-1234567890-abc",
                 ["Jwt:Issuer"] = "FinSync",
-                ["Jwt:Audience"] = "FinSyncUsers"
+                ["Jwt:Audience"] = "FinSyncUsers",
+                ["Google:ClientId"] = "test-google-client-id"
             })
             .Build();
     }
@@ -189,5 +190,88 @@ public class AuthServiceTests : ServiceTestBase
 
         Assert.False(success);
         Assert.Equal("Usuário não encontrado.", error);
+    }
+
+    [Fact]
+    public async Task LoginAsync_ContaSemSenha_DeveRetornarErroEspecifico()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("google@finsync.com");
+        usuario.SenhaHash = null;
+        await Context.SaveChangesAsync();
+
+        var request = new LoginRequest
+        {
+            Email = usuario.Email,
+            Senha = "QualquerSenha123"
+        };
+
+        var (response, error) = await service.LoginAsync(request);
+
+        Assert.Null(response);
+        Assert.Contains("Google", error);
+    }
+
+    [Fact]
+    public async Task LoginAsync_UsuarioInexistente_NaoDeveLancarExcecao()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+
+        var request = new LoginRequest
+        {
+            Email = "naoexiste@finsync.com",
+            Senha = "QualquerSenha123"
+        };
+
+        var (response, error) = await service.LoginAsync(request);
+
+        Assert.Null(response);
+        Assert.Equal("Email ou senha inválidos.", error);
+    }
+
+    [Fact]
+    public async Task DefinirSenhaAsync_ContaSemSenha_DeveDefinirComSucesso()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("definirsenha@finsync.com");
+        usuario.SenhaHash = null;
+        await Context.SaveChangesAsync();
+
+        var request = new DefinirSenhaRequest
+        {
+            NovaSenha = "NovaSenha123!"
+        };
+
+        var (success, error) = await service.DefinirSenhaAsync(usuario.Id, request);
+
+        Assert.True(success);
+        Assert.Null(error);
+
+        var usuarioAtualizado = await Context.Usuarios.FindAsync(usuario.Id);
+        Assert.NotNull(usuarioAtualizado);
+        Assert.True(BCrypt.Net.BCrypt.Verify("NovaSenha123!", usuarioAtualizado!.SenhaHash!));
+    }
+
+    [Fact]
+    public async Task DefinirSenhaAsync_ContaComSenha_DeveRetornarErro()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("jacomsenha@finsync.com");
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword("SenhaExistente123");
+        await Context.SaveChangesAsync();
+
+        var request = new DefinirSenhaRequest
+        {
+            NovaSenha = "NovaSenha123!"
+        };
+
+        var (success, error) = await service.DefinirSenhaAsync(usuario.Id, request);
+
+        Assert.False(success);
+        Assert.Contains("já possui", error);
     }
 }

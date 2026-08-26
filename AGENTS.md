@@ -125,10 +125,10 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
 
 ## Status Atual
 
-- **Back-end no Azure:** API .NET 10 implantada com sucesso no Azure App Service (`https://finsync-api.azurewebsites.net`), integrada ao banco PostgreSQL remoto no Supabase. CORS liberado para o domínio do Vercel e localhost.
+- **Back-end no Azure:** API .NET 10 implantada no Azure App Service (`https://finsync-api.azurewebsites.net`), integrada ao banco PostgreSQL remoto no Supabase. CORS liberado para o domínio do Vercel e localhost.
 - **Front-end no Vercel:** Configuração SPA criada com `vercel.json` e `VITE_API_BASE_URL` direcionado para a API de produção.
-- **Testes:** 39 testes xUnit (.NET) e 34 testes Vitest (React) 100% aprovados.
-- **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, senhas com BCrypt, sessões isoladas por usuário.
+- **Testes:** 43 testes xUnit (.NET) e 34 testes Vitest (React) 100% aprovados.
+- **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, senhas com BCrypt, sessões isoladas por usuário, Google OAuth 2.0 (Google Identity Services + backend validation), rate limiting com `AddRateLimiter`, mitigação de timing attack e headers HTTP de segurança.
 
 ---
 

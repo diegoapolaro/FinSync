@@ -12,6 +12,8 @@ import LancamentosPage from './pages/LancamentosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
 import AjustesPage from './pages/AjustesPage';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 function ProtectedRoute() {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -19,27 +21,31 @@ function ProtectedRoute() {
 }
 
 export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
   return (
     <ErrorBoundary>
-      <TemaProvider>
-        <ToastProvider>
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <AuthProvider>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route element={<ProtectedRoute />}>
-                  <Route element={<Layout />}>
-                    <Route path="/" element={<Extrato />} />
-                    <Route path="/lancamentos" element={<LancamentosPage />} />
-                    <Route path="/relatorios" element={<RelatoriosPage />} />
-                    <Route path="/ajustes" element={<AjustesPage />} />
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <TemaProvider>
+          <ToastProvider>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <AuthProvider>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<Layout />}>
+                      <Route path="/" element={<Extrato />} />
+                      <Route path="/lancamentos" element={<LancamentosPage />} />
+                      <Route path="/relatorios" element={<RelatoriosPage />} />
+                      <Route path="/ajustes" element={<AjustesPage />} />
+                    </Route>
                   </Route>
-                </Route>
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </ToastProvider>
-      </TemaProvider>
+                </Routes>
+              </AuthProvider>
+            </BrowserRouter>
+          </ToastProvider>
+        </TemaProvider>
+      </GoogleOAuthProvider>
     </ErrorBoundary>
   );
 }

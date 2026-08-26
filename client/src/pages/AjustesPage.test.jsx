@@ -159,7 +159,7 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     expect(screen.getByText('Alteração de Senha')).toBeInTheDocument();
 
     const inputAtual = screen.getByPlaceholderText('Senha atual');
-    const inputNova = screen.getByPlaceholderText('Nova senha (mínimo 6 caracteres)');
+    const inputNova = screen.getByPlaceholderText('Nova senha (mínimo 8 caracteres)');
 
     fireEvent.change(inputAtual, { target: { value: 'Senha@123' } });
     fireEvent.change(inputNova, { target: { value: 'NovaSenha@456' } });

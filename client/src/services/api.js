@@ -70,11 +70,28 @@ export async function registrar(nome, email, senha) {
   return handleResponse(res);
 }
 
+export async function loginGoogle(idToken) {
+  const res = await fetch(url('/auth/google'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  });
+  return handleResponse(res);
+}
+
 export async function alterarSenha(senhaAtual, novaSenha) {
   return authFetch(url('/auth/alterar-senha'), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ senhaAtual, novaSenha }),
+  });
+}
+
+export async function definirSenha(novaSenha) {
+  return authFetch(url('/auth/definir-senha'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ novaSenha }),
   });
 }
 

@@ -1,4 +1,7 @@
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using FinSync.Data;
 using FinSync.Features.Auth;
 using FinSync.Features.Categorias;
@@ -9,7 +12,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,17 @@ builder.Services.AddDbContext<FinSyncDbContext>(options =>
 builder.Services.AddOpenApi();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("AuthLimiter", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -81,6 +94,16 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseHttpsRedirection();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "0");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -89,11 +112,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("FrontendPolicy");
-
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseHttpsRedirection();
 
 app.MapControllers();
 

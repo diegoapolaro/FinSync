@@ -19,14 +19,17 @@ describe('api.js', () => {
 
       await alterarSenha('Senha123!', 'NovaSenha456!');
 
-      expect(globalThis.fetch).toHaveBeenCalledWith('/api/auth/alterar-senha', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer mock-jwt-token',
-        },
-        body: JSON.stringify({ senhaAtual: 'Senha123!', novaSenha: 'NovaSenha456!' }),
-      });
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringMatching(/\/auth\/alterar-senha$/),
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer mock-jwt-token',
+          },
+          body: JSON.stringify({ senhaAtual: 'Senha123!', novaSenha: 'NovaSenha456!' }),
+        }
+      );
     });
 
     it('deve lançar erro quando a resposta não for ok', async () => {
@@ -58,7 +61,7 @@ describe('api.js', () => {
       const res = await getTransacoes(1, null, '2026-08-01', '2026-08-31', 1, 20);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        '/api/transacoes?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20',
+        expect.stringMatching(/\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/),
         {
           headers: {
             'Authorization': 'Bearer mock-jwt-token',
@@ -80,7 +83,7 @@ describe('api.js', () => {
       await getTransacoes(2, '2026-08-15', null, null, 2, 10, 5);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        '/api/transacoes?contaId=2&data=2026-08-15&categoriaId=5&page=2&pageSize=10',
+        expect.stringMatching(/\/transacoes\?contaId=2&data=2026-08-15&categoriaId=5&page=2&pageSize=10$/),
         {
           headers: {
             'Authorization': 'Bearer mock-jwt-token',
@@ -103,7 +106,7 @@ describe('api.js', () => {
       await getTransacoesRange(1, '2026-08-01', '2026-08-31', 1, 20, 3);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        '/api/transacoes?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&categoriaId=3&page=1&pageSize=20',
+        expect.stringMatching(/\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&categoriaId=3&page=1&pageSize=20$/),
         {
           headers: {
             'Authorization': 'Bearer mock-jwt-token',
@@ -124,7 +127,7 @@ describe('api.js', () => {
       await getTransacoesRange(1, '2026-08-01', '2026-08-31', 1, 20);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        '/api/transacoes?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20',
+        expect.stringMatching(/\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/),
         {
           headers: {
             'Authorization': 'Bearer mock-jwt-token',

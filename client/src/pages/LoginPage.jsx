@@ -1,13 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 
+function IndicadorForcaSenha({ senha }) {
+  const calcularForca = (s) => {
+    let score = 0;
+    if (s.length >= 8) score++;
+    if (/[a-z]/.test(s) && /[A-Z]/.test(s)) score++;
+    if (/\d/.test(s)) score++;
+    if (/[^a-zA-Z0-9]/.test(s)) score++;
+    return score;
+  };
+
+  const forca = calcularForca(senha);
+  const labels = ['', 'Fraca', 'Razoável', 'Boa', 'Forte'];
+
+  if (!senha) return null;
+
+  return (
+    <div className="space-y-1">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4].map((level) => (
+          <div
+            key={level}
+            className={`h-1.5 flex-1 rounded-full transition-colors ${
+              forca >= level
+                ? level <= 1
+                  ? 'bg-destructive'
+                  : level <= 2
+                    ? 'bg-[#FFD11A]'
+                    : 'bg-[#2EAD4B]'
+                : 'bg-muted'
+            }`}
+          />
+        ))}
+      </div>
+      {forca > 0 && (
+        <p className={`text-xs ${
+          forca <= 1 ? 'text-destructive' : forca <= 2 ? 'text-[#FFD11A]' : 'text-[#2EAD4B]'
+        }`}>
+          {labels[forca]}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function LoginPage() {
-  const { isAuthenticated, login, registrar } = useAuth();
+  const { isAuthenticated, login, registrar, loginGoogle } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
 
@@ -19,10 +64,29 @@ export default function LoginPage() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const senhasNaoCoincidem =
+    modo === 'registrar' && confirmarSenha.length > 0 && senha !== confirmarSenha;
+  const cadastroValido =
+    modo !== 'registrar' || (senha === confirmarSenha && confirmarSenha.length > 0);
+
+  async function handleGoogleSuccess(credentialResponse) {
+    try {
+      await loginGoogle(credentialResponse.credential);
+      navigate('/');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (modo === 'registrar' && senha !== confirmarSenha) {
+      addToast('As senhas não coincidem.', 'error');
+      return;
+    }
     setLoading(true);
     try {
       if (modo === 'login') {
@@ -58,6 +122,28 @@ export default function LoginPage() {
 
         {/* Wise-Style Auth Card */}
         <Card className="p-6 shadow-sm">
+          {/* Google Login Button */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => addToast('Erro ao conectar com Google.', 'error')}
+              text={modo === 'login' ? 'signin_with' : 'signup_with'}
+              shape="rectangular"
+              width="380"
+              logo_alignment="center"
+            />
+          </div>
+
+          {/* Separator */}
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-3 text-muted-foreground">ou</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {modo === 'registrar' && (
               <div className="space-y-1.5">
@@ -94,16 +180,36 @@ export default function LoginPage() {
               <Input
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
               />
+              {modo === 'registrar' && <IndicadorForcaSenha senha={senha} />}
             </div>
+
+            {modo === 'registrar' && (
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-foreground">
+                  Confirmar Senha
+                </label>
+                <Input
+                  type="password"
+                  required
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  placeholder="Repita a senha"
+                  className={senhasNaoCoincidem ? 'border-destructive focus-visible:ring-destructive' : ''}
+                />
+                {senhasNaoCoincidem && (
+                  <p className="text-xs text-destructive">As senhas não coincidem.</p>
+                )}
+              </div>
+            )}
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !cadastroValido}
               variant="default"
               size="default"
               className="w-full mt-4"
@@ -122,6 +228,7 @@ export default function LoginPage() {
                   setNome('');
                   setEmail('');
                   setSenha('');
+                  setConfirmarSenha('');
                 }}
                 className="text-sm font-medium text-primary hover:underline"
               >

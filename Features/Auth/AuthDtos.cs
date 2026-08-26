@@ -14,7 +14,9 @@ public class RegistrarRequest
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(100, MinimumLength = 6)]
+    [StringLength(100, MinimumLength = 8)]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$",
+        ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número.")]
     public string Senha { get; set; } = string.Empty;
 }
 
@@ -28,11 +30,19 @@ public class LoginRequest
     public string Senha { get; set; } = string.Empty;
 }
 
+public class GoogleLoginRequest
+{
+    [Required]
+    public string IdToken { get; set; } = string.Empty;
+}
+
 public class AuthResponse
 {
     public string Token { get; set; } = string.Empty;
     public string Nome { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string? FotoUrl { get; set; }
+    public bool TemSenha { get; set; }
 }
 
 public class AlterarSenhaRequest
@@ -41,6 +51,17 @@ public class AlterarSenhaRequest
     public string SenhaAtual { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(100, MinimumLength = 6)]
+    [StringLength(100, MinimumLength = 8)]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$",
+        ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número.")]
+    public string NovaSenha { get; set; } = string.Empty;
+}
+
+public class DefinirSenhaRequest
+{
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$",
+        ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número.")]
     public string NovaSenha { get; set; } = string.Empty;
 }

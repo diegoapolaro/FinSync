@@ -18,6 +18,8 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
         modelBuilder.Entity<Usuario>(entity =>
         {
             entity.HasIndex(u => u.Email).IsUnique();
+            entity.HasIndex(u => u.GoogleId).IsUnique()
+                  .HasFilter("\"GoogleId\" IS NOT NULL");
         });
 
         modelBuilder.Entity<Conta>(entity =>
