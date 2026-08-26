@@ -7,6 +7,7 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { cn } from '@/lib/utils';
+import logoSymbol from '@/assets/logo-symbol.png';
 
 function IndicadorForcaSenha({ senha }) {
   const calcularForca = (s) => {
@@ -110,8 +111,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Brand Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary mb-4">
-            <span className="text-primary-foreground font-bold text-xl tracking-tight">FS</span>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-card border border-border/80 p-2 mb-3 shadow-sm overflow-hidden">
+            <img src={logoSymbol} alt="FinSync Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="font-normal text-3xl tracking-[-0.03em] text-foreground">FinSync</h1>
           <p className="text-muted-foreground text-sm mt-1 font-medium">

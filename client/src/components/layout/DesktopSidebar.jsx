@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ReceiptText, BarChart3, Settings, Store, User, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import logoSymbol from '@/assets/logo-symbol.png';
 
 const navLinks = [
   { id: '', label: 'Extrato', Icon: ReceiptText },
@@ -19,8 +20,8 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
       {/* Brand Header */}
       <div className="px-5 pt-7 pb-4 flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground text-sm tracking-tight">
-            FS
+          <div className="w-10 h-10 rounded-xl bg-card border border-border/80 flex items-center justify-center p-1.5 shadow-sm overflow-hidden shrink-0">
+            <img src={logoSymbol} alt="FinSync Logo" className="w-full h-full object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="font-normal text-lg tracking-[-0.03em] text-foreground flex items-center gap-1.5">

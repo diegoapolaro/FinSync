@@ -1,6 +1,7 @@
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import logoSymbol from '@/assets/logo-symbol.png';
 
 export default function MobileTopBar() {
   const { user, logout } = useAuth();
@@ -9,8 +10,8 @@ export default function MobileTopBar() {
   return (
     <header className="md:hidden flex justify-between items-center px-4 py-3 w-full bg-background/85 backdrop-blur-md border-b border-border/80 sticky top-0 z-30 transition-colors">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground text-xs">
-          FS
+        <div className="w-8 h-8 rounded-xl bg-card border border-border/80 flex items-center justify-center p-1 shadow-sm overflow-hidden shrink-0">
+          <img src={logoSymbol} alt="FinSync Logo" className="w-full h-full object-contain" />
         </div>
         <h1 className="font-normal text-base tracking-[-0.03em] text-foreground">FinSync</h1>
       </div>
