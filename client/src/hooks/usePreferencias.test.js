@@ -50,7 +50,7 @@ describe('usePreferencias hook', () => {
       JSON.stringify({
         idioma: 'Español',
         nome: 'Diego',
-      })
+      }),
     );
 
     const { result } = renderHook(() => usePreferencias());

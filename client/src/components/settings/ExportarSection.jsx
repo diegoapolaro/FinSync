@@ -41,7 +41,7 @@ export default function ExportarSection() {
               Período do Relatório
             </label>
             <select
-              className="flex h-11 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               value={exportPeriodo}
               onChange={(e) => setExportPeriodo(e.target.value)}
               disabled={exportando}

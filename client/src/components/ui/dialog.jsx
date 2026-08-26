@@ -1,6 +1,6 @@
-import * as React from "react";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function Dialog({ open, onOpenChange, children }) {
   const dialogRef = React.useRef(null);
@@ -12,7 +12,7 @@ export function Dialog({ open, onOpenChange, children }) {
     previousActiveElement.current = document.activeElement;
     const dialog = dialogRef.current;
     const focusable = dialog?.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     const focusableElements = focusable ? Array.from(focusable) : [];
     const firstFocusable = focusableElements[0] ?? dialog;
@@ -20,19 +20,19 @@ export function Dialog({ open, onOpenChange, children }) {
     firstFocusable?.focus();
 
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         event.preventDefault();
         onOpenChange?.(false);
         return;
       }
 
-      if (event.key !== "Tab" || !dialog) return;
+      if (event.key !== 'Tab' || !dialog) return;
 
       const focusableItems = Array.from(
         dialog.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter((el) => !el.hasAttribute("disabled"));
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute('disabled'));
 
       if (focusableItems.length === 0) return;
 
@@ -52,9 +52,9 @@ export function Dialog({ open, onOpenChange, children }) {
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
       if (previousActiveElement.current?.focus) {
         previousActiveElement.current.focus();
       }
@@ -73,7 +73,7 @@ export function Dialog({ open, onOpenChange, children }) {
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        className="w-full max-w-lg rounded-lg bg-card p-6 shadow-lg border text-card-foreground animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg rounded-3xl bg-card p-6 shadow-card border text-card-foreground animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -85,7 +85,7 @@ export function Dialog({ open, onOpenChange, children }) {
 export function DialogHeader({ className, ...props }) {
   return (
     <div
-      className={cn("flex flex-col space-y-1.5 pb-4 border-b border-border/40", className)}
+      className={cn('flex flex-col space-y-1.5 pb-4 border-b border-border/40', className)}
       {...props}
     />
   );
@@ -94,25 +94,23 @@ export function DialogHeader({ className, ...props }) {
 export function DialogTitle({ className, ...props }) {
   return (
     <h2
-      className={cn("text-xl font-bold tracking-tight text-foreground", className)}
+      className={cn('text-xl font-semibold tracking-tight text-foreground', className)}
       {...props}
     />
   );
 }
 
 export function DialogDescription({ className, ...props }) {
-  return (
-    <p
-      className={cn("text-sm text-muted-foreground mt-1", className)}
-      {...props}
-    />
-  );
+  return <p className={cn('text-sm text-muted-foreground mt-1', className)} {...props} />;
 }
 
 export function DialogFooter({ className, ...props }) {
   return (
     <div
-      className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t border-border/40 gap-2", className)}
+      className={cn(
+        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t border-border/40 gap-2',
+        className,
+      )}
       {...props}
     />
   );
@@ -124,8 +122,8 @@ export function DialogClose({ onClick, className }) {
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors",
-        className
+        'rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors',
+        className,
       )}
     >
       <X className="h-5 w-5" />

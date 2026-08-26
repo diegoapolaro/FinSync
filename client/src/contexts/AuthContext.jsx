@@ -1,6 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAuthToken, setOnUnauthorized, login as apiLogin, registrar as apiRegistrar, loginGoogle as apiLoginGoogle } from '../services/api';
+import {
+  setAuthToken,
+  setOnUnauthorized,
+  login as apiLogin,
+  registrar as apiRegistrar,
+  loginGoogle as apiLoginGoogle,
+} from '../services/api';
 
 export const AuthContext = createContext(null);
 
@@ -34,7 +40,15 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, senha) => {
     const data = await apiLogin(email, senha);
     sessionStorage.setItem('finsync_token', data.token);
-    sessionStorage.setItem('finsync_user', JSON.stringify({ nome: data.nome, email: data.email, fotoUrl: data.fotoUrl, temSenha: data.temSenha }));
+    sessionStorage.setItem(
+      'finsync_user',
+      JSON.stringify({
+        nome: data.nome,
+        email: data.email,
+        fotoUrl: data.fotoUrl,
+        temSenha: data.temSenha,
+      }),
+    );
     setAuthToken(data.token);
     setUser({ nome: data.nome, email: data.email, fotoUrl: data.fotoUrl, temSenha: data.temSenha });
     return data;
@@ -43,7 +57,15 @@ export function AuthProvider({ children }) {
   const registrar = useCallback(async (nome, email, senha) => {
     const data = await apiRegistrar(nome, email, senha);
     sessionStorage.setItem('finsync_token', data.token);
-    sessionStorage.setItem('finsync_user', JSON.stringify({ nome: data.nome, email: data.email, fotoUrl: data.fotoUrl, temSenha: data.temSenha }));
+    sessionStorage.setItem(
+      'finsync_user',
+      JSON.stringify({
+        nome: data.nome,
+        email: data.email,
+        fotoUrl: data.fotoUrl,
+        temSenha: data.temSenha,
+      }),
+    );
     setAuthToken(data.token);
     setUser({ nome: data.nome, email: data.email, fotoUrl: data.fotoUrl, temSenha: data.temSenha });
     return data;
@@ -52,7 +74,15 @@ export function AuthProvider({ children }) {
   const loginGoogle = useCallback(async (idToken) => {
     const data = await apiLoginGoogle(idToken);
     sessionStorage.setItem('finsync_token', data.token);
-    sessionStorage.setItem('finsync_user', JSON.stringify({ nome: data.nome, email: data.email, fotoUrl: data.fotoUrl, temSenha: data.temSenha }));
+    sessionStorage.setItem(
+      'finsync_user',
+      JSON.stringify({
+        nome: data.nome,
+        email: data.email,
+        fotoUrl: data.fotoUrl,
+        temSenha: data.temSenha,
+      }),
+    );
     setAuthToken(data.token);
     setUser({ nome: data.nome, email: data.email, fotoUrl: data.fotoUrl, temSenha: data.temSenha });
     return data;

@@ -12,8 +12,8 @@ const mockContas = [
 ];
 
 const mockCategorias = [
-  { id: 10, nome: 'Alimentação', tipo: 'Saida', cor: '#d03238' },
-  { id: 20, nome: 'Salário', tipo: 'Entrada', cor: '#2ead4b' },
+  { id: 10, nome: 'Alimentação', tipo: 'Saida', cor: '#ff4433' },
+  { id: 20, nome: 'Salário', tipo: 'Entrada', cor: '#00cc4b' },
 ];
 
 const mockSetContas = vi.fn();
@@ -44,7 +44,7 @@ describe('AjustesPage.jsx and Settings Sections', () => {
         <TemaProvider>
           <AjustesPage />
         </TemaProvider>
-      </ToastProvider>
+      </ToastProvider>,
     );
   }
 
@@ -71,7 +71,7 @@ describe('AjustesPage.jsx and Settings Sections', () => {
 
     expect(screen.getByRole('heading', { name: 'Cadastrar Nova Conta' })).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('Nome da conta (ex: Caixa Principal, Pessoal...)')
+      screen.getByPlaceholderText('Nome da conta (ex: Caixa Principal, Pessoal...)'),
     ).toBeInTheDocument();
   });
 
@@ -86,7 +86,7 @@ describe('AjustesPage.jsx and Settings Sections', () => {
 
     expect(screen.getByRole('heading', { name: 'Nova Categoria' })).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('Nome da categoria (ex: Vendas, Alimentação...)')
+      screen.getByPlaceholderText('Nome da categoria (ex: Vendas, Alimentação...)'),
     ).toBeInTheDocument();
   });
 

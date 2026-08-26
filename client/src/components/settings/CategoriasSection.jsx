@@ -7,23 +7,18 @@ import SettingsSection from './SettingsSection';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { cn } from '@/lib/utils';
 
 export const CATEGORY_COLORS = [
-  '#9fe870',
-  '#ffc091',
-  '#38c8ff',
-  '#ffd11a',
-  '#d03238',
-  '#a78bfa',
-  '#2ead4b',
-  '#f472b6',
+  '#1c6cff',
+  '#00cc4b',
+  '#ff9900',
+  '#06b6d4',
+  '#8b5cf6',
+  '#ec4899',
+  '#ff4433',
+  '#3b82f6',
 ];
 
 export default function CategoriasSection({ categorias, setCategorias }) {
@@ -44,7 +39,9 @@ export default function CategoriasSection({ categorias, setCategorias }) {
   function iniciarEdicaoCategoria(cat) {
     setEditandoCategoria(cat);
     setEditCatNome(cat.nome);
-    setEditCatTipo(cat.tipo === TIPO_TRANSACAO.ENTRADA ? TIPO_TRANSACAO.ENTRADA : TIPO_TRANSACAO.SAIDA);
+    setEditCatTipo(
+      cat.tipo === TIPO_TRANSACAO.ENTRADA ? TIPO_TRANSACAO.ENTRADA : TIPO_TRANSACAO.SAIDA,
+    );
     setEditCatCor(cat.cor || CATEGORY_COLORS[0]);
   }
 
@@ -105,11 +102,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             {categorias.length} CATEGORIA(S)
           </span>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => setMostrarNovaCategoria(true)}
-          >
+          <Button variant="default" size="sm" onClick={() => setMostrarNovaCategoria(true)}>
             <Plus className="w-4 h-4 mr-1 stroke-[2.5]" />
             Nova Categoria
           </Button>
@@ -126,9 +119,10 @@ export default function CategoriasSection({ categorias, setCategorias }) {
                 value={novaCatNome}
                 onChange={(e) => setNovaCatNome(e.target.value)}
                 disabled={salvandoNova}
+                className="bg-secondary border-border"
               />
               <select
-                className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex h-12 w-full rounded-xl border border-border bg-secondary px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 value={novaCatTipo}
                 onChange={(e) => setNovaCatTipo(e.target.value)}
                 disabled={salvandoNova}
@@ -138,9 +132,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
               </select>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">
-                Cor:
-              </span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">Cor:</span>
               <div className="flex flex-wrap gap-2">
                 {CATEGORY_COLORS.map((cor) => (
                   <button
@@ -149,7 +141,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
                     onClick={() => setNovaCatCor(cor)}
                     className={cn(
                       'w-6 h-6 rounded-full transition-transform',
-                      novaCatCor === cor && 'ring-2 ring-foreground ring-offset-2 scale-110'
+                      novaCatCor === cor && 'ring-2 ring-foreground ring-offset-2 scale-110',
                     )}
                     style={{ backgroundColor: cor }}
                   />
@@ -196,7 +188,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
                     <span
                       className={cn(
                         'text-[10px] font-semibold uppercase',
-                        isEntrada ? 'text-[#2ead4b]' : 'text-[#d03238]'
+                        isEntrada ? 'text-entrada' : 'text-saida',
                       )}
                     >
                       {isEntrada ? 'Entrada' : 'Saída'}
@@ -219,10 +211,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
       >
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full"
-              style={{ backgroundColor: editCatCor }}
-            />
+            <div className="w-8 h-8 rounded-full" style={{ backgroundColor: editCatCor }} />
             <DialogTitle>Editar Categoria</DialogTitle>
           </div>
         </DialogHeader>
@@ -237,6 +226,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
               placeholder="Nome"
               value={editCatNome}
               onChange={(e) => setEditCatNome(e.target.value)}
+              className="bg-secondary border-border"
             />
           </div>
 
@@ -246,7 +236,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
             </label>
             <select
               disabled={isSavingCategoria}
-              className="flex h-11 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               value={editCatTipo}
               onChange={(e) => setEditCatTipo(e.target.value)}
             >
@@ -267,7 +257,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
                   onClick={() => setEditCatCor(cor)}
                   className={cn(
                     'w-7 h-7 rounded-full transition-transform',
-                    editCatCor === cor && 'ring-2 ring-foreground ring-offset-2 scale-110'
+                    editCatCor === cor && 'ring-2 ring-foreground ring-offset-2 scale-110',
                   )}
                   style={{ backgroundColor: cor }}
                 />
@@ -284,11 +274,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
           >
             Cancelar
           </Button>
-          <Button
-            variant="default"
-            onClick={handleSalvarCategoria}
-            disabled={isSavingCategoria}
-          >
+          <Button variant="default" onClick={handleSalvarCategoria} disabled={isSavingCategoria}>
             {isSavingCategoria ? 'Salvando...' : 'Salvar'}
           </Button>
         </DialogFooter>

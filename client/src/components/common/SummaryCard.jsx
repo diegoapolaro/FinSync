@@ -6,21 +6,27 @@ import { cn } from '@/lib/utils';
 const variants = {
   entrada: {
     label: 'Entradas',
+    sublabel: 'Receitas no período',
     Icon: ArrowUpRight,
-    iconBg: 'bg-[#e2f6d5] text-[#054d28] dark:bg-[#122b10] dark:text-[#9fe870]',
-    textColor: 'text-[#2ead4b] dark:text-[#3ec75f]',
+    iconBg: 'bg-transparent text-entrada border border-border',
+    textColor: 'text-foreground',
+    pillBg: 'bg-transparent text-entrada border border-border',
   },
   saida: {
     label: 'Saídas',
+    sublabel: 'Despesas no período',
     Icon: ArrowDownRight,
-    iconBg: 'bg-[#ffebee] text-[#d03238] dark:bg-[#320707] dark:text-[#ff8080]',
-    textColor: 'text-[#d03238] dark:text-[#ff5c62]',
+    iconBg: 'bg-transparent text-saida border border-border',
+    textColor: 'text-foreground',
+    pillBg: 'bg-transparent text-saida border border-border',
   },
   saldo: {
     label: 'Saldo Total',
+    sublabel: 'Balanço da conta',
     Icon: Wallet,
-    iconBg: 'bg-[#e8ebe6] text-[#0e0f0c] dark:bg-[#1f241f] dark:text-[#9fe870]',
+    iconBg: 'bg-transparent text-primary border border-border',
     textColor: 'text-foreground',
+    pillBg: 'bg-transparent text-primary border border-border',
   },
 };
 
@@ -29,26 +35,37 @@ export default function SummaryCard({ tipo, value }) {
   const { Icon } = v;
 
   return (
-    <Card className="p-5 transition-shadow hover:shadow-md group">
+    <Card className="p-5 relative overflow-hidden transition-all duration-300 hover:shadow-card-hover border-border/80 group">
+      {/* Top subtle glow bar */}
+      <div
+        className={cn(
+          'absolute top-0 left-0 right-0 h-[2px] opacity-70 transition-opacity group-hover:opacity-100',
+          tipo === 'entrada' ? 'bg-[#00cc4b]' : tipo === 'saida' ? 'bg-[#ff4433]' : 'bg-primary',
+        )}
+      />
+
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">
-          {v.label}
-        </span>
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {v.label}
+          </span>
+          <span className="text-[11px] text-muted-foreground/80 hidden sm:inline">
+            {v.sublabel}
+          </span>
+        </div>
         <div
           className={cn(
-            'w-10 h-10 rounded-full flex items-center justify-center transition-transform group-hover:scale-105',
-            v.iconBg
+            'w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110',
+            v.iconBg,
           )}
         >
-          <Icon className="w-5 h-5 stroke-[2.5]" />
+          <Icon className="w-4 h-4 stroke-[2.5]" />
         </div>
       </div>
-      <div className="mt-3">
+
+      <div className="mt-4 flex items-baseline justify-between">
         <h3
-          className={cn(
-            'font-mono text-2xl md:text-3xl font-bold tracking-tight',
-            v.textColor
-          )}
+          className={cn('numeric-mono text-2xl sm:text-3xl font-bold tracking-tight', v.textColor)}
         >
           {formatCurrency(value)}
         </h3>

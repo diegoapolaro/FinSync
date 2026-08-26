@@ -3,12 +3,16 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 let authToken = null;
 let onUnauthorized = null;
 
-export function setAuthToken(token) { authToken = token; }
+export function setAuthToken(token) {
+  authToken = token;
+}
 
-export function setOnUnauthorized(callback) { onUnauthorized = callback; }
+export function setOnUnauthorized(callback) {
+  onUnauthorized = callback;
+}
 
 function getAuthHeaders() {
-  return authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
+  return authToken ? { Authorization: `Bearer ${authToken}` } : {};
 }
 
 async function authFetch(url, options = {}) {
@@ -125,7 +129,15 @@ export async function deleteConta(id) {
   });
 }
 
-export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1, pageSize = 20, categoriaId = null) {
+export async function getTransacoes(
+  contaId,
+  data,
+  dataInicio,
+  dataFim,
+  page = 1,
+  pageSize = 20,
+  categoriaId = null,
+) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
   if (data) params.set('data', data);
@@ -137,7 +149,14 @@ export async function getTransacoes(contaId, data, dataInicio, dataFim, page = 1
   return authFetch(url(`/transacoes?${params}`));
 }
 
-export async function getTransacoesRange(contaId, dataInicio, dataFim, page = 1, pageSize = 20, categoriaId = null) {
+export async function getTransacoesRange(
+  contaId,
+  dataInicio,
+  dataFim,
+  page = 1,
+  pageSize = 20,
+  categoriaId = null,
+) {
   return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize, categoriaId);
 }
 

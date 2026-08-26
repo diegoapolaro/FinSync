@@ -40,7 +40,10 @@ export default function SegurancaSection() {
         addToast('Senha alterada com sucesso!', 'success');
       } else {
         await definirSenha(senhaNova);
-        addToast('Senha definida com sucesso! Agora você pode fazer login com email e senha.', 'success');
+        addToast(
+          'Senha definida com sucesso! Agora você pode fazer login com email e senha.',
+          'success',
+        );
       }
       setPainelAberto(false);
       setSenhaAtual('');
@@ -72,9 +75,7 @@ export default function SegurancaSection() {
                 {temSenha ? 'Alterar Senha' : 'Definir Senha'}
               </h4>
               <p className="text-xs text-muted-foreground">
-                {temSenha
-                  ? 'Atualizar credencial de login'
-                  : 'Criar senha para login com email'}
+                {temSenha ? 'Atualizar credencial de login' : 'Criar senha para login com email'}
               </p>
             </div>
           </div>
@@ -82,13 +83,14 @@ export default function SegurancaSection() {
       </div>
 
       {painelAberto && (
-        <Card className="mt-4 p-6 space-y-4 border border-border/60">
+        <Card className="mt-4 p-6 space-y-4 border border-border">
           <h4 className="font-bold text-sm text-foreground uppercase tracking-wide">
             {temSenha ? 'Alteração de Senha' : 'Definir Senha'}
           </h4>
           {!temSenha && (
             <p className="text-sm text-muted-foreground">
-              Sua conta foi criada com Google. Defina uma senha para também poder fazer login com email e senha.
+              Sua conta foi criada com Google. Defina uma senha para também poder fazer login com
+              email e senha.
             </p>
           )}
           <form onSubmit={handleAlterarSenha} className="space-y-4">
@@ -99,6 +101,7 @@ export default function SegurancaSection() {
                 value={senhaAtual}
                 onChange={(e) => setSenhaAtual(e.target.value)}
                 disabled={salvando}
+                className="bg-secondary border-border"
                 required
               />
             )}
@@ -108,6 +111,7 @@ export default function SegurancaSection() {
               value={senhaNova}
               onChange={(e) => setSenhaNova(e.target.value)}
               disabled={salvando}
+              className="bg-secondary border-border"
               required
               minLength={8}
             />

@@ -25,10 +25,10 @@ describe('api.js', () => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer mock-jwt-token',
+            Authorization: 'Bearer mock-jwt-token',
           },
           body: JSON.stringify({ senhaAtual: 'Senha123!', novaSenha: 'NovaSenha456!' }),
-        }
+        },
       );
     });
 
@@ -43,7 +43,7 @@ describe('api.js', () => {
       });
 
       await expect(alterarSenha('SenhaErrada', 'NovaSenha456!')).rejects.toThrow(
-        'Senha atual incorreta.'
+        'Senha atual incorreta.',
       );
     });
   });
@@ -61,12 +61,14 @@ describe('api.js', () => {
       const res = await getTransacoes(1, null, '2026-08-01', '2026-08-31', 1, 20);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/),
+        expect.stringMatching(
+          /\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/,
+        ),
         {
           headers: {
-            'Authorization': 'Bearer mock-jwt-token',
+            Authorization: 'Bearer mock-jwt-token',
           },
-        }
+        },
       );
       expect(res).toEqual({ data: [], total: 0, totalPages: 1 });
     });
@@ -83,12 +85,14 @@ describe('api.js', () => {
       await getTransacoes(2, '2026-08-15', null, null, 2, 10, 5);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/\/transacoes\?contaId=2&data=2026-08-15&categoriaId=5&page=2&pageSize=10$/),
+        expect.stringMatching(
+          /\/transacoes\?contaId=2&data=2026-08-15&categoriaId=5&page=2&pageSize=10$/,
+        ),
         {
           headers: {
-            'Authorization': 'Bearer mock-jwt-token',
+            Authorization: 'Bearer mock-jwt-token',
           },
-        }
+        },
       );
     });
   });
@@ -106,12 +110,14 @@ describe('api.js', () => {
       await getTransacoesRange(1, '2026-08-01', '2026-08-31', 1, 20, 3);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&categoriaId=3&page=1&pageSize=20$/),
+        expect.stringMatching(
+          /\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&categoriaId=3&page=1&pageSize=20$/,
+        ),
         {
           headers: {
-            'Authorization': 'Bearer mock-jwt-token',
+            Authorization: 'Bearer mock-jwt-token',
           },
-        }
+        },
       );
     });
 
@@ -127,12 +133,14 @@ describe('api.js', () => {
       await getTransacoesRange(1, '2026-08-01', '2026-08-31', 1, 20);
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/),
+        expect.stringMatching(
+          /\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/,
+        ),
         {
           headers: {
-            'Authorization': 'Bearer mock-jwt-token',
+            Authorization: 'Bearer mock-jwt-token',
           },
-        }
+        },
       );
     });
   });

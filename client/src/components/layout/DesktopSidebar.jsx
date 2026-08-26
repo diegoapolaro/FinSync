@@ -15,58 +15,84 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
   const pagina = location.pathname.replace(/^\/+/, '') || '';
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col z-40 bg-card text-card-foreground border-r select-none">
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col z-40 bg-card text-card-foreground border-r border-border select-none">
       {/* Brand Header */}
-      <div className="px-4 pt-6 pb-5 flex flex-col gap-6">
+      <div className="px-5 pt-7 pb-4 flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-md bg-primary flex items-center justify-center font-bold text-primary-foreground text-sm">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center font-bold text-primary-foreground text-sm tracking-tight">
             FS
           </div>
-          <span className="font-semibold text-lg tracking-tight text-foreground">
-            FinSync
-          </span>
+          <div className="flex flex-col">
+            <span className="font-normal text-lg tracking-[-0.03em] text-foreground flex items-center gap-1.5">
+              FinSync
+            </span>
+            <span className="text-[11px] font-medium text-muted-foreground tracking-wider uppercase">
+              Institucional
+            </span>
+          </div>
         </div>
 
-        {/* Contas Switcher (ex-app-shell-row from DESIGN.md) */}
-        <div className="flex flex-col gap-1.5 mt-2">
-          <span className="px-2 text-xs font-medium text-muted-foreground">
-            Contas Ativas
-          </span>
+        {/* Contas Switcher */}
+        <div className="flex flex-col gap-2 mt-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Contas
+            </span>
+            {contas.length > 0 && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                {contas.length}
+              </span>
+            )}
+          </div>
+
           {contas.length === 0 && (
-              <span className="text-xs text-muted-foreground py-2 px-2">
+            <span className="text-xs text-muted-foreground py-2 px-2 italic">
               Nenhuma conta cadastrada
             </span>
           )}
-          {contas.map((conta) => {
-            const selecionada = String(conta.id) === contaSelecionadaId;
-            const Icon = conta.tipo === 'Comercial' ? Store : User;
-            return (
-              <button
-                key={conta.id}
-                type="button"
-                onClick={() => {
-                  onSelectConta(String(conta.id));
-                  navigate('/');
-                }}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left',
-                  selecionada
-                    ? 'bg-primary/15 text-foreground'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <Icon className={cn('w-4 h-4', selecionada ? 'text-primary' : 'text-muted-foreground')} />
-                <span className="truncate">{conta.nome}</span>
-              </button>
-            );
-          })}
+
+          <div className="flex flex-col gap-1">
+            {contas.map((conta) => {
+              const selecionada = String(conta.id) === contaSelecionadaId;
+              const Icon = conta.tipo === 'Comercial' ? Store : User;
+              return (
+                <button
+                  key={conta.id}
+                  type="button"
+                  onClick={() => {
+                    onSelectConta(String(conta.id));
+                    navigate('/');
+                  }}
+                  className={cn(
+                    'group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left relative overflow-hidden',
+                    selecionada
+                      ? 'bg-secondary text-primary font-semibold border border-border shadow-sm'
+                      : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground border border-transparent',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'w-7 h-7 rounded-lg flex items-center justify-center transition-colors',
+                      selecionada
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground group-hover:bg-secondary group-hover:text-foreground',
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="truncate flex-1">{conta.nome}</span>
+                  {selecionada && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Navigation Menu */}
       <nav className="mt-auto px-4 pb-6 flex flex-col gap-1">
-        <span className="text-xs font-medium text-muted-foreground px-2 mb-2">
-          Menu
+        <span className="text-[11px] font-semibold text-muted-foreground px-2 mb-1 uppercase tracking-wider">
+          Navegação
         </span>
         {navLinks.map((link) => {
           const isActive = pagina === link.id;
@@ -77,13 +103,13 @@ export default function DesktopSidebar({ contas, contaSelecionadaId, onSelectCon
               type="button"
               onClick={() => navigate(`/${link.id}`)}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all relative font-medium',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/70',
               )}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
               <span>{link.label}</span>
             </button>
           );

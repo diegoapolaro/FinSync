@@ -46,7 +46,7 @@ export default function PeriodoPicker({
   const colorScheme = tema === 'escuro' ? 'dark' : 'light';
 
   const inputClass =
-    'h-9 px-3 py-1.5 rounded-md border border-input bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-ring shadow-sm';
+    'h-10 px-3 py-1.5 rounded-xl border border-input bg-background text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-sm';
 
   function selecionarModo(modo) {
     setFiltroTipo(modo);
@@ -69,7 +69,12 @@ export default function PeriodoPicker({
 
   function renderModos(stacked = false) {
     return (
-      <div className={cn('inline-flex p-1 rounded-md bg-muted border', stacked ? 'flex-col gap-1 w-full' : 'gap-1')}>
+      <div
+        className={cn(
+          'inline-flex p-1 rounded-full bg-surface-strong border border-border/80',
+          stacked ? 'flex-col gap-1 w-full rounded-2xl' : 'gap-1',
+        )}
+      >
         {MODOS.map((modo) => {
           const active = filtroTipo === modo.valor;
           return (
@@ -78,11 +83,11 @@ export default function PeriodoPicker({
               type="button"
               onClick={() => selecionarModo(modo.valor)}
               className={cn(
-                'px-3 py-1.5 rounded-sm text-xs font-medium transition-colors',
-                stacked ? 'text-left py-2' : '',
+                'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-200',
+                stacked ? 'text-left py-2 rounded-xl' : '',
                 active
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/70',
               )}
             >
               {modo.label}
@@ -99,21 +104,21 @@ export default function PeriodoPicker({
       <button
         type="button"
         onClick={() => setAberto(!aberto)}
-        className="md:hidden flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background shadow-sm text-xs font-medium text-foreground hover:bg-muted transition-colors"
+        className="md:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-input bg-background shadow-sm text-xs font-medium text-foreground hover:bg-muted transition-colors"
       >
         <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
         <span className="font-mono font-semibold">{label}</span>
         <ChevronDown
           className={cn(
             'w-3.5 h-3.5 text-muted-foreground transition-transform',
-            aberto && 'rotate-180'
+            aberto && 'rotate-180',
           )}
         />
       </button>
 
       {/* Desktop: inline controls */}
       <div className="hidden md:flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-input bg-background shadow-sm text-xs">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-input bg-background shadow-sm text-xs h-10">
           <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="font-mono font-semibold text-foreground">{label}</span>
         </div>
@@ -157,7 +162,7 @@ export default function PeriodoPicker({
 
       {/* Mobile: popover */}
       {aberto && (
-        <div className="md:hidden absolute right-0 top-full mt-2 z-40 w-72 p-4 rounded-lg border bg-card shadow-lg animate-in fade-in zoom-in-95 duration-150">
+        <div className="md:hidden absolute right-0 top-full mt-2 z-40 w-72 p-4 rounded-2xl border bg-card shadow-card animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center gap-2 pb-3 mb-3 border-b border-border/50">
             <Calendar className="w-4 h-4 text-primary" />
             <span className="text-xs font-semibold text-foreground">

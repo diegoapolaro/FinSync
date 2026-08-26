@@ -6,6 +6,7 @@ import { useToast } from '../contexts/ToastContext';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { cn } from '@/lib/utils';
 
 function IndicadorForcaSenha({ senha }) {
   const calcularForca = (s) => {
@@ -33,17 +34,19 @@ function IndicadorForcaSenha({ senha }) {
                 ? level <= 1
                   ? 'bg-destructive'
                   : level <= 2
-                    ? 'bg-[#FFD11A]'
-                    : 'bg-[#2EAD4B]'
+                    ? 'bg-laranja'
+                    : 'bg-entrada'
                 : 'bg-muted'
             }`}
           />
         ))}
       </div>
       {forca > 0 && (
-        <p className={`text-xs ${
-          forca <= 1 ? 'text-destructive' : forca <= 2 ? 'text-[#FFD11A]' : 'text-[#2EAD4B]'
-        }`}>
+        <p
+          className={`text-xs font-semibold ${
+            forca <= 1 ? 'text-destructive' : forca <= 2 ? 'text-laranja' : 'text-entrada'
+          }`}
+        >
           {labels[forca]}
         </p>
       )}
@@ -103,51 +106,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-background relative flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md relative z-10">
         {/* Brand Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-primary mb-4">
-            <span className="text-primary-foreground font-bold text-lg">
-              FS
-            </span>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary mb-4">
+            <span className="text-primary-foreground font-bold text-xl tracking-tight">FS</span>
           </div>
-          <h1 className="font-semibold text-3xl tracking-tight text-foreground">
-            FinSync
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 font-medium">
-            {modo === 'login' ? 'Controle financeiro inteligente' : 'Crie sua conta para começar'}
+          <h1 className="font-normal text-3xl tracking-[-0.03em] text-foreground">FinSync</h1>
+          <p className="text-muted-foreground text-sm mt-1 font-medium">
+            {modo === 'login'
+              ? 'Seu dinheiro, elegantemente organizado.'
+              : 'Crie sua conta para começar.'}
           </p>
         </div>
 
-        {/* Wise-Style Auth Card */}
-        <Card className="p-6 shadow-sm">
+        {/* Auth Card */}
+        <Card className="p-6 md:p-8 border border-border rounded-2xl">
           {/* Google Login Button */}
           <div className="flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => addToast('Erro ao conectar com Google.', 'error')}
               text={modo === 'login' ? 'signin_with' : 'signup_with'}
-              shape="rectangular"
+              shape="pill"
               width="380"
               logo_alignment="center"
             />
           </div>
 
           {/* Separator */}
-          <div className="relative my-5">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-3 text-muted-foreground">ou</span>
+              <span className="bg-card px-3 text-muted-foreground uppercase tracking-wider font-semibold">
+                ou
+              </span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {modo === 'registrar' && (
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Nome Completo
                 </label>
                 <Input
@@ -156,12 +159,13 @@ export default function LoginPage() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome"
+                  className="rounded-xl h-11 bg-secondary border-border"
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Email
               </label>
               <Input
@@ -170,11 +174,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
+                className="rounded-xl h-11 bg-secondary border-border"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-foreground">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Senha
               </label>
               <Input
@@ -184,13 +189,14 @@ export default function LoginPage() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
+                className="rounded-xl h-11 bg-secondary border-border"
               />
               {modo === 'registrar' && <IndicadorForcaSenha senha={senha} />}
             </div>
 
             {modo === 'registrar' && (
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-foreground">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Confirmar Senha
                 </label>
                 <Input
@@ -199,7 +205,10 @@ export default function LoginPage() {
                   value={confirmarSenha}
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   placeholder="Repita a senha"
-                  className={senhasNaoCoincidem ? 'border-destructive focus-visible:ring-destructive' : ''}
+                  className={cn(
+                    'rounded-xl h-11 bg-secondary border-border',
+                    senhasNaoCoincidem ? 'border-destructive focus-visible:ring-destructive' : '',
+                  )}
                 />
                 {senhasNaoCoincidem && (
                   <p className="text-xs text-destructive">As senhas não coincidem.</p>
@@ -211,16 +220,16 @@ export default function LoginPage() {
               type="submit"
               disabled={loading || !cadastroValido}
               variant="default"
-              size="default"
-              className="w-full mt-4"
+              size="lg"
+              className="w-full mt-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold tracking-tight"
             >
               {loading ? (
                 <span className="inline-block w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
               ) : null}
-              {loading ? 'Aguarde...' : modo === 'login' ? 'Entrar' : 'Criar Conta'}
+              {loading ? 'Aguarde...' : modo === 'login' ? 'Entrar no FinSync' : 'Criar Conta'}
             </Button>
 
-            <div className="text-center pt-2">
+            <div className="text-center pt-3">
               <button
                 type="button"
                 onClick={() => {
@@ -230,11 +239,11 @@ export default function LoginPage() {
                   setSenha('');
                   setConfirmarSenha('');
                 }}
-                className="text-sm font-medium text-primary hover:underline"
+                className="text-xs font-semibold text-primary hover:underline"
               >
                 {modo === 'login'
-                  ? 'Não tem conta? Cadastre-se'
-                  : 'Já tem conta? Faça login'}
+                  ? 'Não tem uma conta? Cadastre-se gratuitamente'
+                  : 'Já possui uma conta? Faça login'}
               </button>
             </div>
           </form>

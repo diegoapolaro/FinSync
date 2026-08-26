@@ -18,13 +18,15 @@ export default function Layout() {
       if (contasDaApi.length > 0) {
         setContaSelecionadaId(String(contasDaApi[0].id));
       }
-      getCategorias().then(setCategorias).catch(() => {});
+      getCategorias()
+        .then(setCategorias)
+        .catch(() => {});
     }
     init().catch(() => {});
   }, []);
 
   return (
-    <div className="bg-muted/30 text-foreground antialiased min-h-screen overflow-hidden font-sans">
+    <div className="bg-background text-foreground antialiased min-h-screen overflow-hidden font-sans">
       <MobileTopBar />
 
       <DesktopSidebar
@@ -37,14 +39,16 @@ export default function Layout() {
         <DesktopHeader />
 
         <main className="flex-1 overflow-y-auto">
-          <Outlet context={{
-            contas,
-            contaSelecionadaId,
-            setContaSelecionadaId,
-            categorias,
-            setContas,
-            setCategorias,
-          }} />
+          <Outlet
+            context={{
+              contas,
+              contaSelecionadaId,
+              setContaSelecionadaId,
+              categorias,
+              setContas,
+              setCategorias,
+            }}
+          />
         </main>
       </div>
 

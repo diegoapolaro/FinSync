@@ -23,11 +23,7 @@ export function TemaProvider({ children }) {
     atualizar('tema', tema === 'escuro' ? 'claro' : 'escuro');
   };
 
-  return (
-    <TemaContext.Provider value={{ tema, alternarTema }}>
-      {children}
-    </TemaContext.Provider>
-  );
+  return <TemaContext.Provider value={{ tema, alternarTema }}>{children}</TemaContext.Provider>;
 }
 
 export function useTema() {
@@ -35,3 +31,12 @@ export function useTema() {
   return ctx || { tema: 'claro', alternarTema: () => {} };
 }
 
+export function useTheme() {
+  const { tema, alternarTema } = useTema();
+  return {
+    tema,
+    alternarTema,
+    isDark: tema === 'escuro',
+    toggleTheme: alternarTema,
+  };
+}

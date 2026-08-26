@@ -34,15 +34,15 @@ export function ToastProvider({ children }) {
               className={cn(
                 'pointer-events-auto px-4 py-3 rounded-full shadow-elevation border flex items-center justify-between gap-3 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200',
                 isSuccess
-                  ? 'bg-[#0e0f0c] text-[#9fe870] border-[#9fe870]/30'
-                  : 'bg-[#d03238] text-white border-destructive/30'
+                  ? 'bg-copilot-navy-900 text-[#00cc4b] border-[#00cc4b]/30'
+                  : 'bg-copilot-navy-900 text-[#ff4433] border-[#ff4433]/30',
               )}
             >
               <div className="flex items-center gap-2 min-w-0">
                 {isSuccess ? (
-                  <CheckCircle2 className="w-4 h-4 text-[#9fe870] shrink-0 stroke-[2.5]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#00cc4b] shrink-0 stroke-[2.5]" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-white shrink-0 stroke-[2.5]" />
+                  <AlertCircle className="w-4 h-4 text-[#ff4433] shrink-0 stroke-[2.5]" />
                 )}
                 <span className="truncate">{toast.message}</span>
               </div>

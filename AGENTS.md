@@ -38,13 +38,13 @@ Cada usuário tem suas próprias Contas (livros), Categorias e Transações, iso
 
 ## Identidade Visual
 
-- Conceito: Linguagem inspirada na Wise — visual fintech escandinavo, limpo e sofisticado
-- Logo: Monograma circular "FS" com acento verde Wise (`#9FE870`) e preto tinta (`#0E0F0C`)
-- Paleta: Verde primário Wise (`#9FE870`), canvas sage (`#E8EBE6`), tinta preto quente (`#0E0F0C`), saídas/negativo (`#D03238`), entradas/positivo (`#2EAD4B`), alertas (`#FFD11A`)
-- Geometria: Cards e botões em pill com raio de 24px (`rounded-3xl` / `rounded-[24px]`)
-- Tipografia: Inter (display peso 900 para títulos, 600 para subdisplays, 400 para corpo) + IBM Plex Mono para valores/datas
+- Conceito: Linguagem inspirada no Copilot Money — visual fintech cinemático de alta densidade de dados (*Apple Design Award style*)
+- Logo: Monograma "FS" com acento azul elétrico (`#1C6CFF`) e brilho sutil
+- Paleta: Azul elétrico primário (`#1C6CFF`), Deep Space Navy dark canvas (`#000814`), Cards Navy (`#09182F`), Saídas/negativo (`#FF4433`), Entradas/positivo (`#00CC4B`), Alertas (`#FF9900`), Light canvas (`#F8FAFC`)
+- Geometria: Cards e modais com raio de 20-24px (`rounded-2xl` / `rounded-3xl`), botões e inputs `rounded-xl` (12px), pills e badges `rounded-full`
+- Tipografia: Inter (display bold com tracking tight para títulos, 600 para subdisplays, 400 para corpo) + IBM Plex Mono para valores/datas com números tabulares (`tnum`)
 - Componentes: Shadcn UI (`Button`, `Card`, `Input`, `Badge`, `Dialog`, `Table`, `Tabs`, `Switch`) + Lucide React
-- Tema claro/escuro via CSS variables, fonte única de verdade em `usePreferencias.js`
+- Tema claro/escuro via CSS variables, fonte única de verdade em `usePreferencias.js` com modo escuro Deep Navy nativo
 
 ---
 
@@ -127,7 +127,7 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
 
 - **Back-end no Azure:** API .NET 10 implantada no Azure App Service (`https://finsync-api.azurewebsites.net`), integrada ao banco PostgreSQL remoto no Supabase. CORS liberado para o domínio do Vercel e localhost.
 - **Front-end no Vercel:** Configuração SPA criada com `vercel.json` e `VITE_API_BASE_URL` direcionado para a API de produção.
-- **Testes:** 43 testes xUnit (.NET) e 34 testes Vitest (React) 100% aprovados.
+- **Testes:** 43 testes xUnit (.NET) e 58 testes Vitest (React) 100% aprovados.
 - **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, senhas com BCrypt, sessões isoladas por usuário, Google OAuth 2.0 (Google Identity Services + backend validation), rate limiting com `AddRateLimiter`, mitigação de timing attack e headers HTTP de segurança.
 
 ---
@@ -136,8 +136,8 @@ Dados isolados por usuário: Contas e Categorias têm `UsuarioId`; Transações 
 
 1. **Gerenciamento Incompleto de Contas Arquivadas**:
    - O endpoint `PATCH /api/contas/{id}/arquivar` existe, mas `GET /api/contas` filtra estaticamente `!c.Arquivada`. Suportar `incluirArquivadas=true` na API e UI no front-end para listar e desarquivar contas.
-2. **Cobertura de Testes Front-End Adicional**:
-   - Testes unitários e de integração de `Extrato`, `AjustesPage`, `usePreferencias`, `api` e `formatters` implementados (34 testes no frontend e 39 no backend); expandir para `LancamentosPage` e `LoginPage`.
+2. **Cobertura de Testes Front-End Expandida**:
+   - Testes unitários e de integração de `Extrato`, `AjustesPage`, `LancamentosPage`, `LoginPage`, `usePreferencias`, `api` e `formatters` implementados (58 testes no frontend e 43 no backend).
 3. **Vulnerabilidades de Dependências NuGet (Alerta NU1903)**:
    - Pacotes `Microsoft.OpenApi` e `SQLitePCLRaw.lib.e_sqlite3` apresentam avisos de vulnerabilidade conhecidos que devem ser atualizados.
 4. **Exportação só em CSV (PDF não implementado)**:

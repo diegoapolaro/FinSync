@@ -26,14 +26,14 @@ import { Button } from '../components/ui/button';
 import { cn } from '@/lib/utils';
 
 const donutColors = [
-  '#9fe870',
-  '#ffc091',
-  '#38c8ff',
-  '#ffd11a',
-  '#d03238',
-  '#a78bfa',
-  '#2ead4b',
-  '#f472b6',
+  '#0052ff', // Coinbase Blue
+  '#05b169', // Emerald
+  '#f4b000', // Amber
+  '#6366f1', // Indigo
+  '#0d9488', // Teal
+  '#8b5cf6', // Purple
+  '#ec4899', // Pink
+  '#64748b', // Slate
 ];
 
 export default function RelatoriosPage() {
@@ -246,32 +246,34 @@ export default function RelatoriosPage() {
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-normal text-foreground tracking-[-0.03em]">
             Relatórios
           </h2>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Análise detalhada de fluxo financeiro por período
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {filtroTipo === 'mes' && (
-            <div className="flex items-center bg-card rounded-full border border-border/60 p-1 shadow-sm">
+            <div className="flex items-center bg-secondary rounded-xl border border-border p-1 shadow-sm">
               <Button
                 variant="ghost"
                 size="iconSm"
                 onClick={() => navegar(-1)}
                 title="Mês anterior"
+                className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="font-mono text-xs font-semibold text-foreground px-3">
-                {mesAnoDisplay.toUpperCase()}
+              <span className="text-xs font-semibold text-foreground px-3 capitalize">
+                {mesAnoDisplay}
               </span>
               <Button
                 variant="ghost"
                 size="iconSm"
                 onClick={() => navegar(1)}
                 title="Próximo mês"
+                className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -299,7 +301,7 @@ export default function RelatoriosPage() {
       )}
 
       {!carregando && !contaSelecionadaId && (
-        <Card className="p-8 text-center text-sm text-muted-foreground">
+        <Card className="p-8 text-center text-sm text-muted-foreground border-dashed border-border/80">
           Selecione uma conta para ver os relatórios.
         </Card>
       )}
@@ -317,25 +319,29 @@ export default function RelatoriosPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
             {filtroTipo !== 'dia' && (
               <div className="lg:col-span-3">
-                <ChartContainer title="Movimento por Semana" icon={<BarChart3 className="w-4 h-4" />}>
-                  <div className="h-56 flex items-end justify-between gap-3 px-3 pb-3 border-b border-border/50 relative">
+                <ChartContainer
+                  title="Movimento por Semana"
+                  subtitle="Comparativo semanal de entradas e saídas"
+                  icon={<BarChart3 className="w-4 h-4" />}
+                >
+                  <div className="h-56 flex items-end justify-between gap-3 px-3 pb-3 border-b border-border/60 relative">
                     {semanas.map((sem) => (
                       <div
                         key={sem.semana}
                         className="flex-1 flex justify-center items-end gap-2 group relative h-full"
                       >
                         <div
-                          className="w-4 bg-[#9fe870] chart-bar rounded-t-lg"
+                          className="w-4 bg-[#05b169] chart-bar rounded-t-lg"
                           style={{
-                            height: Math.max(sem.entPct, 2) + '%',
+                            height: Math.max(sem.entPct, 3) + '%',
                             animationDelay: sem.semana * 100 + 'ms',
                           }}
                           title={'Entradas: ' + formatCurrency(sem.entradas)}
                         />
                         <div
-                          className="w-4 bg-[#0e0f0c] dark:bg-[#ff5c62] chart-bar rounded-t-lg"
+                          className="w-4 bg-[#cf202f] chart-bar rounded-t-lg"
                           style={{
-                            height: Math.max(sem.saiPct, 2) + '%',
+                            height: Math.max(sem.saiPct, 3) + '%',
                             animationDelay: sem.semana * 100 + 50 + 'ms',
                           }}
                           title={'Saídas: ' + formatCurrency(sem.saidas)}
@@ -348,14 +354,14 @@ export default function RelatoriosPage() {
                   </div>
                   <div className="mt-8 flex gap-6 justify-center">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#9fe870]" />
-                      <span className="text-xs font-semibold text-muted-foreground uppercase">
+                      <div className="w-3 h-3 rounded-full bg-[#05b169]" />
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Entradas
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#0e0f0c] dark:bg-[#ff5c62]" />
-                      <span className="text-xs font-semibold text-muted-foreground uppercase">
+                      <div className="w-3 h-3 rounded-full bg-[#cf202f]" />
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Saídas
                       </span>
                     </div>
@@ -365,7 +371,11 @@ export default function RelatoriosPage() {
             )}
 
             <div className={filtroTipo === 'dia' ? 'lg:col-span-5' : 'lg:col-span-2'}>
-              <ChartContainer title="Distribuição por Categoria" icon={<PieChart className="w-4 h-4" />}>
+              <ChartContainer
+                title="Distribuição por Categoria"
+                subtitle="Participação relativa nas despesas"
+                icon={<PieChart className="w-4 h-4" />}
+              >
                 {categorias.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-12">
                     Nenhuma despesa categorizada no período.
@@ -398,27 +408,30 @@ export default function RelatoriosPage() {
                         ))}
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-2xl font-black text-foreground">
+                        <span className="text-2xl font-bold tracking-tight text-foreground">
                           {totalSaidas > 0 ? '100%' : '0%'}
                         </span>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                           Saídas
                         </span>
                       </div>
                     </div>
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {donutSegments.map((seg, i) => (
-                        <div key={i} className="flex justify-between items-center py-1 border-b border-border/30 last:border-0">
-                          <div className="flex items-center gap-2">
+                        <div
+                          key={i}
+                          className="flex justify-between items-center py-1.5 border-b border-border/40 last:border-0"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
                             <div
                               className="w-2.5 h-2.5 rounded-full shrink-0"
                               style={{ backgroundColor: seg.color }}
                             />
-                            <span className="text-xs font-semibold text-foreground truncate max-w-[140px]">
+                            <span className="text-xs font-semibold text-foreground truncate max-w-[130px]">
                               {seg.nome}
                             </span>
                           </div>
-                          <div className="flex gap-3 font-mono text-xs font-semibold">
+                          <div className="flex gap-2.5 numeric-mono text-xs font-semibold shrink-0">
                             <span className="text-muted-foreground">{seg.pct.toFixed(0)}%</span>
                             <span className="text-foreground">{formatCurrency(seg.total)}</span>
                           </div>
@@ -433,7 +446,11 @@ export default function RelatoriosPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <ChartContainer title="Maiores Saídas" icon={<ArrowDownRight className="w-4 h-4" />}>
+              <ChartContainer
+                title="Maiores Saídas"
+                subtitle="Principais desembolsos individuais"
+                icon={<ArrowDownRight className="w-4 h-4" />}
+              >
                 {maioresSaidas.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
                     Nenhuma saída no período.
@@ -448,13 +465,13 @@ export default function RelatoriosPage() {
                             <span className="font-semibold text-foreground truncate max-w-[200px] md:max-w-[300px]">
                               {t.descricao}
                             </span>
-                            <span className="font-mono font-bold text-[#d03238] dark:text-[#ff5c62]">
+                            <span className="numeric-mono font-bold text-[#cf202f]">
                               - {formatCurrency(t.valor)}
                             </span>
                           </div>
-                          <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                          <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-[#d03238] dark:bg-[#ff5c62] rounded-full transition-all duration-500"
+                              className="h-full bg-[#cf202f] rounded-full transition-all duration-500"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -467,16 +484,20 @@ export default function RelatoriosPage() {
             </div>
 
             <div>
-              <ChartContainer title="Balanço Comparativo" icon={<TrendingUp className="w-4 h-4" />}>
-                <div className="space-y-4">
-                  <div className="bg-secondary p-4 rounded-[16px] border border-border/40">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+              <ChartContainer
+                title="Balanço Comparativo"
+                subtitle="Indicadores de liquidez e fluxo"
+                icon={<TrendingUp className="w-4 h-4" />}
+              >
+                <div className="space-y-3">
+                  <div className="bg-secondary p-4 rounded-2xl border border-border">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                       Saldo do Período
                     </span>
                     <span
                       className={cn(
-                        'font-mono text-xl font-black',
-                        saldoPeriodo >= 0 ? 'text-[#2ead4b] dark:text-[#3ec75f]' : 'text-[#d03238] dark:text-[#ff5c62]'
+                        'numeric-mono text-xl font-bold tracking-tight',
+                        saldoPeriodo >= 0 ? 'text-entrada' : 'text-saida',
                       )}
                     >
                       {saldoPeriodo >= 0 ? '+ ' : '- '}
@@ -484,20 +505,20 @@ export default function RelatoriosPage() {
                     </span>
                   </div>
 
-                  <div className="bg-secondary p-4 rounded-[16px] border border-border/40">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                  <div className="bg-secondary p-4 rounded-2xl border border-border">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                       Volume Total Movimentado
                     </span>
-                    <span className="font-mono text-xl font-black text-foreground">
+                    <span className="numeric-mono text-xl font-bold tracking-tight text-foreground">
                       {formatCurrency(totalGeral)}
                     </span>
                   </div>
 
-                  <div className="bg-secondary p-4 rounded-[16px] border border-border/40">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                  <div className="bg-secondary p-4 rounded-2xl border border-border">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                       Taxa de Cobertura
                     </span>
-                    <span className="font-mono text-xl font-black text-foreground">
+                    <span className="numeric-mono text-xl font-bold tracking-tight text-foreground">
                       {totalSaidas > 0 ? (totalEntradas / totalSaidas).toFixed(2) + 'x' : 'N/A'}
                     </span>
                     <p className="text-xs text-muted-foreground mt-2 leading-relaxed">

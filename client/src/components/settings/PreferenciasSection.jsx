@@ -18,7 +18,7 @@ export default function PreferenciasSection() {
             Idioma
           </label>
           <select
-            className="flex h-11 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             value={prefs.idioma || 'Português (Brasil)'}
             onChange={(e) => atualizar('idioma', e.target.value)}
           >
@@ -34,7 +34,7 @@ export default function PreferenciasSection() {
             Moeda Padrão
           </label>
           <select
-            className="flex h-11 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             value={prefs.moeda || 'Real Brasileiro (BRL - R$)'}
             onChange={(e) => atualizar('moeda', e.target.value)}
           >
@@ -50,7 +50,7 @@ export default function PreferenciasSection() {
             Formato de Data
           </label>
           <select
-            className="flex h-11 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             value={prefs.formatoData || 'dd/mm/aaaa'}
             onChange={(e) => atualizar('formatoData', e.target.value)}
           >
@@ -69,9 +69,7 @@ export default function PreferenciasSection() {
                 Modo Escuro
               </label>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Alternar entre o tema claro e escuro
-            </p>
+            <p className="text-xs text-muted-foreground">Alternar entre o tema claro e escuro</p>
           </div>
           <Switch
             aria-label="Modo Escuro Preferências"

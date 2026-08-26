@@ -55,7 +55,7 @@ describe('Extrato.jsx category filter', () => {
         <MemoryRouter>
           <Extrato />
         </MemoryRouter>
-      </TemaProvider>
+      </TemaProvider>,
     );
 
     await waitFor(() => {
@@ -73,7 +73,7 @@ describe('Extrato.jsx category filter', () => {
         <MemoryRouter>
           <Extrato />
         </MemoryRouter>
-      </TemaProvider>
+      </TemaProvider>,
     );
 
     await waitFor(() => {
@@ -83,7 +83,7 @@ describe('Extrato.jsx category filter', () => {
         expect.any(String),
         1,
         20,
-        null
+        null,
       );
     });
 
@@ -97,7 +97,7 @@ describe('Extrato.jsx category filter', () => {
         expect.any(String),
         1,
         20,
-        10
+        10,
       );
     });
   });

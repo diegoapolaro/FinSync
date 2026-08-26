@@ -9,13 +9,11 @@ export default function SettingsSection({ id, title, icon: Icon, children, class
             {typeof Icon === 'string' ? (
               <span className="material-symbols-outlined text-xl">{Icon}</span>
             ) : (
-            <Icon className="w-5 h-5" />
+              <Icon className="w-5 h-5" />
             )}
           </span>
         )}
-        <h2 className="text-base font-semibold text-foreground">
-          {title}
-        </h2>
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
       </div>
       {children}
     </section>

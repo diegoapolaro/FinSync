@@ -1,16 +1,9 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { TIPO_TRANSACAO } from '../../utils/constants';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '../ui/table';
-import { Badge } from '../ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
 import { Card } from '../ui/card';
+import { cn } from '@/lib/utils';
 
 function formatShortDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
@@ -26,15 +19,23 @@ export default function TransactionTable({
   emptyMessage = 'Nenhuma movimentação neste período.',
 }) {
   return (
-    <Card className="overflow-hidden border border-border/60">
+    <Card className="overflow-hidden border border-border/80 shadow-sm">
       <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-4 px-4" />
-            <TableHead className="text-xs font-semibold uppercase tracking-wider">Descrição</TableHead>
-            <TableHead className="w-44 text-xs font-semibold uppercase tracking-wider">Categoria</TableHead>
-            <TableHead className="w-36 text-xs font-semibold uppercase tracking-wider">Data</TableHead>
-            <TableHead className="w-40 text-right text-xs font-semibold uppercase tracking-wider">Valor</TableHead>
+        <TableHeader className="bg-muted/40">
+          <TableRow className="hover:bg-transparent border-b border-border/70">
+            <TableHead className="w-12 px-4" />
+            <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Descrição
+            </TableHead>
+            <TableHead className="w-44 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Categoria
+            </TableHead>
+            <TableHead className="w-36 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Data
+            </TableHead>
+            <TableHead className="w-40 text-right text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Valor
+            </TableHead>
             <TableHead className="w-14" />
           </TableRow>
         </TableHeader>
@@ -57,43 +58,48 @@ export default function TransactionTable({
           {!carregando &&
             transacoes.map((t) => {
               const isEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
+              const Icon = isEntrada ? ArrowUpRight : ArrowDownRight;
               return (
-                <TableRow key={t.id} className="group hover:bg-muted/40 transition-colors">
-                  <TableCell className="px-4 py-4">
+                <TableRow
+                  key={t.id}
+                  className="group hover:bg-muted/50 transition-colors border-b border-border/50"
+                >
+                  <TableCell className="px-4 py-3.5">
                     <div
-                      className="w-1.5 h-8 rounded-full"
-                      style={{
-                        backgroundColor: isEntrada ? '#2ead4b' : '#d03238',
-                      }}
-                    />
+                      className={cn(
+                        'w-8 h-8 rounded-full flex items-center justify-center transition-transform group-hover:scale-105',
+                        isEntrada
+                          ? 'bg-transparent text-entrada border border-border'
+                          : 'bg-transparent text-saida border border-border',
+                      )}
+                    >
+                      <Icon className="w-4 h-4 stroke-[2.5]" />
+                    </div>
                   </TableCell>
-                  <TableCell className="py-4 font-semibold text-foreground">
+                  <TableCell className="py-3.5 font-semibold text-foreground tracking-tight">
                     {t.descricao}
                   </TableCell>
-                  <TableCell className="py-4">
-                    <Badge
-                      variant={isEntrada ? 'positive' : 'destructive'}
-                      className="font-medium"
-                    >
+                  <TableCell className="py-3.5">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full border bg-transparent text-muted-foreground border-border">
                       {t.categoriaNome || 'Geral'}
-                    </Badge>
+                    </span>
                   </TableCell>
-                  <TableCell className="py-4 font-mono text-xs text-muted-foreground">
+                  <TableCell className="py-3.5 numeric-mono text-xs text-muted-foreground">
                     {formatShortDate(t.data)}
                   </TableCell>
                   <TableCell
-                    className={
-                      'py-4 font-mono text-sm font-bold text-right ' +
-                      (isEntrada ? 'text-[#2ead4b] dark:text-[#3ec75f]' : 'text-[#d03238] dark:text-[#ff5c62]')
-                    }
+                    className={cn(
+                      'py-3.5 numeric-mono text-sm font-bold text-right tracking-tight',
+                      isEntrada ? 'text-entrada' : 'text-saida',
+                    )}
                   >
                     {isEntrada ? '+ ' : '- '}
                     {formatCurrency(t.valor)}
                   </TableCell>
-                  <TableCell className="py-4 text-right">
+                  <TableCell className="py-3.5 text-right">
                     <button
                       onClick={() => onDelete(t.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-lg hover:bg-destructive/15 text-muted-foreground hover:text-destructive"
                       title="Excluir transação"
                     >
                       <Trash2 className="w-4 h-4" />

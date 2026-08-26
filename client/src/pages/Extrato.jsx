@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { ChevronDown, ChevronLeft, ChevronRight, Receipt, Tag } from 'lucide-react';
-import { deleteTransacao, getCategorias, getResumoPeriodo, getTransacoesRange } from '../services/api';
+import {
+  deleteTransacao,
+  getCategorias,
+  getResumoPeriodo,
+  getTransacoesRange,
+} from '../services/api';
 import {
   primeiroDiaMes,
   periodoEfetivoParaApi,
@@ -42,7 +47,9 @@ export default function Extrato() {
     if (categoriasContext && categoriasContext.length > 0) {
       setCategorias(categoriasContext);
     } else {
-      getCategorias().then((data) => setCategorias(data || [])).catch(() => {});
+      getCategorias()
+        .then((data) => setCategorias(data || []))
+        .catch(() => {});
     }
   }, [categoriasContext]);
 
@@ -165,7 +172,7 @@ export default function Extrato() {
           setPagina(1);
         }}
         aria-label="Filtrar por categoria"
-        className="h-9 pl-8 pr-8 py-1.5 rounded-md border border-input bg-background text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-muted/50 transition-colors"
+        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border bg-secondary text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-secondary/80 transition-colors"
       >
         <option value="">Todas as categorias</option>
         {categorias.map((cat) => (
@@ -184,8 +191,8 @@ export default function Extrato() {
     const from = (pagina - 1) * pageSize + 1;
     const to = Math.min(pagina * pageSize, total);
     return (
-      <div className="flex items-center justify-between gap-4 mt-6 px-5 py-3.5 rounded-full border border-border/60 bg-card shadow-sm">
-        <span className="text-xs font-mono text-muted-foreground">
+      <div className="flex items-center justify-between gap-4 mt-6 px-5 py-3 rounded-2xl border border-border bg-card shadow-sm">
+        <span className="text-xs numeric-mono text-muted-foreground font-medium">
           {from}&ndash;{to} de {total}
         </span>
         <div className="flex items-center gap-1.5">
@@ -195,6 +202,7 @@ export default function Extrato() {
             onClick={() => irParaPagina(pagina - 1)}
             disabled={pagina <= 1}
             title="Página anterior"
+            className="rounded-xl h-8 w-8"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -208,7 +216,10 @@ export default function Extrato() {
                 variant={pageNum === pagina ? 'default' : 'outline'}
                 size="iconSm"
                 onClick={() => irParaPagina(pageNum)}
-                className="font-mono text-xs font-bold"
+                className={cn(
+                  'numeric-mono text-xs font-semibold rounded-xl h-8 w-8',
+                  pageNum === pagina ? 'bg-primary text-primary-foreground' : '',
+                )}
               >
                 {pageNum}
               </Button>
@@ -220,6 +231,7 @@ export default function Extrato() {
             onClick={() => irParaPagina(pagina + 1)}
             disabled={pagina >= paginaMeta.totalPages}
             title="Próxima página"
+            className="rounded-xl h-8 w-8"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -279,9 +291,7 @@ export default function Extrato() {
         <div className="mt-6">
           {!contaSelecionadaId && !carregando && (
             <Card className="p-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                Selecione uma conta para começar.
-              </p>
+              <p className="text-sm text-muted-foreground">Selecione uma conta para começar.</p>
             </Card>
           )}
 

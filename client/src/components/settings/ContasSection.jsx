@@ -7,13 +7,7 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
-import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 
 export default function ContasSection({ contas, setContas }) {
   const { addToast } = useToast();
@@ -94,11 +88,7 @@ export default function ContasSection({ contas, setContas }) {
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             {contas.length} CONTA(S) ATIVA(S)
           </span>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => setMostrarNovaConta(true)}
-          >
+          <Button variant="default" size="sm" onClick={() => setMostrarNovaConta(true)}>
             <Plus className="w-4 h-4 mr-1 stroke-[2.5]" />
             Nova Conta
           </Button>
@@ -115,9 +105,10 @@ export default function ContasSection({ contas, setContas }) {
                 value={novaContaNome}
                 onChange={(e) => setNovaContaNome(e.target.value)}
                 disabled={salvando}
+                className="bg-secondary border-border"
               />
               <select
-                className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex h-12 w-full rounded-xl border border-border bg-secondary px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 value={novaContaTipo}
                 onChange={(e) => setNovaContaTipo(e.target.value)}
                 disabled={salvando}
@@ -148,7 +139,7 @@ export default function ContasSection({ contas, setContas }) {
             return (
               <Card
                 key={conta.id}
-                className="p-5 flex flex-col justify-between hover:shadow-md transition-all group border border-border/60"
+                className="p-5 flex flex-col justify-between hover:shadow-md transition-all group border border-border"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
@@ -186,9 +177,10 @@ export default function ContasSection({ contas, setContas }) {
                         }))
                       }
                       placeholder="Nome da conta"
+                      className="bg-secondary border-border"
                     />
                     <select
-                      className="flex h-10 w-full rounded-xl border border-input bg-card px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="flex h-11 w-full rounded-xl border border-border bg-secondary px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                       value={editandoContaTipo[conta.id]}
                       onChange={(e) =>
                         setEditandoContaTipo((prev) => ({
@@ -219,9 +211,7 @@ export default function ContasSection({ contas, setContas }) {
                   </div>
                 ) : (
                   <div>
-                    <h4 className="font-bold text-base text-foreground mb-2">
-                      {conta.nome}
-                    </h4>
+                    <h4 className="font-bold text-base text-foreground mb-2">{conta.nome}</h4>
                     <div className="flex items-center gap-2">
                       <Badge variant="sage">
                         {conta.tipo === 'Comercial' ? 'Comercial' : 'Pessoal'}
@@ -251,7 +241,8 @@ export default function ContasSection({ contas, setContas }) {
             <DialogTitle>Excluir Conta?</DialogTitle>
           </div>
           <DialogDescription>
-            Todas as transações vinculadas à conta &quot;{contaExcluir?.nome}&quot; serão excluídas permanentemente. Esta ação não pode ser desfeita.
+            Todas as transações vinculadas à conta &quot;{contaExcluir?.nome}&quot; serão excluídas
+            permanentemente. Esta ação não pode ser desfeita.
           </DialogDescription>
         </DialogHeader>
 
