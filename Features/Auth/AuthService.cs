@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FinSync.Features.Auth;
 
-public class AuthService(FinSyncDbContext context, IConfiguration configuration)
+public class AuthService(FinSyncDbContext context, IConfiguration configuration) : IAuthService
 {
     private static readonly string DummyHash =
         BCrypt.Net.BCrypt.HashPassword("timing-attack-prevention");

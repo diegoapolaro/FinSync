@@ -7,7 +7,7 @@ namespace FinSync.Features.Categorias;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class CategoriasController(CategoriaService categoriaService) : ControllerBase
+public class CategoriasController(ICategoriaService categoriaService) : ControllerBase
 {
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 

@@ -7,7 +7,7 @@ namespace FinSync.Features.Auth;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(AuthService authService) : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
     [EnableRateLimiting("AuthLimiter")]
     [HttpPost("registrar")]

@@ -7,7 +7,7 @@ namespace FinSync.Features.Contas;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class ContasController(ContaService contaService) : ControllerBase
+public class ContasController(IContaService contaService) : ControllerBase
 {
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 

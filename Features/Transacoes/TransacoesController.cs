@@ -8,7 +8,7 @@ namespace FinSync.Features.Transacoes;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class TransacoesController(TransacaoService transacaoService) : ControllerBase
+public class TransacoesController(ITransacaoService transacaoService) : ControllerBase
 {
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 

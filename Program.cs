@@ -55,10 +55,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddScoped<ContaService>();
-builder.Services.AddScoped<TransacaoService>();
-builder.Services.AddScoped<CategoriaService>();
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IContaService, ContaService>();
+builder.Services.AddScoped<ITransacaoService, TransacaoService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>();
 

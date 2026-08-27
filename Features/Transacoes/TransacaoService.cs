@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinSync.Features.Transacoes;
 
-public class TransacaoService(FinSyncDbContext context)
+public class TransacaoService(FinSyncDbContext context) : ITransacaoService
 {
     public async Task<PagedResponse<TransacaoDto>> GetAllAsync(
         int usuarioId,

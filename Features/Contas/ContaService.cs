@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinSync.Features.Contas;
 
-public class ContaService(FinSyncDbContext context)
+public class ContaService(FinSyncDbContext context) : IContaService
 {
     public async Task<List<ContaDto>> GetAllAsync(int usuarioId)
     {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinSync.Features.Categorias;
 
-public class CategoriaService(FinSyncDbContext context)
+public class CategoriaService(FinSyncDbContext context) : ICategoriaService
 {
     public async Task<List<CategoriaDto>> GetAllAsync(int usuarioId)
     {
