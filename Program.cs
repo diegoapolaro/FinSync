@@ -6,6 +6,7 @@ using FinSync.Data;
 using FinSync.Features.Auth;
 using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
+using FinSync.Features.Recorrencias;
 using FinSync.Features.Transacoes;
 using FinSync.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,6 +58,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<IContaService, ContaService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
+builder.Services.AddScoped<IRecorrenciaService, RecorrenciaService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

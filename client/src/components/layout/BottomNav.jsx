@@ -1,9 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ReceiptText, PlusCircle, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, ReceiptText, PlusCircle, BarChart3, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { id: '', label: 'Extrato', Icon: ReceiptText },
+  { id: '', label: 'Início', Icon: LayoutDashboard },
+  { id: 'extrato', label: 'Extrato', Icon: ReceiptText },
   { id: 'lancamentos', label: 'Lançar', Icon: PlusCircle },
   { id: 'relatorios', label: 'Relatórios', Icon: BarChart3 },
   { id: 'ajustes', label: 'Ajustes', Icon: Settings },

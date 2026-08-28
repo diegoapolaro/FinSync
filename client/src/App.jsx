@@ -7,6 +7,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
 import './styles/animations.css';
+import DashboardPage from './pages/DashboardPage';
 import Extrato from './pages/Extrato';
 import LancamentosPage from './pages/LancamentosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
@@ -34,7 +35,8 @@ export default function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route element={<ProtectedRoute />}>
                     <Route element={<Layout />}>
-                      <Route path="/" element={<Extrato />} />
+                      <Route path="/" element={<DashboardPage />} />
+                      <Route path="/extrato" element={<Extrato />} />
                       <Route path="/lancamentos" element={<LancamentosPage />} />
                       <Route path="/relatorios" element={<RelatoriosPage />} />
                       <Route path="/ajustes" element={<AjustesPage />} />

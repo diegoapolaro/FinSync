@@ -53,6 +53,17 @@ public class AuthServiceTests : ServiceTestBase
         Assert.NotNull(usuario);
         Assert.NotEqual(request.Senha, usuario!.SenhaHash);
         Assert.True(BCrypt.Net.BCrypt.Verify(request.Senha, usuario.SenhaHash));
+
+        // Provisionamento inicial
+        var contaPadrao = await Context.Contas.FirstOrDefaultAsync(c => c.UsuarioId == usuario.Id);
+        Assert.NotNull(contaPadrao);
+        Assert.Equal("Pessoal", contaPadrao!.Nome);
+        Assert.Equal(FinSync.Enums.TipoConta.Pessoal, contaPadrao.Tipo);
+
+        var categorias = await Context.Categorias.Where(c => c.UsuarioId == usuario.Id).ToListAsync();
+        Assert.NotEmpty(categorias);
+        Assert.Contains(categorias, c => c.Nome == "Alimentação" && c.Tipo == FinSync.Enums.TipoTransacao.Saida);
+        Assert.Contains(categorias, c => c.Nome == "Salário" && c.Tipo == FinSync.Enums.TipoTransacao.Entrada);
     }
 
     [Fact]

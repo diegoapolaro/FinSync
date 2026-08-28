@@ -1,10 +1,12 @@
 import { useOutletContext } from 'react-router-dom';
-import { User, Building, Tag, Sliders, Bell, Download, Shield, Moon } from 'lucide-react';
+import { User, Building, Tag, Sliders, Bell, Download, Shield, Moon, Repeat } from 'lucide-react';
 import usePreferencias from '../hooks/usePreferencias';
 import { useTema } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import SettingsSection from '../components/settings/SettingsSection';
 import ContasSection from '../components/settings/ContasSection';
 import CategoriasSection from '../components/settings/CategoriasSection';
+import RecorrenciasSection from '../components/settings/RecorrenciasSection';
 import PreferenciasSection from '../components/settings/PreferenciasSection';
 import NotificacoesSection from '../components/settings/NotificacoesSection';
 import SegurancaSection from '../components/settings/SegurancaSection';
@@ -16,6 +18,7 @@ const navItems = [
   { id: 'perfil', label: 'Perfil', Icon: User },
   { id: 'contas', label: 'Contas', Icon: Building },
   { id: 'categorias', label: 'Categorias', Icon: Tag },
+  { id: 'recorrencias', label: 'Recorrências & Fixos', Icon: Repeat },
   { id: 'preferencias', label: 'Preferências', Icon: Sliders },
   { id: 'notificacoes', label: 'Notificações', Icon: Bell },
   { id: 'exportar', label: 'Exportar', Icon: Download },
@@ -29,6 +32,7 @@ export default function AjustesPage() {
   const categorias = context.categorias || [];
   const setCategorias = context.setCategorias || (() => {});
 
+  const { user } = useAuth();
   const { prefs } = usePreferencias();
   const { tema, alternarTema } = useTema();
 
@@ -74,15 +78,23 @@ export default function AjustesPage() {
           <SettingsSection id="perfil" title="Perfil do Usuário" icon={User}>
             <Card className="p-6 flex items-center justify-between border-border/80 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground text-xl">
-                  {prefs.nome ? prefs.nome.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <div>
-                  <h3 className="font-normal text-lg text-foreground tracking-[-0.03em]">
-                    {prefs.nome || 'Usuário'}
+                {user?.fotoUrl ? (
+                  <img
+                    src={user.fotoUrl}
+                    alt={user?.nome || 'Foto de perfil'}
+                    className="w-14 h-14 rounded-full object-cover border border-border/80 shadow-sm shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground text-xl select-none shrink-0">
+                    {user?.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <h3 className="font-normal text-lg text-foreground tracking-[-0.03em] truncate">
+                    {user?.nome || 'Usuário'}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    {prefs.email || 'usuario@email.com'}
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.email || 'usuario@email.com'}
                   </p>
                 </div>
               </div>
@@ -94,6 +106,9 @@ export default function AjustesPage() {
 
           {/* Categorias */}
           <CategoriasSection categorias={categorias} setCategorias={setCategorias} />
+
+          {/* Recorrências & Fixos */}
+          <RecorrenciasSection contas={contas} categorias={categorias} />
 
           {/* Preferências */}
           <PreferenciasSection />

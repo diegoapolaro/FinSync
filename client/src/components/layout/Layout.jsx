@@ -1,15 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { getCategorias, getContas } from '../../services/api';
 import MobileTopBar from './MobileTopBar';
 import DesktopHeader from './DesktopHeader';
 import DesktopSidebar from './DesktopSidebar';
 import BottomNav from './BottomNav';
+import NovaContaModal from '../common/NovaContaModal';
 
 export default function Layout() {
   const [contas, setContas] = useState([]);
   const [contaSelecionadaId, setContaSelecionadaId] = useState('');
   const [categorias, setCategorias] = useState([]);
+  const [modalNovaContaAberto, setModalNovaContaAberto] = useState(false);
+
+  const abrirModalNovaConta = useCallback(() => {
+    setModalNovaContaAberto(true);
+  }, []);
+
+  const handleContaCriada = useCallback((novaConta) => {
+    setContas((prev) => [...prev, novaConta]);
+    setContaSelecionadaId(String(novaConta.id));
+  }, []);
 
   useEffect(() => {
     async function init() {
@@ -27,12 +38,13 @@ export default function Layout() {
 
   return (
     <div className="bg-background text-foreground antialiased min-h-screen overflow-hidden font-sans">
-      <MobileTopBar />
+      <MobileTopBar onNovaContaClick={abrirModalNovaConta} />
 
       <DesktopSidebar
         contas={contas}
         contaSelecionadaId={contaSelecionadaId}
         onSelectConta={setContaSelecionadaId}
+        onNovaContaClick={abrirModalNovaConta}
       />
 
       <div className="md:ml-64 flex flex-col h-screen">
@@ -47,12 +59,19 @@ export default function Layout() {
               categorias,
               setContas,
               setCategorias,
+              abrirModalNovaConta,
             }}
           />
         </main>
       </div>
 
       <BottomNav />
+
+      <NovaContaModal
+        open={modalNovaContaAberto}
+        onOpenChange={setModalNovaContaAberto}
+        onContaCriada={handleContaCriada}
+      />
     </div>
   );
 }

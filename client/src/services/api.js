@@ -131,12 +131,13 @@ export async function deleteConta(id) {
 
 export async function getTransacoes(
   contaId,
-  data,
-  dataInicio,
-  dataFim,
+  data = null,
+  dataInicio = null,
+  dataFim = null,
   page = 1,
   pageSize = 20,
   categoriaId = null,
+  status = null,
 ) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
@@ -144,6 +145,7 @@ export async function getTransacoes(
   if (dataInicio) params.set('dataInicio', dataInicio);
   if (dataFim) params.set('dataFim', dataFim);
   if (categoriaId) params.set('categoriaId', categoriaId);
+  if (status) params.set('status', status);
   params.set('page', page);
   params.set('pageSize', pageSize);
   return authFetch(url(`/transacoes?${params}`));
@@ -156,8 +158,9 @@ export async function getTransacoesRange(
   page = 1,
   pageSize = 20,
   categoriaId = null,
+  status = null,
 ) {
-  return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize, categoriaId);
+  return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize, categoriaId, status);
 }
 
 export async function getTransacao(id) {
@@ -180,9 +183,70 @@ export async function updateTransacao(id, transacao) {
   });
 }
 
-export async function deleteTransacao(id) {
-  return authFetch(url(`/transacoes/${id}`), {
+export async function updateTransacaoStatus(id, status) {
+  return authFetch(url(`/transacoes/${id}/status`), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function deleteTransacao(
+  id,
+  { excluirTodasParcelas = false, excluirFuturas = false } = {},
+) {
+  const params = new URLSearchParams();
+  if (excluirTodasParcelas) params.set('excluirTodasParcelas', 'true');
+  if (excluirFuturas) params.set('excluirFuturas', 'true');
+  const qs = params.toString() ? `?${params}` : '';
+  return authFetch(url(`/transacoes/${id}${qs}`), {
     method: 'DELETE',
+  });
+}
+
+export async function getRecorrencias() {
+  return authFetch(url('/recorrencias'));
+}
+
+export async function getResumoRecorrencias() {
+  return authFetch(url('/recorrencias/resumo'));
+}
+
+export async function getRecorrencia(id) {
+  return authFetch(url(`/recorrencias/${id}`));
+}
+
+export async function createRecorrencia(recorrencia) {
+  return authFetch(url('/recorrencias'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(recorrencia),
+  });
+}
+
+export async function updateRecorrencia(id, recorrencia) {
+  return authFetch(url(`/recorrencias/${id}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(recorrencia),
+  });
+}
+
+export async function toggleRecorrenciaAtivo(id) {
+  return authFetch(url(`/recorrencias/${id}/toggle-ativo`), {
+    method: 'PATCH',
+  });
+}
+
+export async function deleteRecorrencia(id, excluirFuturas = true) {
+  return authFetch(url(`/recorrencias/${id}?excluirFuturas=${excluirFuturas}`), {
+    method: 'DELETE',
+  });
+}
+
+export async function processarRecorrencias() {
+  return authFetch(url('/recorrencias/processar'), {
+    method: 'POST',
   });
 }
 

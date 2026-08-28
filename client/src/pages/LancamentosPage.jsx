@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,18 +8,30 @@ import {
   Edit2,
   Trash2,
   CheckCircle2,
+  Clock,
   X,
   Calendar,
+  Layers,
+  Repeat,
+  Sparkles,
+  PlusCircle,
 } from 'lucide-react';
 import {
   getTransacoes,
   createTransacao,
   updateTransacao,
+  updateTransacaoStatus,
   deleteTransacao,
   getCategorias,
 } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
-import { TIPO_TRANSACAO } from '../utils/constants';
+import {
+  TIPO_TRANSACAO,
+  STATUS_TRANSACAO,
+  FREQUENCIA_RECORRENCIA,
+  MODO_PARCELAMENTO,
+  MODO_LANCAMENTO,
+} from '../utils/constants';
 import { useToast } from '../contexts/ToastContext';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -53,20 +65,40 @@ const formInicial = {
   descricao: '',
   valor: '',
   tipo: TIPO_TRANSACAO.ENTRADA,
+  status: STATUS_TRANSACAO.PAGO,
   categoriaId: '',
+  contaId: '',
+  modo: MODO_LANCAMENTO.UNICO,
+  totalParcelas: 2,
+  modoValorParcelamento: MODO_PARCELAMENTO.TOTAL,
+  frequenciaRecorrencia: FREQUENCIA_RECORRENCIA.MENSAL,
+  temDataFim: false,
+  dataFimRecorrencia: '',
 };
 
 export default function LancamentosPage() {
-  const { contaSelecionadaId } = useOutletContext();
+  const { contas = [], contaSelecionadaId, abrirModalNovaConta } = useOutletContext() || {};
+  const [searchParams] = useSearchParams();
+  const tipoParam = searchParams.get('tipo');
   const { addToast } = useToast();
 
   const [transacoes, setTransacoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
-  const [form, setForm] = useState(formInicial);
+  const [form, setForm] = useState(() => ({
+    ...formInicial,
+    tipo: tipoParam === TIPO_TRANSACAO.SAIDA ? TIPO_TRANSACAO.SAIDA : TIPO_TRANSACAO.ENTRADA,
+  }));
   const [editandoId, setEditandoId] = useState(null);
   const [dataSelecionada, setDataSelecionada] = useState(() => formatDateOnly(new Date()));
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(null);
+
+  useEffect(() => {
+    if (tipoParam === TIPO_TRANSACAO.ENTRADA || tipoParam === TIPO_TRANSACAO.SAIDA) {
+      setForm((prev) => ({ ...prev, tipo: tipoParam }));
+    }
+  }, [tipoParam]);
 
   useEffect(() => {
     getCategorias()
@@ -136,25 +168,71 @@ export default function LancamentosPage() {
       descricao: t.descricao,
       valor: String(t.valor).replace('.', ','),
       tipo: t.tipo,
+      status: t.status || STATUS_TRANSACAO.PAGO,
       categoriaId: t.categoriaId || '',
+      contaId: t.contaId ? String(t.contaId) : '',
+      modo: MODO_LANCAMENTO.UNICO,
+      totalParcelas: 2,
+      modoValorParcelamento: MODO_PARCELAMENTO.TOTAL,
+      frequenciaRecorrencia: FREQUENCIA_RECORRENCIA.MENSAL,
+      temDataFim: false,
+      dataFimRecorrencia: '',
     });
     setEditandoId(t.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Previsão de parcelamento
+  const previewParcelamento = useMemo(() => {
+    if (form.modo !== MODO_LANCAMENTO.PARCELADO) return null;
+    const numVal = Number(form.valor.replace(',', '.')) || 0;
+    const n = Math.max(2, Math.min(72, Number(form.totalParcelas) || 2));
+    const isModoParcela = form.modoValorParcelamento === MODO_PARCELAMENTO.PARCELA;
+
+    const valorParcela = isModoParcela ? numVal : (numVal > 0 ? numVal / n : 0);
+    const valorTotal = isModoParcela ? numVal * n : numVal;
+
+    const dInicio = new Date(dataSelecionada + 'T12:00:00');
+    const dFim = new Date(dInicio);
+    dFim.setMonth(dFim.getMonth() + n - 1);
+
+    const fmtMes = (d) => d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+
+    return {
+      parcelas: n,
+      valorParcela,
+      valorTotal,
+      periodo: `${fmtMes(dInicio)} a ${fmtMes(dFim)}`,
+    };
+  }, [form.modo, form.valor, form.totalParcelas, form.modoValorParcelamento, dataSelecionada]);
+
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!contaSelecionadaId || enviando) return;
+    const contaAlvoId = form.contaId || contaSelecionadaId;
+    if (!contaAlvoId || enviando) return;
 
     setEnviando(true);
     try {
+      const isParcelado = form.modo === MODO_LANCAMENTO.PARCELADO;
+      const isRecorrente = form.modo === MODO_LANCAMENTO.RECORRENTE;
+
       const payload = {
         descricao: form.descricao.trim(),
         valor: Number(form.valor.replace(',', '.')),
         tipo: form.tipo,
+        status: form.status || STATUS_TRANSACAO.PAGO,
         data: dataSelecionada,
-        contaId: Number(contaSelecionadaId),
+        contaId: Number(contaAlvoId),
         categoriaId: form.categoriaId ? Number(form.categoriaId) : null,
+        parcelado: isParcelado,
+        totalParcelas: isParcelado ? Number(form.totalParcelas) : null,
+        modoValorParcelamento: isParcelado ? form.modoValorParcelamento : null,
+        tornarRecorrente: isRecorrente,
+        frequenciaRecorrencia: isRecorrente ? form.frequenciaRecorrencia : null,
+        dataFimRecorrencia:
+          isRecorrente && form.temDataFim && form.dataFimRecorrencia
+            ? form.dataFimRecorrencia
+            : null,
       };
 
       if (editandoId) {
@@ -162,7 +240,13 @@ export default function LancamentosPage() {
         addToast('Lançamento atualizado!', 'success');
       } else {
         await createTransacao(payload);
-        addToast('Lançamento registrado com sucesso!', 'success');
+        if (isParcelado) {
+          addToast(`Compra parcelada em ${form.totalParcelas}x criada com sucesso!`, 'success');
+        } else if (isRecorrente) {
+          addToast('Lançamento recorrente cadastrado e projetado!', 'success');
+        } else {
+          addToast('Lançamento registrado com sucesso!', 'success');
+        }
       }
 
       resetForm();
@@ -174,11 +258,45 @@ export default function LancamentosPage() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleToggleStatus(transacao) {
+    const novoStatus =
+      transacao.status === STATUS_TRANSACAO.PENDENTE
+        ? STATUS_TRANSACAO.PAGO
+        : STATUS_TRANSACAO.PENDENTE;
+
     try {
-      await deleteTransacao(id);
+      await updateTransacaoStatus(transacao.id, novoStatus);
+      setTransacoes((prev) =>
+        prev.map((item) => (item.id === transacao.id ? { ...item, status: novoStatus } : item)),
+      );
+      addToast(`Lançamento marcado como ${novoStatus}!`, 'success');
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  }
+
+  function confirmarExclusao(transacao) {
+    if (transacao.parcelamentoId) {
+      setDeleteModal({
+        tipo: 'parcelamento',
+        transacao,
+      });
+    } else if (transacao.recorrenciaId) {
+      setDeleteModal({
+        tipo: 'recorrencia',
+        transacao,
+      });
+    } else {
+      executarDelete(transacao.id);
+    }
+  }
+
+  async function executarDelete(id, opcoes = {}) {
+    try {
+      await deleteTransacao(id, opcoes);
+      setDeleteModal(null);
       await carregarTransacoes();
-      addToast('Lançamento excluído.', 'success');
+      addToast('Lançamento excluído com sucesso.', 'success');
     } catch (err) {
       addToast(err.message, 'error');
     }
@@ -188,6 +306,26 @@ export default function LancamentosPage() {
 
   return (
     <div className="px-4 md:px-8 max-w-3xl mx-auto pt-6 pb-32">
+      {contas.length === 0 && (
+        <Card className="p-8 text-center border-dashed border-border/80 bg-card mb-6 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-foreground mb-1">
+            Nenhuma conta ou livro de caixa cadastrado
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
+            Para registrar suas receitas e despesas, crie sua primeira conta.
+          </p>
+          {abrirModalNovaConta && (
+            <Button onClick={abrirModalNovaConta} className="rounded-xl font-semibold gap-1.5 shadow-sm">
+              <PlusCircle className="w-4 h-4" />
+              <span>Criar Primeira Conta</span>
+            </Button>
+          )}
+        </Card>
+      )}
+
       {/* Date Navigation Header */}
       <div className="flex items-center justify-between mb-6 bg-card px-5 py-2.5 rounded-full border border-border/80 shadow-sm">
         <Button
@@ -237,6 +375,56 @@ export default function LancamentosPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Mode Switcher: Único / Parcelado / Recorrente */}
+          {!editandoId && (
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Tipo de Agendamento
+              </label>
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary rounded-xl border border-border">
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, modo: MODO_LANCAMENTO.UNICO }))}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
+                    form.modo === MODO_LANCAMENTO.UNICO
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Único
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, modo: MODO_LANCAMENTO.PARCELADO }))}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
+                    form.modo === MODO_LANCAMENTO.PARCELADO
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  Parcelado
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, modo: MODO_LANCAMENTO.RECORRENTE }))}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
+                    form.modo === MODO_LANCAMENTO.RECORRENTE
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  <Repeat className="w-3.5 h-3.5" />
+                  Fixo / Recorrente
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Type Switcher */}
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-secondary rounded-xl border border-border">
             <button
@@ -277,9 +465,48 @@ export default function LancamentosPage() {
               'rounded-2xl p-5 border border-border bg-secondary transition-colors focus-within:border-primary',
             )}
           >
-            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              Valor
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {form.modo === MODO_LANCAMENTO.PARCELADO &&
+                form.modoValorParcelamento === MODO_PARCELAMENTO.PARCELA
+                  ? 'Valor por Parcela'
+                  : form.modo === MODO_LANCAMENTO.PARCELADO
+                    ? 'Valor Total da Compra'
+                    : 'Valor'}
+              </label>
+              {form.modo === MODO_LANCAMENTO.PARCELADO && (
+                <div className="flex items-center gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, modoValorParcelamento: MODO_PARCELAMENTO.TOTAL }))
+                    }
+                    className={cn(
+                      'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md transition-colors',
+                      form.modoValorParcelamento === MODO_PARCELAMENTO.TOTAL
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    Valor Total
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, modoValorParcelamento: MODO_PARCELAMENTO.PARCELA }))
+                    }
+                    className={cn(
+                      'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md transition-colors',
+                      form.modoValorParcelamento === MODO_PARCELAMENTO.PARCELA
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    Por Parcela
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <span
                 className={cn(
@@ -307,6 +534,112 @@ export default function LancamentosPage() {
             </div>
           </div>
 
+          {/* Seção Específica: Parcelamento */}
+          {form.modo === MODO_LANCAMENTO.PARCELADO && !editandoId && (
+            <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-primary" />
+                  Número de Parcelas
+                </span>
+                <span className="text-xs numeric-mono font-bold text-primary">
+                  {form.totalParcelas}x
+                </span>
+              </div>
+
+              {/* Atalhos de parcelas comuns */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[2, 3, 4, 5, 6, 10, 12, 18, 24].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, totalParcelas: num }))}
+                    className={cn(
+                      'numeric-mono text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all',
+                      form.totalParcelas === num
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-secondary text-muted-foreground border-border hover:text-foreground',
+                    )}
+                  >
+                    {num}x
+                  </button>
+                ))}
+              </div>
+
+              {/* Preview Resumo */}
+              {previewParcelamento && previewParcelamento.valorTotal > 0 && (
+                <div className="mt-2 pt-2.5 border-t border-primary/20 flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    {previewParcelamento.parcelas}x de{' '}
+                    <strong className="text-foreground numeric-mono">
+                      {formatCurrency(previewParcelamento.valorParcela)}
+                    </strong>
+                  </span>
+                  <span className="text-muted-foreground">
+                    Total:{' '}
+                    <strong className="text-foreground numeric-mono">
+                      {formatCurrency(previewParcelamento.valorTotal)}
+                    </strong>{' '}
+                    ({previewParcelamento.periodo})
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Seção Específica: Recorrência */}
+          {form.modo === MODO_LANCAMENTO.RECORRENTE && !editandoId && (
+            <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-3">
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Repeat className="w-3.5 h-3.5 text-indigo-400" />
+                  Frequência Periódica
+                </label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {Object.values(FREQUENCIA_RECORRENCIA).map((freq) => (
+                    <button
+                      key={freq}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, frequenciaRecorrencia: freq }))}
+                      className={cn(
+                        'text-xs font-semibold py-1.5 rounded-lg border transition-all',
+                        form.frequenciaRecorrencia === freq
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-secondary text-muted-foreground border-border hover:text-foreground',
+                      )}
+                    >
+                      {freq}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Data Limite Opcional */}
+              <div className="pt-2 border-t border-indigo-500/20 space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.temDataFim}
+                    onChange={(e) => setForm((f) => ({ ...f, temDataFim: e.target.checked }))}
+                    className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                  />
+                  <span>Definir data limite de término (opcional)</span>
+                </label>
+                {form.temDataFim && (
+                  <Input
+                    type="date"
+                    value={form.dataFimRecorrencia}
+                    onChange={(e) => setForm((f) => ({ ...f, dataFimRecorrencia: e.target.value }))}
+                    className="h-10 rounded-xl bg-secondary border-border text-xs"
+                  />
+                )}
+                <p className="text-[11px] text-muted-foreground/80">
+                  💡 Projeta automaticamente as faturas e lançamentos dos próximos 12 meses.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Description Input */}
           <div className="space-y-1.5">
             <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -322,6 +655,70 @@ export default function LancamentosPage() {
               required
             />
           </div>
+
+          {/* Status Selector */}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {form.modo === MODO_LANCAMENTO.PARCELADO
+                ? 'Status da 1ª Parcela'
+                : form.modo === MODO_LANCAMENTO.RECORRENTE
+                  ? 'Status do Primeiro Lançamento'
+                  : 'Status do Pagamento'}
+            </label>
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-secondary rounded-xl border border-border">
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, status: STATUS_TRANSACAO.PAGO }))}
+                className={cn(
+                  'flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
+                  form.status === STATUS_TRANSACAO.PAGO
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Pago
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, status: STATUS_TRANSACAO.PENDENTE }))}
+                className={cn(
+                  'flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all',
+                  form.status === STATUS_TRANSACAO.PENDENTE
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                Pendente
+              </button>
+            </div>
+          </div>
+
+          {/* Account Selector (if multiple accounts exist) */}
+          {contas && contas.length > 1 && (
+            <div className="space-y-1.5">
+              <label
+                htmlFor="contaId"
+                className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Conta
+              </label>
+              <select
+                id="contaId"
+                aria-label="Conta"
+                value={form.contaId || contaSelecionadaId}
+                onChange={(e) => setForm((f) => ({ ...f, contaId: e.target.value }))}
+                className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer hover:bg-secondary/80 transition-colors"
+              >
+                {contas.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome} ({c.tipo})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Category Selector */}
           <div className="space-y-1.5">
@@ -368,7 +765,13 @@ export default function LancamentosPage() {
               ) : (
                 <CheckCircle2 className="w-5 h-5 mr-1.5 stroke-[2.5]" />
               )}
-              {editandoId ? 'Salvar Alterações' : 'Confirmar Lançamento'}
+              {editandoId
+                ? 'Salvar Alterações'
+                : form.modo === MODO_LANCAMENTO.PARCELADO
+                  ? `Gerar ${form.totalParcelas}x Parcelas`
+                  : form.modo === MODO_LANCAMENTO.RECORRENTE
+                    ? 'Confirmar Recorrência'
+                    : 'Confirmar Lançamento'}
             </Button>
           </div>
         </form>
@@ -403,6 +806,10 @@ export default function LancamentosPage() {
             {transacoes.map((t) => {
               const tEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
               const Icon = tEntrada ? ArrowUpRight : ArrowDownRight;
+              const isPendente = t.status === STATUS_TRANSACAO.PENDENTE;
+              const isParcelado = Boolean(t.parcelamentoId || t.numeroParcela);
+              const isRecorrente = Boolean(t.recorrenciaId);
+
               return (
                 <Card
                   key={t.id}
@@ -421,17 +828,40 @@ export default function LancamentosPage() {
                       <p className="font-semibold text-foreground truncate text-sm tracking-tight">
                         {t.descricao}
                       </p>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {t.categoriaNome && (
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground">
                             {t.categoriaNome}
                           </span>
                         )}
+                        {isParcelado && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
+                            <Layers className="w-2.5 h-2.5" />
+                            {t.numeroParcela}/{t.totalParcelas}
+                          </span>
+                        )}
+                        {isRecorrente && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+                            <Repeat className="w-2.5 h-2.5" />
+                            {t.frequenciaRecorrencia || 'Fixo'}
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border',
+                            isPendente
+                              ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                              : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                          )}
+                        >
+                          {isPendente && <Clock className="w-2.5 h-2.5" />}
+                          {t.status || STATUS_TRANSACAO.PAGO}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 md:gap-3 shrink-0">
                     <span
                       className={cn(
                         'numeric-mono text-sm font-bold tracking-tight',
@@ -441,14 +871,33 @@ export default function LancamentosPage() {
                       {tEntrada ? '+ ' : '- '}
                       {formatCurrency(t.valor)}
                     </span>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="iconSm"
+                        onClick={() => handleToggleStatus(t)}
+                        title={isPendente ? 'Marcar como Pago' : 'Marcar como Pendente'}
+                        className={cn(
+                          'rounded-xl transition-colors',
+                          isPendente
+                            ? 'hover:bg-emerald-500/15 text-amber-500 hover:text-emerald-500'
+                            : 'hover:bg-amber-500/15 text-muted-foreground hover:text-amber-500',
+                        )}
+                      >
+                        {isPendente ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          <Clock className="w-4 h-4" />
+                        )}
+                      </Button>
                       <Button
                         type="button"
                         variant="ghost"
                         size="iconSm"
                         onClick={() => editar(t)}
                         title="Editar"
-                        className="rounded-xl hover:bg-muted"
+                        className="rounded-xl hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Edit2 className="w-4 h-4 text-muted-foreground" />
                       </Button>
@@ -456,9 +905,9 @@ export default function LancamentosPage() {
                         type="button"
                         variant="ghost"
                         size="iconSm"
-                        onClick={() => handleDelete(t.id)}
+                        onClick={() => confirmarExclusao(t)}
                         title="Excluir"
-                        className="rounded-xl hover:text-destructive hover:bg-destructive/15"
+                        className="rounded-xl hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -470,6 +919,60 @@ export default function LancamentosPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Modal para Parcelamento e Recorrência */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md p-6 space-y-4 border border-border shadow-2xl">
+            <h3 className="text-base font-semibold text-foreground">
+              {deleteModal.tipo === 'parcelamento'
+                ? 'Excluir Compra Parcelada'
+                : 'Excluir Lançamento Recorrente'}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {deleteModal.tipo === 'parcelamento'
+                ? `Esta transação faz parte de um parcelamento em ${deleteModal.transacao.totalParcelas}x. Deseja excluir apenas esta parcela ou todas as parcelas deste parcelamento?`
+                : 'Esta transação é originada de uma regra recorrente periódica. Deseja excluir apenas este lançamento ou todas as ocorrências futuras pendentes?'}
+            </p>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <Button
+                variant="destructive"
+                onClick={() =>
+                  executarDelete(deleteModal.transacao.id, {
+                    excluirTodasParcelas: deleteModal.tipo === 'parcelamento',
+                    excluirFuturas: deleteModal.tipo === 'recorrencia',
+                  })
+                }
+                className="w-full rounded-xl text-xs font-semibold"
+              >
+                {deleteModal.tipo === 'parcelamento'
+                  ? 'Excluir Todas as Parcelas'
+                  : 'Excluir Esta e Todas as Futuras'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  executarDelete(deleteModal.transacao.id, {
+                    excluirTodasParcelas: false,
+                    excluirFuturas: false,
+                  })
+                }
+                className="w-full rounded-xl text-xs font-semibold"
+              >
+                Excluir Apenas Este Registro
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setDeleteModal(null)}
+                className="w-full rounded-xl text-xs text-muted-foreground"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

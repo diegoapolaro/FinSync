@@ -1,5 +1,6 @@
 using System;
 using System.Security.Claims;
+using FinSync.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,12 +44,13 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
         DateOnly? dataInicio,
         DateOnly? dataFim,
         int? categoriaId,
+        StatusTransacao? status,
         int page = 1,
         int pageSize = 20)
     {
         pageSize = Math.Clamp(pageSize, 1, 100);
         page = Math.Max(1, page);
-        return Ok(await transacaoService.GetAllAsync(UsuarioId, contaId, data, dataInicio, dataFim, categoriaId, page, pageSize));
+        return Ok(await transacaoService.GetAllAsync(UsuarioId, contaId, data, dataInicio, dataFim, categoriaId, status, page, pageSize));
     }
 
     [HttpGet("{id:int}")]
@@ -76,10 +78,22 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteTransacao(int id)
+    [HttpPatch("{id:int}/status")]
+    public async Task<IActionResult> PatchStatus(int id, [FromBody] UpdateStatusTransacaoDto dto)
     {
-        var deleted = await transacaoService.DeleteAsync(id, UsuarioId);
+        var (found, error) = await transacaoService.UpdateStatusAsync(id, dto.Status, UsuarioId);
+        if (!found) return NotFound();
+        if (error is not null) return BadRequest(error);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteTransacao(
+        int id,
+        [FromQuery] bool excluirTodasParcelas = false,
+        [FromQuery] bool excluirFuturas = false)
+    {
+        var deleted = await transacaoService.DeleteAsync(id, UsuarioId, excluirTodasParcelas, excluirFuturas);
         if (!deleted) return NotFound();
         return NoContent();
     }

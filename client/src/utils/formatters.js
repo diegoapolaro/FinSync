@@ -52,3 +52,19 @@ export function formatDisplayDate(value) {
     })
     .toUpperCase();
 }
+
+export function formatDate(value) {
+  if (!value) return '';
+  const date =
+    typeof value === 'string'
+      ? value.includes('T')
+        ? new Date(value)
+        : new Date(`${value}T12:00:00`)
+      : new Date(value);
+  if (isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}

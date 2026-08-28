@@ -275,4 +275,310 @@ public class TransacaoServiceTests : ServiceTestBase
         var result = await service.DeleteAsync(999, usuario.Id);
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task CreateAsync_ComStatusPendente_DevePersistirCorretamente()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Pendente", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var dto = new CreateTransacaoDto
+        {
+            Descricao = "Boleto luz",
+            Valor = 200m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pendente,
+            Data = new DateOnly(2026, 7, 10),
+            ContaId = conta.Id
+        };
+
+        var (result, error) = await service.CreateAsync(dto, usuario.Id);
+
+        Assert.Null(error);
+        Assert.NotNull(result);
+        Assert.Equal(StatusTransacao.Pendente, result!.Status);
+
+        Context.ChangeTracker.Clear();
+        var persisted = await Context.Transacoes.FindAsync(result.Id);
+        Assert.NotNull(persisted);
+        Assert.Equal(StatusTransacao.Pendente, persisted!.Status);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ComFiltroStatus_DeveRetornarApenasStatusSolicitado()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Status", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        Context.Transacoes.AddRange(
+            new Transacao { Descricao = "Pago 1", Valor = 100m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pago, Data = new DateOnly(2026, 7, 1), ContaId = conta.Id },
+            new Transacao { Descricao = "Pendente 1", Valor = 200m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pendente, Data = new DateOnly(2026, 7, 2), ContaId = conta.Id },
+            new Transacao { Descricao = "Pago 2", Valor = 300m, Tipo = TipoTransacao.Entrada, Status = StatusTransacao.Pago, Data = new DateOnly(2026, 7, 3), ContaId = conta.Id }
+        );
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+
+        var resultadoPendentes = await service.GetAllAsync(usuario.Id, conta.Id, status: StatusTransacao.Pendente);
+        Assert.Single(resultadoPendentes.Data);
+        Assert.Equal("Pendente 1", resultadoPendentes.Data[0].Descricao);
+        Assert.Equal(StatusTransacao.Pendente, resultadoPendentes.Data[0].Status);
+
+        var resultadoPagos = await service.GetAllAsync(usuario.Id, conta.Id, status: StatusTransacao.Pago);
+        Assert.Equal(2, resultadoPagos.Data.Count);
+        Assert.All(resultadoPagos.Data, t => Assert.Equal(StatusTransacao.Pago, t.Status));
+
+        var resultadoTodos = await service.GetAllAsync(usuario.Id, conta.Id, status: null);
+        Assert.Equal(3, resultadoTodos.Data.Count);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_DeveRetornarStatusCorretamente()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta GetById", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var transacao = new Transacao
+        {
+            Descricao = "Boleto",
+            Valor = 150m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pendente,
+            Data = new DateOnly(2026, 7, 15),
+            ContaId = conta.Id
+        };
+        Context.Transacoes.Add(transacao);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var result = await service.GetByIdAsync(transacao.Id, usuario.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal(StatusTransacao.Pendente, result!.Status);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_DeveAtualizarStatus()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Upd", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var transacao = new Transacao
+        {
+            Descricao = "Boleto",
+            Valor = 150m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pendente,
+            Data = new DateOnly(2026, 7, 15),
+            ContaId = conta.Id
+        };
+        Context.Transacoes.Add(transacao);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var dto = new UpdateTransacaoDto
+        {
+            Descricao = "Boleto Pago",
+            Valor = 150m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pago,
+            Data = new DateOnly(2026, 7, 15),
+            ContaId = conta.Id
+        };
+
+        var (found, error) = await service.UpdateAsync(transacao.Id, dto, usuario.Id);
+
+        Assert.True(found);
+        Assert.Null(error);
+
+        Context.ChangeTracker.Clear();
+        var persisted = await Context.Transacoes.FindAsync(transacao.Id);
+        Assert.NotNull(persisted);
+        Assert.Equal(StatusTransacao.Pago, persisted!.Status);
+        Assert.Equal("Boleto Pago", persisted.Descricao);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_DeveAtualizarApenasOStatus()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Status", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var transacao = new Transacao
+        {
+            Descricao = "Fatura Cartao",
+            Valor = 1500m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pendente,
+            Data = new DateOnly(2026, 7, 20),
+            ContaId = conta.Id
+        };
+        Context.Transacoes.Add(transacao);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var (found, error) = await service.UpdateStatusAsync(transacao.Id, StatusTransacao.Pago, usuario.Id);
+
+        Assert.True(found);
+        Assert.Null(error);
+
+        Context.ChangeTracker.Clear();
+        var persisted = await Context.Transacoes.FindAsync(transacao.Id);
+        Assert.NotNull(persisted);
+        Assert.Equal(StatusTransacao.Pago, persisted!.Status);
+        Assert.Equal("Fatura Cartao", persisted.Descricao);
+        Assert.Equal(1500m, persisted.Valor);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_TransacaoInexistente_DeveRetornarNotFound()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var service = new TransacaoService(Context);
+        var (found, error) = await service.UpdateStatusAsync(999, StatusTransacao.Pago, usuario.Id);
+
+        Assert.False(found);
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_OutroUsuario_DeveRetornarErroOuNotFound()
+    {
+        var usuario1 = await CriarUsuarioAsync("u1@finsync.com");
+        var usuario2 = await CriarUsuarioAsync("u2@finsync.com");
+        var conta = new Conta { Nome = "Conta U1", Tipo = TipoConta.Pessoal, UsuarioId = usuario1.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var transacao = new Transacao
+        {
+            Descricao = "Privado",
+            Valor = 100m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pendente,
+            Data = new DateOnly(2026, 7, 20),
+            ContaId = conta.Id
+        };
+        Context.Transacoes.Add(transacao);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var (found, error) = await service.UpdateStatusAsync(transacao.Id, StatusTransacao.Pago, usuario2.Id);
+
+        Assert.False(found);
+        Assert.Equal("Transação não encontrada.", error);
+    }
+
+    [Fact]
+    public async Task ExportarCsvAsync_DeveConterCabecalhoEColunaStatus()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta CSV", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        Context.Transacoes.AddRange(
+            new Transacao { Descricao = "Luz", Valor = 120m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pendente, Data = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 5), ContaId = conta.Id },
+            new Transacao { Descricao = "Salario", Valor = 5000m, Tipo = TipoTransacao.Entrada, Status = StatusTransacao.Pago, Data = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1), ContaId = conta.Id }
+        );
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var bytes = await service.ExportarCsvAsync(conta.Id, "mes_atual", usuario.Id);
+        var csv = System.Text.Encoding.UTF8.GetString(bytes);
+
+        Assert.Contains("Id,Descricao,Valor,Tipo,Status,Data,ContaId", csv);
+        Assert.Contains("Pendente", csv);
+        Assert.Contains("Pago", csv);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ComParcelamento_DeveCriarTodasAsParcelasComDatasESaldoCorretos()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Cartao", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var dto = new CreateTransacaoDto
+        {
+            Descricao = "Notebook Dell",
+            Valor = 100m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pago,
+            Data = new DateOnly(2026, 8, 15),
+            ContaId = conta.Id,
+            Parcelado = true,
+            TotalParcelas = 3,
+            ModoValorParcelamento = "Total"
+        };
+
+        var (result, error) = await service.CreateAsync(dto, usuario.Id);
+
+        Assert.Null(error);
+        Assert.NotNull(result);
+        Assert.Equal("Notebook Dell (01/03)", result!.Descricao);
+        Assert.Equal(33.34m, result.Valor); // 100 / 3 = 33.33 + 0.01 resto
+        Assert.Equal(StatusTransacao.Pago, result.Status);
+        Assert.NotNull(result.ParcelamentoId);
+        Assert.Equal(1, result.NumeroParcela);
+        Assert.Equal(3, result.TotalParcelas);
+
+        Context.ChangeTracker.Clear();
+        var parcelas = Context.Transacoes
+            .Where(t => t.ParcelamentoId == result.ParcelamentoId)
+            .OrderBy(t => t.NumeroParcela)
+            .ToList();
+
+        Assert.Equal(3, parcelas.Count);
+        Assert.Equal(33.34m, parcelas[0].Valor);
+        Assert.Equal(33.33m, parcelas[1].Valor);
+        Assert.Equal(33.33m, parcelas[2].Valor);
+        Assert.Equal(StatusTransacao.Pago, parcelas[0].Status);
+        Assert.Equal(StatusTransacao.Pendente, parcelas[1].Status);
+        Assert.Equal(StatusTransacao.Pendente, parcelas[2].Status);
+        Assert.Equal(new DateOnly(2026, 8, 15), parcelas[0].Data);
+        Assert.Equal(new DateOnly(2026, 9, 15), parcelas[1].Data);
+        Assert.Equal(new DateOnly(2026, 10, 15), parcelas[2].Data);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ComExcluirTodasParcelas_DeveRemoverTodoOLote()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Lote", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var (result, _) = await service.CreateAsync(new CreateTransacaoDto
+        {
+            Descricao = "Celular",
+            Valor = 1000m,
+            Tipo = TipoTransacao.Saida,
+            Data = new DateOnly(2026, 8, 1),
+            ContaId = conta.Id,
+            Parcelado = true,
+            TotalParcelas = 2
+        }, usuario.Id);
+
+        var deleted = await service.DeleteAsync(result!.Id, usuario.Id, excluirTodasParcelas: true);
+        Assert.True(deleted);
+
+        Context.ChangeTracker.Clear();
+        var parcelasRestantes = Context.Transacoes.Where(t => t.ParcelamentoId == result.ParcelamentoId).ToList();
+        Assert.Empty(parcelasRestantes);
+    }
 }

@@ -23,7 +23,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-describe('Extrato.jsx category filter', () => {
+describe('Extrato.jsx category and status filter', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.spyOn(api, 'getTransacoesRange').mockResolvedValue({
@@ -33,6 +33,7 @@ describe('Extrato.jsx category filter', () => {
           descricao: 'Mercado',
           valor: 150.0,
           tipo: 'Saida',
+          status: 'Pago',
           data: '2026-08-10',
           categoriaId: 10,
           categoriaNome: 'Alimentação',
@@ -47,9 +48,10 @@ describe('Extrato.jsx category filter', () => {
       totalSaidas: 150.0,
       saldo: -150.0,
     });
+    vi.spyOn(api, 'updateTransacaoStatus').mockResolvedValue();
   });
 
-  it('deve renderizar o seletor de categorias com as opções carregadas', async () => {
+  it('deve renderizar os seletores de categorias e status com as opções carregadas', async () => {
     render(
       <TemaProvider>
         <MemoryRouter>
@@ -60,11 +62,16 @@ describe('Extrato.jsx category filter', () => {
 
     await waitFor(() => {
       expect(screen.getAllByLabelText('Filtrar por categoria')[0]).toBeInTheDocument();
+      expect(screen.getAllByLabelText('Filtrar por status')[0]).toBeInTheDocument();
     });
 
     expect(screen.getAllByRole('option', { name: 'Todas as categorias' })[0]).toBeInTheDocument();
     expect(screen.getAllByRole('option', { name: 'Alimentação' })[0]).toBeInTheDocument();
     expect(screen.getAllByRole('option', { name: 'Salário' })[0]).toBeInTheDocument();
+
+    expect(screen.getAllByRole('option', { name: 'Todos os status' })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Pagos' })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Pendentes' })[0]).toBeInTheDocument();
   });
 
   it('deve chamar getTransacoesRange com categoriaId selecionada', async () => {
@@ -84,6 +91,7 @@ describe('Extrato.jsx category filter', () => {
         1,
         20,
         null,
+        null,
       );
     });
 
@@ -98,7 +106,67 @@ describe('Extrato.jsx category filter', () => {
         1,
         20,
         10,
+        null,
       );
     });
   });
+
+  it('deve chamar getTransacoesRange com status selecionado', async () => {
+    render(
+      <TemaProvider>
+        <MemoryRouter>
+          <Extrato />
+        </MemoryRouter>
+      </TemaProvider>,
+    );
+
+    await waitFor(() => {
+      expect(api.getTransacoesRange).toHaveBeenCalledWith(
+        '1',
+        expect.any(String),
+        expect.any(String),
+        1,
+        20,
+        null,
+        null,
+      );
+    });
+
+    const selectStatus = screen.getAllByLabelText('Filtrar por status')[0];
+    fireEvent.change(selectStatus, { target: { value: 'Pendente' } });
+
+    await waitFor(() => {
+      expect(api.getTransacoesRange).toHaveBeenCalledWith(
+        '1',
+        expect.any(String),
+        expect.any(String),
+        1,
+        20,
+        null,
+        'Pendente',
+      );
+    });
+  });
+
+  it('deve alternar status da transação ao clicar no botão de toggle', async () => {
+    render(
+      <TemaProvider>
+        <MemoryRouter>
+          <Extrato />
+        </MemoryRouter>
+      </TemaProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Mercado')[0]).toBeInTheDocument();
+    });
+
+    const btnToggle = screen.getAllByTitle('Marcar como Pendente')[0];
+    fireEvent.click(btnToggle);
+
+    await waitFor(() => {
+      expect(api.updateTransacaoStatus).toHaveBeenCalledWith(1, 'Pendente');
+    });
+  });
 });
+

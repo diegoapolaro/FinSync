@@ -2,6 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using FinSync.Data;
+using FinSync.Enums;
+using FinSync.Features.Categorias;
+using FinSync.Features.Contas;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,6 +35,7 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
         try
         {
             await context.SaveChangesAsync();
+            await ProvisionarDadosIniciaisAsync(usuario.Id);
         }
         catch (DbUpdateException)
         {
@@ -117,6 +121,7 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
             };
             context.Usuarios.Add(usuario);
             await context.SaveChangesAsync();
+            await ProvisionarDadosIniciaisAsync(usuario.Id);
         }
         else if (usuario.GoogleId is null)
         {
@@ -172,6 +177,34 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
         await context.SaveChangesAsync();
 
         return (true, null);
+    }
+
+    private async Task ProvisionarDadosIniciaisAsync(int usuarioId)
+    {
+        var contaPadrao = new Conta
+        {
+            Nome = "Pessoal",
+            Tipo = TipoConta.Pessoal,
+            UsuarioId = usuarioId
+        };
+        context.Contas.Add(contaPadrao);
+
+        var categoriasPadrao = new List<Categoria>
+        {
+            new() { Nome = "Alimentação", Cor = "#10b981", Tipo = TipoTransacao.Saida, UsuarioId = usuarioId },
+            new() { Nome = "Transporte", Cor = "#f43f5e", Tipo = TipoTransacao.Saida, UsuarioId = usuarioId },
+            new() { Nome = "Moradia", Cor = "#3b82f6", Tipo = TipoTransacao.Saida, UsuarioId = usuarioId },
+            new() { Nome = "Lazer", Cor = "#a855f7", Tipo = TipoTransacao.Saida, UsuarioId = usuarioId },
+            new() { Nome = "Saúde", Cor = "#ec4899", Tipo = TipoTransacao.Saida, UsuarioId = usuarioId },
+            new() { Nome = "Outros", Cor = "#64748b", Tipo = TipoTransacao.Saida, UsuarioId = usuarioId },
+            new() { Nome = "Salário", Cor = "#f59e0b", Tipo = TipoTransacao.Entrada, UsuarioId = usuarioId },
+            new() { Nome = "Vendas", Cor = "#22c55e", Tipo = TipoTransacao.Entrada, UsuarioId = usuarioId },
+            new() { Nome = "Investimentos", Cor = "#8b5cf6", Tipo = TipoTransacao.Entrada, UsuarioId = usuarioId },
+            new() { Nome = "Outros", Cor = "#64748b", Tipo = TipoTransacao.Entrada, UsuarioId = usuarioId }
+        };
+        context.Categorias.AddRange(categoriasPadrao);
+
+        await context.SaveChangesAsync();
     }
 
     private string GerarToken(Usuario usuario)

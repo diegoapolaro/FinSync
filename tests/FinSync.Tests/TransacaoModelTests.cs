@@ -13,6 +13,7 @@ public class TransacaoModelTests
         Assert.Equal(0, t.Id);
         Assert.Equal(string.Empty, t.Descricao);
         Assert.Equal(0m, t.Valor);
+        Assert.Equal(StatusTransacao.Pago, t.Status);
         Assert.Equal(DateOnly.FromDateTime(DateTime.Now), t.Data);
     }
 
@@ -21,5 +22,12 @@ public class TransacaoModelTests
     {
         var t = new Transacao { Tipo = TipoTransacao.Entrada };
         Assert.Equal(TipoTransacao.Entrada, t.Tipo);
+    }
+
+    [Fact]
+    public void Transacao_Status_DevePermitirPendente()
+    {
+        var t = new Transacao { Status = StatusTransacao.Pendente };
+        Assert.Equal(StatusTransacao.Pendente, t.Status);
     }
 }

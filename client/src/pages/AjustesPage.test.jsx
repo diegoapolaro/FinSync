@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import AjustesPage from './AjustesPage';
 import { TemaProvider } from '../contexts/ThemeContext';
 import { ToastProvider } from '../contexts/ToastContext';
+import { AuthContext } from '../contexts/AuthContext';
 import * as api from '../services/api';
 
 const mockContas = [
@@ -18,6 +19,13 @@ const mockCategorias = [
 
 const mockSetContas = vi.fn();
 const mockSetCategorias = vi.fn();
+
+const mockUserDefault = {
+  nome: 'Diego Polaro',
+  email: 'diego@finsync.app',
+  fotoUrl: null,
+  temSenha: true,
+};
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -38,13 +46,15 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     vi.restoreAllMocks();
   });
 
-  function renderPage() {
+  function renderPage(user = mockUserDefault) {
     return render(
-      <ToastProvider>
-        <TemaProvider>
-          <AjustesPage />
-        </TemaProvider>
-      </ToastProvider>,
+      <AuthContext.Provider value={{ user, isAuthenticated: !!user, logout: vi.fn() }}>
+        <ToastProvider>
+          <TemaProvider>
+            <AjustesPage />
+          </TemaProvider>
+        </ToastProvider>
+      </AuthContext.Provider>,
     );
   }
 
@@ -54,10 +64,35 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     expect(screen.getByRole('heading', { name: 'Perfil do Usuário' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Contas e Livros' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Categorias' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Recorrências & Lançamentos Fixos' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Preferências do Sistema' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Notificações e Alertas' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Exportação de Relatórios' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Segurança da Conta' })).toBeInTheDocument();
+  });
+
+  it('deve exibir dados reais do usuário autenticado no card de perfil com avatar inicial', () => {
+    renderPage();
+
+    expect(screen.getByText('Diego Polaro')).toBeInTheDocument();
+    expect(screen.getByText('diego@finsync.app')).toBeInTheDocument();
+    expect(screen.getByText('D')).toBeInTheDocument();
+  });
+
+  it('deve exibir a imagem de perfil quando fotoUrl estiver preenchida', () => {
+    const userComFoto = {
+      nome: 'Maria Silva',
+      email: 'maria@gmail.com',
+      fotoUrl: 'https://lh3.googleusercontent.com/a/foto-maria',
+      temSenha: false,
+    };
+    renderPage(userComFoto);
+
+    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
+    expect(screen.getByText('maria@gmail.com')).toBeInTheDocument();
+    const foto = screen.getByRole('img', { name: 'Maria Silva' });
+    expect(foto).toBeInTheDocument();
+    expect(foto).toHaveAttribute('src', 'https://lh3.googleusercontent.com/a/foto-maria');
   });
 
   it('deve exibir contas existentes e permitir abrir formulário de nova conta', async () => {

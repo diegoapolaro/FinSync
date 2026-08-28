@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
-import { ChevronDown, ChevronLeft, ChevronRight, Receipt, Tag } from 'lucide-react';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
+import { ChevronDown, ChevronLeft, ChevronRight, Receipt, Tag, CheckCircle2 } from 'lucide-react';
 import {
   deleteTransacao,
   getCategorias,
   getResumoPeriodo,
   getTransacoesRange,
+  updateTransacaoStatus,
 } from '../services/api';
+import { STATUS_TRANSACAO } from '../utils/constants';
 import {
   primeiroDiaMes,
   periodoEfetivoParaApi,
@@ -24,12 +26,17 @@ import { Button } from '../components/ui/button';
 
 export default function Extrato() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const outletCtx = useOutletContext();
   const contaSelecionadaId = outletCtx?.contaSelecionadaId;
   const categoriasContext = outletCtx?.categorias;
+  const abrirModalNovaConta = outletCtx?.abrirModalNovaConta;
 
   const [categorias, setCategorias] = useState(() => categoriasContext || []);
   const [categoriaSelecionadaId, setCategoriaSelecionadaId] = useState('');
+  const [statusSelecionado, setStatusSelecionado] = useState(
+    () => searchParams.get('status') || '',
+  );
 
   const hoje = useMemo(() => new Date(), []);
   const [filtroTipo, setFiltroTipo] = useState('mes');
@@ -75,6 +82,7 @@ export default function Extrato() {
             pageNum,
             20,
             categoriaSelecionadaId ? Number(categoriaSelecionadaId) : null,
+            statusSelecionado || null,
           ),
           getResumoPeriodo(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim),
         ]);
@@ -90,7 +98,7 @@ export default function Extrato() {
         setCarregando(false);
       }
     },
-    [contaSelecionadaId, periodoApi, categoriaSelecionadaId],
+    [contaSelecionadaId, periodoApi, categoriaSelecionadaId, statusSelecionado],
   );
 
   useEffect(() => {
@@ -140,6 +148,20 @@ export default function Extrato() {
     } catch {}
   }
 
+  async function handleToggleStatus(transacao) {
+    const novoStatus =
+      transacao.status === STATUS_TRANSACAO.PENDENTE
+        ? STATUS_TRANSACAO.PAGO
+        : STATUS_TRANSACAO.PENDENTE;
+
+    try {
+      await updateTransacaoStatus(transacao.id, novoStatus);
+      setTransacoes((prev) =>
+        prev.map((item) => (item.id === transacao.id ? { ...item, status: novoStatus } : item)),
+      );
+    } catch {}
+  }
+
   function handleNovaEntrada() {
     navigate('/lancamentos');
   }
@@ -160,6 +182,26 @@ export default function Extrato() {
       setDataFim={setDataFim}
       mesReferencia={hoje}
     />
+  );
+
+  const seletorStatus = (
+    <div className="relative inline-flex items-center">
+      <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground absolute left-3 pointer-events-none" />
+      <select
+        value={statusSelecionado}
+        onChange={(e) => {
+          setStatusSelecionado(e.target.value);
+          setPagina(1);
+        }}
+        aria-label="Filtrar por status"
+        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border bg-secondary text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-secondary/80 transition-colors"
+      >
+        <option value="">Todos os status</option>
+        <option value={STATUS_TRANSACAO.PAGO}>Pagos</option>
+        <option value={STATUS_TRANSACAO.PENDENTE}>Pendentes</option>
+      </select>
+      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 pointer-events-none" />
+    </div>
   );
 
   const seletorCategoria = (
@@ -246,6 +288,7 @@ export default function Extrato() {
       <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden bg-background">
         <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar max-w-7xl w-full mx-auto">
           <div className="mb-6 flex items-center justify-end gap-3 flex-wrap">
+            {seletorStatus}
             {seletorCategoria}
             {picker}
           </div>
@@ -261,6 +304,7 @@ export default function Extrato() {
               transacoes={transacoesDoPeriodo}
               carregando={carregando}
               onDelete={handleDelete}
+              onToggleStatus={handleToggleStatus}
               emptyMessage={mensagemVazia}
             />
           </div>
@@ -278,6 +322,7 @@ export default function Extrato() {
       {/* Mobile */}
       <div className="md:hidden px-4 pt-4 pb-32 bg-background min-h-screen">
         <div className="mb-4 flex items-center justify-end gap-2 flex-wrap">
+          {seletorStatus}
           {seletorCategoria}
           {picker}
         </div>
@@ -290,8 +335,13 @@ export default function Extrato() {
 
         <div className="mt-6">
           {!contaSelecionadaId && !carregando && (
-            <Card className="p-8 text-center">
-              <p className="text-sm text-muted-foreground">Selecione uma conta para começar.</p>
+            <Card className="p-8 text-center space-y-3">
+              <p className="text-sm text-muted-foreground">Nenhuma conta selecionada ou cadastrada.</p>
+              {abrirModalNovaConta && (
+                <Button size="sm" onClick={abrirModalNovaConta} className="rounded-xl font-semibold">
+                  Criar Conta
+                </Button>
+              )}
             </Card>
           )}
 
@@ -327,7 +377,12 @@ export default function Extrato() {
                 </span>
               </div>
               {transacoesDoPeriodo.map((t) => (
-                <TransactionCard key={t.id} transacao={t} onDelete={handleDelete} />
+                <TransactionCard
+                  key={t.id}
+                  transacao={t}
+                  onDelete={handleDelete}
+                  onToggleStatus={handleToggleStatus}
+                />
               ))}
             </div>
           )}

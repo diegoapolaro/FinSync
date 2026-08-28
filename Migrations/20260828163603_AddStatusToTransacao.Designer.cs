@@ -3,6 +3,7 @@ using System;
 using FinSync.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinSync.Migrations
 {
     [DbContext(typeof(FinSyncDbContext))]
-    partial class FinSyncDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260828163603_AddStatusToTransacao")]
+    partial class AddStatusToTransacao
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,71 +143,6 @@ namespace FinSync.Migrations
                     b.ToTable("Contas");
                 });
 
-            modelBuilder.Entity("FinSync.Features.Recorrencias.Recorrencia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Ativo")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("CategoriaId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ContaId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateOnly?>("DataFim")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("DataInicio")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<int>("Frequencia")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("StatusPadrao")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Tipo")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly?>("UltimaDataGerada")
-                        .HasColumnType("date");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Valor")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Ativo");
-
-                    b.HasIndex("CategoriaId");
-
-                    b.HasIndex("ContaId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("Recorrencias");
-                });
-
             modelBuilder.Entity("FinSync.Features.Transacoes.Transacao", b =>
                 {
                     b.Property<int>("Id")
@@ -230,22 +168,10 @@ namespace FinSync.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
-                    b.Property<int?>("NumeroParcela")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("ParcelamentoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int?>("RecorrenciaId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<int>("Tipo")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("TotalParcelas")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -261,10 +187,6 @@ namespace FinSync.Migrations
                     b.HasIndex("ContaId");
 
                     b.HasIndex("Data");
-
-                    b.HasIndex("ParcelamentoId");
-
-                    b.HasIndex("RecorrenciaId");
 
                     b.ToTable("Transacoes");
                 });
@@ -291,32 +213,6 @@ namespace FinSync.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("FinSync.Features.Recorrencias.Recorrencia", b =>
-                {
-                    b.HasOne("FinSync.Features.Categorias.Categoria", "Categoria")
-                        .WithMany()
-                        .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("FinSync.Features.Contas.Conta", "Conta")
-                        .WithMany()
-                        .HasForeignKey("ContaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FinSync.Features.Auth.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Categoria");
-
-                    b.Navigation("Conta");
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("FinSync.Features.Transacoes.Transacao", b =>
                 {
                     b.HasOne("FinSync.Features.Categorias.Categoria", "Categoria")
@@ -330,16 +226,9 @@ namespace FinSync.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FinSync.Features.Recorrencias.Recorrencia", "Recorrencia")
-                        .WithMany("Transacoes")
-                        .HasForeignKey("RecorrenciaId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Categoria");
 
                     b.Navigation("Conta");
-
-                    b.Navigation("Recorrencia");
                 });
 
             modelBuilder.Entity("FinSync.Features.Auth.Usuario", b =>
@@ -355,11 +244,6 @@ namespace FinSync.Migrations
                 });
 
             modelBuilder.Entity("FinSync.Features.Contas.Conta", b =>
-                {
-                    b.Navigation("Transacoes");
-                });
-
-            modelBuilder.Entity("FinSync.Features.Recorrencias.Recorrencia", b =>
                 {
                     b.Navigation("Transacoes");
                 });

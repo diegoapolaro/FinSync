@@ -1,6 +1,7 @@
 using FinSync.Features.Auth;
 using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
+using FinSync.Features.Recorrencias;
 using FinSync.Features.Transacoes;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
     public DbSet<Transacao> Transacoes => Set<Transacao>();
     public DbSet<Conta> Contas => Set<Conta>();
     public DbSet<Categoria> Categorias => Set<Categoria>();
+    public DbSet<Recorrencia> Recorrencias => Set<Recorrencia>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,7 +48,14 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
                   .HasForeignKey(t => t.CategoriaId)
                   .OnDelete(DeleteBehavior.SetNull);
 
+            entity.HasOne(t => t.Recorrencia)
+                  .WithMany(r => r.Transacoes)
+                  .HasForeignKey(t => t.RecorrenciaId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasIndex(t => t.Data);
+            entity.HasIndex(t => t.ParcelamentoId);
+            entity.HasIndex(t => t.RecorrenciaId);
         });
 
         modelBuilder.Entity<Categoria>(entity =>
@@ -57,6 +66,28 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
                   .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(c => c.UsuarioId);
+        });
+
+        modelBuilder.Entity<Recorrencia>(entity =>
+        {
+            entity.HasOne(r => r.Usuario)
+                  .WithMany()
+                  .HasForeignKey(r => r.UsuarioId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Conta)
+                  .WithMany()
+                  .HasForeignKey(r => r.ContaId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(r => r.Categoria)
+                  .WithMany()
+                  .HasForeignKey(r => r.CategoriaId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(r => r.UsuarioId);
+            entity.HasIndex(r => r.ContaId);
+            entity.HasIndex(r => r.Ativo);
         });
     }
 

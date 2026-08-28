@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using FinSync.Enums;
 using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
+using FinSync.Features.Recorrencias;
 
 namespace FinSync.Features.Transacoes;
 
@@ -18,6 +19,8 @@ public class Transacao
 
     public TipoTransacao Tipo { get; set; }
 
+    public StatusTransacao Status { get; set; } = StatusTransacao.Pago;
+
     public DateOnly Data { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
     public int ContaId { get; set; }
@@ -25,6 +28,13 @@ public class Transacao
 
     public int? CategoriaId { get; set; }
     public Categoria? Categoria { get; set; }
+
+    public Guid? ParcelamentoId { get; set; }
+    public int? NumeroParcela { get; set; }
+    public int? TotalParcelas { get; set; }
+
+    public int? RecorrenciaId { get; set; }
+    public Recorrencia? Recorrencia { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
