@@ -54,6 +54,7 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
                   .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(t => t.Data);
+            entity.HasIndex(t => new { t.ContaId, t.Data });
             entity.HasIndex(t => t.ParcelamentoId);
             entity.HasIndex(t => t.RecorrenciaId);
         });

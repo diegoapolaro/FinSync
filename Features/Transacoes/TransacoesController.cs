@@ -26,15 +26,18 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
     }
 
     [HttpGet("exportar")]
-    public async Task<IActionResult> Exportar(int? contaId, string periodo = "mes_atual", string formato = "csv")
+    public async Task Exportar(int? contaId, string periodo = "mes_atual", string formato = "csv")
     {
         if (!string.Equals(formato, "csv", StringComparison.OrdinalIgnoreCase))
         {
-            return BadRequest("Formato não suportado.");
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            await Response.WriteAsync("Formato não suportado.");
+            return;
         }
 
-        var bytes = await transacaoService.ExportarCsvAsync(contaId, periodo, UsuarioId);
-        return File(bytes, "text/csv", $"extrato_{DateTime.Today:yyyyMMdd}.csv");
+        Response.ContentType = "text/csv";
+        Response.Headers.Append("Content-Disposition", $"attachment; filename=extrato_{DateTime.Today:yyyyMMdd}.csv");
+        await transacaoService.ExportarCsvAsync(contaId, periodo, UsuarioId, Response.Body);
     }
 
     [HttpGet]

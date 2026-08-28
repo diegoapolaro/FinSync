@@ -5,6 +5,7 @@ import usePreferencias from './usePreferencias';
 describe('usePreferencias hook', () => {
   beforeEach(() => {
     localStorage.clear();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'finsync_preferencias' }));
   });
 
   it('deve inicializar com todas as chaves padrão necessárias', () => {
@@ -54,6 +55,10 @@ describe('usePreferencias hook', () => {
     );
 
     const { result } = renderHook(() => usePreferencias());
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'finsync_preferencias' }));
+    });
 
     expect(result.current.prefs.idioma).toBe('Español');
     expect(result.current.prefs.nome).toBe('Diego');

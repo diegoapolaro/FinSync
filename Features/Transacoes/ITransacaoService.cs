@@ -22,5 +22,5 @@ public interface ITransacaoService
     Task<bool> DeleteAsync(int id, int usuarioId, bool excluirTodasParcelas = false, bool excluirFuturasRecorrencias = false);
     Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId);
     Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId);
-    Task<byte[]> ExportarCsvAsync(int? contaId, string periodo, int usuarioId);
+    Task ExportarCsvAsync(int? contaId, string periodo, int usuarioId, Stream outputStream);
 }

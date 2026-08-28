@@ -84,30 +84,30 @@ describe('Extrato.jsx category and status filter', () => {
     );
 
     await waitFor(() => {
-      expect(api.getTransacoesRange).toHaveBeenCalledWith(
-        '1',
-        expect.any(String),
-        expect.any(String),
-        1,
-        20,
-        null,
-        null,
-      );
+      expect(api.getTransacoesRange).toHaveBeenCalledWith({
+        contaId: '1',
+        dataInicio: expect.any(String),
+        dataFim: expect.any(String),
+        page: 1,
+        pageSize: 20,
+        categoriaId: null,
+        status: null,
+      });
     });
 
     const select = screen.getAllByLabelText('Filtrar por categoria')[0];
     fireEvent.change(select, { target: { value: '10' } });
 
     await waitFor(() => {
-      expect(api.getTransacoesRange).toHaveBeenCalledWith(
-        '1',
-        expect.any(String),
-        expect.any(String),
-        1,
-        20,
-        10,
-        null,
-      );
+      expect(api.getTransacoesRange).toHaveBeenCalledWith({
+        contaId: '1',
+        dataInicio: expect.any(String),
+        dataFim: expect.any(String),
+        page: 1,
+        pageSize: 20,
+        categoriaId: 10,
+        status: null,
+      });
     });
   });
 
@@ -121,30 +121,30 @@ describe('Extrato.jsx category and status filter', () => {
     );
 
     await waitFor(() => {
-      expect(api.getTransacoesRange).toHaveBeenCalledWith(
-        '1',
-        expect.any(String),
-        expect.any(String),
-        1,
-        20,
-        null,
-        null,
-      );
+      expect(api.getTransacoesRange).toHaveBeenCalledWith({
+        contaId: '1',
+        dataInicio: expect.any(String),
+        dataFim: expect.any(String),
+        page: 1,
+        pageSize: 20,
+        categoriaId: null,
+        status: null,
+      });
     });
 
     const selectStatus = screen.getAllByLabelText('Filtrar por status')[0];
     fireEvent.change(selectStatus, { target: { value: 'Pendente' } });
 
     await waitFor(() => {
-      expect(api.getTransacoesRange).toHaveBeenCalledWith(
-        '1',
-        expect.any(String),
-        expect.any(String),
-        1,
-        20,
-        null,
-        'Pendente',
-      );
+      expect(api.getTransacoesRange).toHaveBeenCalledWith({
+        contaId: '1',
+        dataInicio: expect.any(String),
+        dataFim: expect.any(String),
+        page: 1,
+        pageSize: 20,
+        categoriaId: null,
+        status: 'Pendente',
+      });
     });
   });
 

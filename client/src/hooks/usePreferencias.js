@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 
 const CHAVE = 'finsync_preferencias';
 
@@ -13,53 +13,49 @@ const PADRAO = {
   email: '',
 };
 
-function carregar() {
+let cacheState = null;
+
+function carregarState() {
+  if (cacheState) return cacheState;
   try {
     const raw = localStorage.getItem(CHAVE);
-    return raw ? { ...PADRAO, ...JSON.parse(raw) } : { ...PADRAO };
+    cacheState = raw ? { ...PADRAO, ...JSON.parse(raw) } : { ...PADRAO };
   } catch {
-    return { ...PADRAO };
+    cacheState = { ...PADRAO };
   }
+  return cacheState;
 }
 
 const listeners = new Set();
 
-function emitir(novasPrefs) {
-  listeners.forEach((listener) => listener(novasPrefs));
+function subscribe(listener) {
+  listeners.add(listener);
+  const handleStorage = (e) => {
+    if (e.key === CHAVE) {
+      cacheState = null;
+      listener();
+    }
+  };
+  window.addEventListener('storage', handleStorage);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener('storage', handleStorage);
+  };
 }
 
 export default function usePreferencias() {
-  const [prefs, setPrefs] = useState(() => carregar());
-
-  useEffect(() => {
-    const handleChange = (novas) => {
-      setPrefs(novas);
-    };
-    listeners.add(handleChange);
-
-    const handleStorage = (e) => {
-      if (e.key === CHAVE) {
-        setPrefs(carregar());
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-
-    return () => {
-      listeners.delete(handleChange);
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, []);
+  const prefs = useSyncExternalStore(subscribe, carregarState, carregarState);
 
   const atualizar = useCallback((chave, valor) => {
-    const atual = carregar();
+    const atual = carregarState();
     const atualizado = { ...atual, [chave]: valor };
     try {
       localStorage.setItem(CHAVE, JSON.stringify(atualizado));
     } catch (err) {
       console.error('Erro ao salvar preferências:', err);
     }
-    setPrefs(atualizado);
-    emitir(atualizado);
+    cacheState = atualizado;
+    listeners.forEach((listener) => listener());
   }, []);
 
   return { prefs, atualizar };

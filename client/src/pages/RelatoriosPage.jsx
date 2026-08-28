@@ -85,13 +85,13 @@ export default function RelatoriosPage() {
       const todasTransacoes = [];
       let page = 1;
       while (page <= 5) {
-        const txns = await getTransacoesRange(
-          contaSelecionadaId,
-          periodoApi.dataInicio,
-          periodoApi.dataFim,
+        const txns = await getTransacoesRange({
+          contaId: contaSelecionadaId,
+          dataInicio: periodoApi.dataInicio,
+          dataFim: periodoApi.dataFim,
           page,
-          100,
-        );
+          pageSize: 100,
+        });
         const paginaAtual = txns?.data ?? [];
         todasTransacoes.push(...paginaAtual);
         if (paginaAtual.length < 100) break;

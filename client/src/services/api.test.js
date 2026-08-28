@@ -64,7 +64,13 @@ describe('api.js', () => {
         text: vi.fn().mockResolvedValue(JSON.stringify({ data: [], total: 0, totalPages: 1 })),
       });
 
-      const res = await getTransacoes(1, null, '2026-08-01', '2026-08-31', 1, 20);
+      const res = await getTransacoes({
+        contaId: 1,
+        dataInicio: '2026-08-01',
+        dataFim: '2026-08-31',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringMatching(
@@ -88,7 +94,14 @@ describe('api.js', () => {
         text: vi.fn().mockResolvedValue(JSON.stringify({ data: [], total: 0, totalPages: 1 })),
       });
 
-      await getTransacoes(2, '2026-08-15', null, null, 2, 10, 5, 'Pendente');
+      await getTransacoes({
+        contaId: 2,
+        data: '2026-08-15',
+        page: 2,
+        pageSize: 10,
+        categoriaId: 5,
+        status: 'Pendente',
+      });
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringMatching(
@@ -139,7 +152,15 @@ describe('api.js', () => {
         text: vi.fn().mockResolvedValue(JSON.stringify({ data: [], total: 0, totalPages: 1 })),
       });
 
-      await getTransacoesRange(1, '2026-08-01', '2026-08-31', 1, 20, 3, 'Pago');
+      await getTransacoesRange({
+        contaId: 1,
+        dataInicio: '2026-08-01',
+        dataFim: '2026-08-31',
+        page: 1,
+        pageSize: 20,
+        categoriaId: 3,
+        status: 'Pago',
+      });
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringMatching(
@@ -162,7 +183,13 @@ describe('api.js', () => {
         text: vi.fn().mockResolvedValue(JSON.stringify({ data: [], total: 0, totalPages: 1 })),
       });
 
-      await getTransacoesRange(1, '2026-08-01', '2026-08-31', 1, 20);
+      await getTransacoesRange({
+        contaId: 1,
+        dataInicio: '2026-08-01',
+        dataFim: '2026-08-31',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringMatching(

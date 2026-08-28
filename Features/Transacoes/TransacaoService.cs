@@ -496,9 +496,10 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         };
     }
 
-    public async Task<byte[]> ExportarCsvAsync(int? contaId, string periodo, int usuarioId)
+    public async Task ExportarCsvAsync(int? contaId, string periodo, int usuarioId, Stream outputStream)
     {
         var query = context.Transacoes
+            .AsNoTracking()
             .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
             .AsQueryable();
 
@@ -508,27 +509,22 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         }
 
         var (inicio, fim) = DateRangeHelper.GetPeriodo(periodo);
-        query = query.Where(t => t.Data >= inicio && t.Data < fim);
-        query = query.OrderByDescending(t => t.Data);
+        query = query.Where(t => t.Data >= inicio && t.Data < fim)
+                     .OrderByDescending(t => t.Data);
 
-        var transacoes = await query.ToListAsync();
+        // BOM UTF-8
+        await outputStream.WriteAsync(new byte[] { 0xEF, 0xBB, 0xBF });
 
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine("Id,Descricao,Valor,Tipo,Status,Data,ContaId");
+        await using var writer = new StreamWriter(outputStream, leaveOpen: true);
+        await writer.WriteLineAsync("Id,Descricao,Valor,Tipo,Status,Data,ContaId");
 
-        foreach (var t in transacoes)
+        await foreach (var t in query.AsAsyncEnumerable())
         {
             var descricao = t.Descricao.Replace("\"", "\"\"");
-            sb.AppendLine($"{t.Id},\"{descricao}\",{t.Valor.ToString(System.Globalization.CultureInfo.InvariantCulture)},{t.Tipo},{t.Status},{t.Data:yyyy-MM-dd},{t.ContaId}");
+            await writer.WriteLineAsync($"{t.Id},\"{descricao}\",{t.Valor.ToString(System.Globalization.CultureInfo.InvariantCulture)},{t.Tipo},{t.Status},{t.Data:yyyy-MM-dd},{t.ContaId}");
         }
 
-        var utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
-        var contentBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
-        var result = new byte[utf8Bom.Length + contentBytes.Length];
-        Buffer.BlockCopy(utf8Bom, 0, result, 0, utf8Bom.Length);
-        Buffer.BlockCopy(contentBytes, 0, result, utf8Bom.Length, contentBytes.Length);
-
-        return result;
+        await writer.FlushAsync();
     }
 
     private static DateOnly AddMesSeguro(DateOnly data, int meses, int diaBase)

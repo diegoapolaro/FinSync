@@ -129,8 +129,8 @@ export async function deleteConta(id) {
   });
 }
 
-export async function getTransacoes(
-  contaId,
+export async function getTransacoes({
+  contaId = null,
   data = null,
   dataInicio = null,
   dataFim = null,
@@ -138,7 +138,7 @@ export async function getTransacoes(
   pageSize = 20,
   categoriaId = null,
   status = null,
-) {
+} = {}) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
   if (data) params.set('data', data);
@@ -151,16 +151,16 @@ export async function getTransacoes(
   return authFetch(url(`/transacoes?${params}`));
 }
 
-export async function getTransacoesRange(
-  contaId,
+export async function getTransacoesRange({
+  contaId = null,
   dataInicio,
   dataFim,
   page = 1,
   pageSize = 20,
   categoriaId = null,
   status = null,
-) {
-  return getTransacoes(contaId, null, dataInicio, dataFim, page, pageSize, categoriaId, status);
+} = {}) {
+  return getTransacoes({ contaId, dataInicio, dataFim, page, pageSize, categoriaId, status });
 }
 
 export async function getTransacao(id) {

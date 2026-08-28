@@ -75,7 +75,13 @@ export default function DashboardPage() {
       const [res, det, txns] = await Promise.all([
         getResumoPeriodo(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim),
         getDetalhamento(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim),
-        getTransacoesRange(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim, 1, 100),
+        getTransacoesRange({
+          contaId: contaSelecionadaId,
+          dataInicio: periodoApi.dataInicio,
+          dataFim: periodoApi.dataFim,
+          page: 1,
+          pageSize: 100,
+        }),
       ]);
 
       if (requestIdRef.current !== reqId) return;

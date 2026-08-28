@@ -75,15 +75,15 @@ export default function Extrato() {
       }
       try {
         const [txns, res] = await Promise.all([
-          getTransacoesRange(
-            contaSelecionadaId,
-            periodoApi.dataInicio,
-            periodoApi.dataFim,
-            pageNum,
-            20,
-            categoriaSelecionadaId ? Number(categoriaSelecionadaId) : null,
-            statusSelecionado || null,
-          ),
+          getTransacoesRange({
+            contaId: contaSelecionadaId,
+            dataInicio: periodoApi.dataInicio,
+            dataFim: periodoApi.dataFim,
+            page: pageNum,
+            pageSize: 20,
+            categoriaId: categoriaSelecionadaId ? Number(categoriaSelecionadaId) : null,
+            status: statusSelecionado || null,
+          }),
           getResumoPeriodo(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim),
         ]);
         setTransacoes(txns.data);

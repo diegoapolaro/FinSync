@@ -116,14 +116,12 @@ export default function LancamentosPage() {
       const todasTransacoes = [];
       let page = 1;
       while (true) {
-        const dados = await getTransacoes(
-          contaSelecionadaId,
-          dataSelecionada,
-          null,
-          null,
+        const dados = await getTransacoes({
+          contaId: contaSelecionadaId,
+          data: dataSelecionada,
           page,
-          100,
-        );
+          pageSize: 100,
+        });
         const paginaAtual = dados?.data ?? [];
         todasTransacoes.push(...paginaAtual);
         if (paginaAtual.length < 100) break;
