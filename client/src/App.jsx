@@ -40,6 +40,7 @@ export default function App() {
                       <Route path="/lancamentos" element={<LancamentosPage />} />
                       <Route path="/relatorios" element={<RelatoriosPage />} />
                       <Route path="/ajustes" element={<AjustesPage />} />
+                      <Route path="/perfil" element={<Navigate to="/ajustes#perfil" replace />} />
                     </Route>
                   </Route>
                 </Routes>

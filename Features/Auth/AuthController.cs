@@ -55,4 +55,14 @@ public class AuthController(IAuthService authService) : ControllerBase
         if (!success) return BadRequest(new { error });
         return NoContent();
     }
+
+    [Authorize]
+    [HttpPut("perfil")]
+    public async Task<ActionResult<AuthResponse>> AtualizarPerfil(AtualizarPerfilRequest request)
+    {
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var (response, error) = await authService.AtualizarPerfilAsync(usuarioId, request);
+        if (error is not null) return BadRequest(new { error });
+        return Ok(response);
+    }
 }

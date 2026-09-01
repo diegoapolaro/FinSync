@@ -312,4 +312,76 @@ public class AuthServiceTests : ServiceTestBase
         Assert.False(success);
         Assert.Contains("já possui", error);
     }
+
+    [Fact]
+    public async Task AtualizarPerfilAsync_ComDadosValidos_DeveAtualizarNomeEFoto()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("perfil@finsync.com");
+
+        var request = new AtualizarPerfilRequest
+        {
+            Nome = "Nome Atualizado",
+            FotoUrl = "https://images.unsplash.com/photo-avatar.jpg"
+        };
+
+        var (response, error) = await service.AtualizarPerfilAsync(usuario.Id, request);
+
+        Assert.Null(error);
+        Assert.NotNull(response);
+        Assert.Equal("Nome Atualizado", response!.Nome);
+        Assert.Equal("https://images.unsplash.com/photo-avatar.jpg", response.FotoUrl);
+        Assert.False(string.IsNullOrWhiteSpace(response.Token));
+
+        var usuarioDb = await Context.Usuarios.FindAsync(usuario.Id);
+        Assert.NotNull(usuarioDb);
+        Assert.Equal("Nome Atualizado", usuarioDb!.Nome);
+        Assert.Equal("https://images.unsplash.com/photo-avatar.jpg", usuarioDb.FotoUrl);
+    }
+
+    [Fact]
+    public async Task AtualizarPerfilAsync_ComFotoVaziaOuEspacos_DeveSalvarComoNull()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("removerfoto@finsync.com");
+        usuario.FotoUrl = "https://foto-antiga.jpg";
+        await Context.SaveChangesAsync();
+
+        var request = new AtualizarPerfilRequest
+        {
+            Nome = "Nome Sem Foto",
+            FotoUrl = "   "
+        };
+
+        var (response, error) = await service.AtualizarPerfilAsync(usuario.Id, request);
+
+        Assert.Null(error);
+        Assert.NotNull(response);
+        Assert.Equal("Nome Sem Foto", response!.Nome);
+        Assert.Null(response.FotoUrl);
+
+        var usuarioDb = await Context.Usuarios.FindAsync(usuario.Id);
+        Assert.NotNull(usuarioDb);
+        Assert.Null(usuarioDb!.FotoUrl);
+    }
+
+    [Fact]
+    public async Task AtualizarPerfilAsync_UsuarioInexistente_DeveRetornarErro()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+
+        var request = new AtualizarPerfilRequest
+        {
+            Nome = "Fantasma",
+            FotoUrl = null
+        };
+
+        var (response, error) = await service.AtualizarPerfilAsync(99999, request);
+
+        Assert.Null(response);
+        Assert.Equal("Usuário não encontrado.", error);
+    }
 }

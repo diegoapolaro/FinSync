@@ -99,6 +99,14 @@ export async function definirSenha(novaSenha) {
   });
 }
 
+export async function atualizarPerfil(dados) {
+  return authFetch(url('/auth/perfil'), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados),
+  });
+}
+
 export async function getContas() {
   return authFetch(url('/contas'));
 }

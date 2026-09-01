@@ -21,7 +21,6 @@ public class Usuario
     [StringLength(100)]
     public string? GoogleId { get; set; }
 
-    [StringLength(500)]
     public string? FotoUrl { get; set; }
 
     public DateTime DataCriacao { get; set; } = DateTime.UtcNow;

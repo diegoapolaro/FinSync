@@ -31,6 +31,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
+    useLocation: () => ({ hash: '', pathname: '/ajustes' }),
     useOutletContext: () => ({
       contas: mockContas,
       setContas: mockSetContas,
@@ -93,6 +94,61 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     const foto = screen.getByRole('img', { name: 'Maria Silva' });
     expect(foto).toBeInTheDocument();
     expect(foto).toHaveAttribute('src', 'https://lh3.googleusercontent.com/a/foto-maria');
+  });
+
+  it('deve abrir modal de alterar foto ao clicar no botão Alterar Foto', () => {
+    renderPage();
+
+    const btnAlterarFoto = screen.getByText('Alterar Foto');
+    fireEvent.click(btnAlterarFoto);
+
+    expect(screen.getByRole('heading', { name: 'Alterar Foto de Perfil' })).toBeInTheDocument();
+    expect(screen.getByText('Enviar Foto')).toBeInTheDocument();
+    expect(screen.getByText('Galeria')).toBeInTheDocument();
+    expect(screen.getByText('Link URL')).toBeInTheDocument();
+  });
+
+  it('deve permitir selecionar avatar da galeria de presets', async () => {
+    const mockAtualizarPerfil = vi.fn().mockResolvedValue({
+      nome: 'Diego Polaro',
+      email: 'diego@finsync.app',
+      fotoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=FinSync1&backgroundColor=1c6cff',
+      temSenha: true,
+    });
+
+    render(
+      <AuthContext.Provider
+        value={{
+          user: mockUserDefault,
+          isAuthenticated: true,
+          logout: vi.fn(),
+          atualizarPerfil: mockAtualizarPerfil,
+        }}
+      >
+        <ToastProvider>
+          <TemaProvider>
+            <AjustesPage />
+          </TemaProvider>
+        </ToastProvider>
+      </AuthContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByText('Alterar Foto'));
+    fireEvent.click(screen.getByText('Galeria'));
+
+    const roboPreset = screen.getByText('Robo Tech');
+    expect(roboPreset).toBeInTheDocument();
+    fireEvent.click(roboPreset);
+
+    const btnSalvar = screen.getByRole('button', { name: 'Salvar Foto' });
+    fireEvent.click(btnSalvar);
+
+    await waitFor(() => {
+      expect(mockAtualizarPerfil).toHaveBeenCalledWith({
+        nome: 'Diego Polaro',
+        fotoUrl: expect.stringContaining('dicebear.com'),
+      });
+    });
   });
 
   it('deve exibir contas existentes e permitir abrir formulário de nova conta', async () => {

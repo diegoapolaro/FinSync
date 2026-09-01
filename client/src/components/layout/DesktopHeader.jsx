@@ -89,12 +89,27 @@ export default function DesktopHeader() {
         <div className="h-5 w-px bg-border/80 mx-1" />
 
         <div className="flex items-center gap-2 pl-1">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground text-xs">
-            {user?.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <span className="text-xs font-semibold text-foreground truncate max-w-[120px]">
-            {user?.nome}
-          </span>
+          <button
+            type="button"
+            onClick={() => navigate('/ajustes#perfil')}
+            title="Ver meu perfil"
+            className="flex items-center gap-2 p-1 -ml-1 rounded-xl hover:bg-secondary/80 transition-all cursor-pointer group text-left focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            {user?.fotoUrl ? (
+              <img
+                src={user.fotoUrl}
+                alt={user?.nome || 'Foto de perfil'}
+                className="w-8 h-8 rounded-full object-cover border border-border/80 shadow-sm group-hover:border-primary/50 transition-colors shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground text-xs shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                {user?.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
+              </div>
+            )}
+            <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[120px]">
+              {user?.nome}
+            </span>
+          </button>
           <Button
             variant="ghost"
             size="iconSm"

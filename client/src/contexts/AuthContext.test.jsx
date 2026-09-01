@@ -16,17 +16,22 @@ vi.mock('../services/api', () => ({
   login: vi.fn(),
   registrar: vi.fn(),
   loginGoogle: vi.fn(),
+  atualizarPerfil: vi.fn(),
 }));
 
 function ConsumerComponent() {
-  const { user, isAuthenticated, login, registrar, loginGoogle, logout } = useAuth();
+  const { user, isAuthenticated, login, registrar, loginGoogle, logout, atualizarPerfil } = useAuth();
   return (
     <div>
       <span data-testid="auth-status">{isAuthenticated ? 'autenticado' : 'deslogado'}</span>
       <span data-testid="user-name">{user?.nome || ''}</span>
+      <span data-testid="user-foto">{user?.fotoUrl || ''}</span>
       <button onClick={() => login('test@finsync.app', 'senha123')}>Fazer Login</button>
       <button onClick={() => registrar('Novo User', 'novo@finsync.app', 'senha123')}>Registrar</button>
       <button onClick={() => loginGoogle('google-token')}>Login Google</button>
+      <button onClick={() => atualizarPerfil({ nome: 'Diego Atualizado', fotoUrl: 'https://foto-nova.jpg' })}>
+        Atualizar Perfil
+      </button>
       <button onClick={() => logout()}>Sair</button>
     </div>
   );
@@ -194,5 +199,44 @@ describe('AuthContext - Persistência e Ciclo de Sessão', () => {
     expect(api.setAuthToken).toHaveBeenCalledWith(null);
     expect(screen.getByTestId('auth-status')).toHaveTextContent('deslogado');
     expect(mockNavigate).toHaveBeenCalledWith('/login');
+  });
+
+  it('deve atualizar usuário e salvar no localStorage ao chamar atualizarPerfil', async () => {
+    const savedUser = { nome: 'Diego', email: 'diego@finsync.app', fotoUrl: null, temSenha: true };
+    localStorage.setItem('finsync_user', JSON.stringify(savedUser));
+    localStorage.setItem('finsync_token', 'jwt-token-valido');
+
+    api.atualizarPerfil.mockResolvedValue({
+      token: 'jwt-atualizado',
+      nome: 'Diego Atualizado',
+      email: 'diego@finsync.app',
+      fotoUrl: 'https://foto-nova.jpg',
+      temSenha: true,
+    });
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>,
+    );
+
+    expect(screen.getByTestId('user-name')).toHaveTextContent('Diego');
+
+    await act(async () => {
+      screen.getByText('Atualizar Perfil').click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('user-name')).toHaveTextContent('Diego Atualizado');
+      expect(screen.getByTestId('user-foto')).toHaveTextContent('https://foto-nova.jpg');
+      expect(localStorage.getItem('finsync_token')).toBe('jwt-atualizado');
+      expect(JSON.parse(localStorage.getItem('finsync_user'))).toEqual({
+        nome: 'Diego Atualizado',
+        email: 'diego@finsync.app',
+        fotoUrl: 'https://foto-nova.jpg',
+        temSenha: true,
+      });
+      expect(api.setAuthToken).toHaveBeenCalledWith('jwt-atualizado');
+    });
   });
 });

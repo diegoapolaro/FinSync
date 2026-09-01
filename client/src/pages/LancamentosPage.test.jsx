@@ -437,31 +437,38 @@ describe('LancamentosPage.jsx', () => {
     });
   });
 
-  describe('Modo de Edição e Cancelamento', () => {
-    it('deve preencher os dados no formulário ao clicar em editar e permitir cancelamento', async () => {
+  describe('Modo de Edição Inline e Cancelamento', () => {
+    it('deve abrir o mini-editor inline ao clicar em editar e fechar ao cancelar mantendo o formulário do topo limpo', async () => {
       renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
       });
 
+      // Formulário do topo começa como Novo Lançamento
+      expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
+
       const btnEditar = screen.getAllByTitle('Editar')[0];
       fireEvent.click(btnEditar);
 
+      // Mini-editor inline deve estar visível com título "Editar Lançamento"
       expect(screen.getByText('Editar Lançamento')).toBeInTheDocument();
-      expect(screen.getByText('Modo Edição')).toBeInTheDocument();
       expect(screen.getByDisplayValue('Venda de Pizza')).toBeInTheDocument();
       expect(screen.getByDisplayValue('85,5')).toBeInTheDocument();
+
+      // Formulário do topo continua como Novo Lançamento sem ser afetado
+      expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
 
       const btnCancelar = screen.getByRole('button', { name: /Cancelar/i });
       expect(btnCancelar).toBeInTheDocument();
       fireEvent.click(btnCancelar);
 
+      // Mini-editor inline é fechado
+      expect(screen.queryByText('Editar Lançamento')).not.toBeInTheDocument();
       expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
-      expect(screen.queryByText('Modo Edição')).not.toBeInTheDocument();
     });
 
-    it('deve submeter a atualização com updateTransacao ao salvar alterações', async () => {
+    it('deve submeter a atualização com updateTransacao ao salvar alterações no mini-editor inline', async () => {
       api.updateTransacao.mockResolvedValue({ id: 1 });
       renderPage();
 
@@ -484,7 +491,7 @@ describe('LancamentosPage.jsx', () => {
           valor: 85.5,
           tipo: 'Entrada',
           status: 'Pago',
-          data: expect.any(String),
+          data: '2026-08-26',
           contaId: 1,
           categoriaId: 10,
         }));
@@ -493,6 +500,22 @@ describe('LancamentosPage.jsx', () => {
       await waitFor(() => {
         expect(screen.getByText('Lançamento atualizado!')).toBeInTheDocument();
       });
+    });
+
+    it('deve alternar a abertura e fechamento ao clicar repetidamente no botão de editar', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+      });
+
+      const btnEditar = screen.getAllByTitle('Editar')[0];
+      fireEvent.click(btnEditar);
+      expect(screen.getByText('Editar Lançamento')).toBeInTheDocument();
+
+      const btnFechar = screen.getByTitle('Fechar edição');
+      fireEvent.click(btnFechar);
+      expect(screen.queryByText('Editar Lançamento')).not.toBeInTheDocument();
     });
   });
 

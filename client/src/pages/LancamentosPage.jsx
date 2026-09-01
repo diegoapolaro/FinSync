@@ -38,6 +38,7 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
+import InlineTransactionEditor from '../components/transactions/InlineTransactionEditor';
 import { cn } from '@/lib/utils';
 
 function formatDateOnly(date) {
@@ -105,6 +106,7 @@ export default function LancamentosPage() {
     tipo: tipoParam === TIPO_TRANSACAO.SAIDA ? TIPO_TRANSACAO.SAIDA : TIPO_TRANSACAO.ENTRADA,
   }));
   const [editandoId, setEditandoId] = useState(null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [dataSelecionada, setDataSelecionada] = useState(() => formatDateOnly(new Date()));
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState(false);
@@ -174,29 +176,25 @@ export default function LancamentosPage() {
 
   function resetForm() {
     setForm(formInicial);
-    setEditandoId(null);
   }
 
   function editar(t) {
-    if (t.data) {
-      setDataSelecionada(t.data);
+    setEditandoId((prev) => (prev === t.id ? null : t.id));
+  }
+
+  async function handleSalvarEdicao(payload) {
+    if (!editandoId || salvandoEdicao) return;
+    setSalvandoEdicao(true);
+    try {
+      await updateTransacao(editandoId, payload);
+      addToast('Lançamento atualizado!', 'success');
+      setEditandoId(null);
+      await carregarTransacoes();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setSalvandoEdicao(false);
     }
-    setForm({
-      descricao: t.descricao,
-      valor: formatCurrencyInput(t.valor),
-      tipo: t.tipo,
-      status: t.status || STATUS_TRANSACAO.PAGO,
-      categoriaId: t.categoriaId || '',
-      contaId: t.contaId ? String(t.contaId) : '',
-      modo: MODO_LANCAMENTO.UNICO,
-      totalParcelas: 2,
-      modoValorParcelamento: MODO_PARCELAMENTO.TOTAL,
-      frequenciaRecorrencia: FREQUENCIA_RECORRENCIA.MENSAL,
-      temDataFim: false,
-      dataFimRecorrencia: '',
-    });
-    setEditandoId(t.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Previsão de parcelamento
@@ -252,18 +250,13 @@ export default function LancamentosPage() {
             : null,
       };
 
-      if (editandoId) {
-        await updateTransacao(editandoId, payload);
-        addToast('Lançamento atualizado!', 'success');
+      await createTransacao(payload);
+      if (isParcelado) {
+        addToast(`Compra parcelada em ${form.totalParcelas}x criada com sucesso!`, 'success');
+      } else if (isRecorrente) {
+        addToast('Lançamento recorrente cadastrado e projetado!', 'success');
       } else {
-        await createTransacao(payload);
-        if (isParcelado) {
-          addToast(`Compra parcelada em ${form.totalParcelas}x criada com sucesso!`, 'success');
-        } else if (isRecorrente) {
-          addToast('Lançamento recorrente cadastrado e projetado!', 'success');
-        } else {
-          addToast('Lançamento registrado com sucesso!', 'success');
-        }
+        addToast('Lançamento registrado com sucesso!', 'success');
       }
 
       resetForm();
@@ -405,26 +398,20 @@ export default function LancamentosPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-normal text-xl tracking-[-0.03em] text-foreground">
-              {editandoId ? 'Editar Lançamento' : 'Novo Lançamento'}
+              Novo Lançamento
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Insira os detalhes do lançamento financeiro
             </p>
           </div>
-          {editandoId && (
-            <Badge variant="warning" className="text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              Modo Edição
-            </Badge>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Mode Switcher: Único / Parcelado / Recorrente */}
-          {!editandoId && (
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Tipo de Agendamento
-              </label>
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Tipo de Agendamento
+            </label>
               <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary rounded-xl border border-border">
                 <button
                   type="button"
@@ -467,7 +454,6 @@ export default function LancamentosPage() {
                 </button>
               </div>
             </div>
-          )}
 
           {/* Type Switcher */}
           <div className="grid grid-cols-2 gap-1.5 p-1 bg-secondary rounded-xl border border-border">
@@ -579,7 +565,7 @@ export default function LancamentosPage() {
           </div>
 
           {/* Seção Específica: Parcelamento */}
-          {form.modo === MODO_LANCAMENTO.PARCELADO && !editandoId && (
+          {form.modo === MODO_LANCAMENTO.PARCELADO && (
             <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
@@ -632,7 +618,7 @@ export default function LancamentosPage() {
           )}
 
           {/* Seção Específica: Recorrência */}
-          {form.modo === MODO_LANCAMENTO.RECORRENTE && !editandoId && (
+          {form.modo === MODO_LANCAMENTO.RECORRENTE && (
             <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-3">
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
@@ -834,18 +820,6 @@ export default function LancamentosPage() {
 
           {/* CTA Actions */}
           <div className="flex gap-3 pt-2">
-            {editandoId && (
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={resetForm}
-                className="flex-1 rounded-full"
-              >
-                <X className="w-4 h-4 mr-1.5" />
-                Cancelar
-              </Button>
-            )}
             <Button
               type="submit"
               variant="default"
@@ -858,13 +832,11 @@ export default function LancamentosPage() {
               ) : (
                 <CheckCircle2 className="w-5 h-5 mr-1.5 stroke-[2.5]" />
               )}
-              {editandoId
-                ? 'Salvar Alterações'
-                : form.modo === MODO_LANCAMENTO.PARCELADO
-                  ? `Gerar ${form.totalParcelas}x Parcelas`
-                  : form.modo === MODO_LANCAMENTO.RECORRENTE
-                    ? 'Confirmar Recorrência'
-                    : 'Confirmar Lançamento'}
+              {form.modo === MODO_LANCAMENTO.PARCELADO
+                ? `Gerar ${form.totalParcelas}x Parcelas`
+                : form.modo === MODO_LANCAMENTO.RECORRENTE
+                  ? 'Confirmar Recorrência'
+                  : 'Confirmar Lançamento'}
             </Button>
           </div>
         </form>
@@ -902,111 +874,132 @@ export default function LancamentosPage() {
               const isPendente = t.status === STATUS_TRANSACAO.PENDENTE;
               const isParcelado = Boolean(t.parcelamentoId || t.numeroParcela);
               const isRecorrente = Boolean(t.recorrenciaId);
+              const isEditingThis = editandoId === t.id;
 
               return (
-                <Card
-                  key={t.id}
-                  className="p-3.5 flex items-center justify-between hover:shadow-card-hover transition-all duration-200 group border-border"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={cn(
-                        'w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 border border-border bg-secondary',
-                        tEntrada ? 'text-entrada' : 'text-saida',
-                      )}
-                    >
-                      <Icon className="w-4 h-4 stroke-[2.5]" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-foreground truncate text-sm tracking-tight">
-                        {t.descricao}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        {t.categoriaNome && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground">
-                            {t.categoriaNome}
-                          </span>
+                <div key={t.id} className="space-y-1">
+                  <Card
+                    className={cn(
+                      'p-3.5 flex items-center justify-between hover:shadow-card-hover transition-all duration-200 group border-border',
+                      isEditingThis && 'border-primary/50 ring-1 ring-primary/20 bg-secondary/30',
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={cn(
+                          'w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 border border-border bg-secondary',
+                          tEntrada ? 'text-entrada' : 'text-saida',
                         )}
-                        {isParcelado && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
-                            <Layers className="w-2.5 h-2.5" />
-                            {t.numeroParcela}/{t.totalParcelas}
-                          </span>
-                        )}
-                        {isRecorrente && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
-                            <Repeat className="w-2.5 h-2.5" />
-                            {t.frequenciaRecorrencia || 'Fixo'}
-                          </span>
-                        )}
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-                            isPendente
-                              ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                              : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                      >
+                        <Icon className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground truncate text-sm tracking-tight">
+                          {t.descricao}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {t.categoriaNome && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground">
+                              {t.categoriaNome}
+                            </span>
                           )}
-                        >
-                          {isPendente && <Clock className="w-2.5 h-2.5" />}
-                          {t.status || STATUS_TRANSACAO.PAGO}
-                        </span>
+                          {isParcelado && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
+                              <Layers className="w-2.5 h-2.5" />
+                              {t.numeroParcela}/{t.totalParcelas}
+                            </span>
+                          )}
+                          {isRecorrente && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+                              <Repeat className="w-2.5 h-2.5" />
+                              {t.frequenciaRecorrencia || 'Fixo'}
+                            </span>
+                          )}
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border',
+                              isPendente
+                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                            )}
+                          >
+                            {isPendente && <Clock className="w-2.5 h-2.5" />}
+                            {t.status || STATUS_TRANSACAO.PAGO}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                    <span
-                      className={cn(
-                        'numeric-mono text-sm font-bold tracking-tight',
-                        tEntrada ? 'text-entrada' : 'text-saida',
-                      )}
-                    >
-                      {tEntrada ? '+ ' : '- '}
-                      {formatCurrency(t.valor)}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="iconSm"
-                        onClick={() => handleToggleStatus(t)}
-                        title={isPendente ? 'Marcar como Pago' : 'Marcar como Pendente'}
+                    <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                      <span
                         className={cn(
-                          'rounded-xl transition-colors',
-                          isPendente
-                            ? 'hover:bg-emerald-500/15 text-amber-500 hover:text-emerald-500'
-                            : 'hover:bg-amber-500/15 text-muted-foreground hover:text-amber-500',
+                          'numeric-mono text-sm font-bold tracking-tight',
+                          tEntrada ? 'text-entrada' : 'text-saida',
                         )}
                       >
-                        {isPendente ? (
-                          <CheckCircle2 className="w-4 h-4" />
-                        ) : (
-                          <Clock className="w-4 h-4" />
-                        )}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="iconSm"
-                        onClick={() => editar(t)}
-                        title="Editar"
-                        className="rounded-xl hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Edit2 className="w-4 h-4 text-muted-foreground" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="iconSm"
-                        onClick={() => confirmarExclusao(t)}
-                        title="Excluir"
-                        className="rounded-xl hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        {tEntrada ? '+ ' : '- '}
+                        {formatCurrency(t.valor)}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="iconSm"
+                          onClick={() => handleToggleStatus(t)}
+                          title={isPendente ? 'Marcar como Pago' : 'Marcar como Pendente'}
+                          className={cn(
+                            'rounded-xl transition-colors',
+                            isPendente
+                              ? 'hover:bg-emerald-500/15 text-amber-500 hover:text-emerald-500'
+                              : 'hover:bg-amber-500/15 text-muted-foreground hover:text-amber-500',
+                          )}
+                        >
+                          {isPendente ? (
+                            <CheckCircle2 className="w-4 h-4" />
+                          ) : (
+                            <Clock className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={isEditingThis ? 'secondary' : 'ghost'}
+                          size="iconSm"
+                          onClick={() => editar(t)}
+                          title={isEditingThis ? 'Fechar edição' : 'Editar'}
+                          className={cn(
+                            'rounded-xl transition-all',
+                            isEditingThis
+                              ? 'bg-primary/10 text-primary opacity-100'
+                              : 'hover:bg-muted opacity-0 group-hover:opacity-100',
+                          )}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="iconSm"
+                          onClick={() => confirmarExclusao(t)}
+                          title="Excluir"
+                          className="rounded-xl hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+
+                  {isEditingThis && (
+                    <InlineTransactionEditor
+                      transacao={t}
+                      categoriasPorTipo={categoriasPorTipo}
+                      contas={contas}
+                      onSalvar={handleSalvarEdicao}
+                      onCancelar={() => setEditandoId(null)}
+                      salvando={salvandoEdicao}
+                    />
+                  )}
+                </div>
               );
             })}
           </div>

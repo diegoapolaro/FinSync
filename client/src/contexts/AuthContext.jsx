@@ -6,6 +6,7 @@ import {
   login as apiLogin,
   registrar as apiRegistrar,
   loginGoogle as apiLoginGoogle,
+  atualizarPerfil as apiAtualizarPerfil,
 } from '../services/api';
 
 export const AuthContext = createContext(null);
@@ -94,6 +95,23 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
+  const atualizarPerfil = useCallback(async (dados) => {
+    const data = await apiAtualizarPerfil(dados);
+    if (data?.token) {
+      localStorage.setItem('finsync_token', data.token);
+      setAuthToken(data.token);
+    }
+    const updated = {
+      nome: data.nome,
+      email: data.email,
+      fotoUrl: data.fotoUrl,
+      temSenha: data.temSenha,
+    };
+    localStorage.setItem('finsync_user', JSON.stringify(updated));
+    setUser(updated);
+    return data;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('finsync_token');
     localStorage.removeItem('finsync_user');
@@ -105,7 +123,9 @@ export function AuthProvider({ children }) {
   }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, registrar, loginGoogle, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, login, registrar, loginGoogle, logout, atualizarPerfil }}
+    >
       {children}
     </AuthContext.Provider>
   );

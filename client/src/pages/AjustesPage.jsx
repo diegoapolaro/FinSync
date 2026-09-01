@@ -1,9 +1,10 @@
-import { useOutletContext } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useOutletContext, useLocation } from 'react-router-dom';
 import { User, Building, Tag, Sliders, Bell, Download, Shield, Moon, Repeat } from 'lucide-react';
 import usePreferencias from '../hooks/usePreferencias';
 import { useTema } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import SettingsSection from '../components/settings/SettingsSection';
+import PerfilSection from '../components/settings/PerfilSection';
 import ContasSection from '../components/settings/ContasSection';
 import CategoriasSection from '../components/settings/CategoriasSection';
 import RecorrenciasSection from '../components/settings/RecorrenciasSection';
@@ -35,6 +36,19 @@ export default function AjustesPage() {
   const { user } = useAuth();
   const { prefs } = usePreferencias();
   const { tema, alternarTema } = useTema();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const el = document.getElementById(id);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, [location.hash]);
 
   return (
     <div className="px-4 md:px-8 max-w-7xl mx-auto pb-32 md:pb-12 pt-6">
@@ -74,32 +88,8 @@ export default function AjustesPage() {
 
         {/* Main Content Settings */}
         <div className="lg:col-span-9 space-y-10">
-          {/* Perfil */}
-          <SettingsSection id="perfil" title="Perfil do Usuário" icon={User}>
-            <Card className="p-6 flex items-center justify-between border-border/80 shadow-sm">
-              <div className="flex items-center gap-4">
-                {user?.fotoUrl ? (
-                  <img
-                    src={user.fotoUrl}
-                    alt={user?.nome || 'Foto de perfil'}
-                    className="w-14 h-14 rounded-full object-cover border border-border/80 shadow-sm shrink-0"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground text-xl select-none shrink-0">
-                    {user?.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <h3 className="font-normal text-lg text-foreground tracking-[-0.03em] truncate">
-                    {user?.nome || 'Usuário'}
-                  </h3>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email || 'usuario@email.com'}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </SettingsSection>
+          {/* Perfil do Usuário com Gerenciador de Foto e Nome */}
+          <PerfilSection />
 
           {/* Contas */}
           <ContasSection contas={contas} setContas={setContas} />

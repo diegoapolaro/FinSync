@@ -65,3 +65,12 @@ public class DefinirSenhaRequest
         ErrorMessage = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número.")]
     public string NovaSenha { get; set; } = string.Empty;
 }
+
+public class AtualizarPerfilRequest
+{
+    [Required(ErrorMessage = "O nome é obrigatório.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "O nome deve ter entre 2 e 100 caracteres.")]
+    public string Nome { get; set; } = string.Empty;
+
+    public string? FotoUrl { get; set; }
+}

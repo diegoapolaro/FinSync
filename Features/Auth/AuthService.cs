@@ -179,6 +179,30 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
         return (true, null);
     }
 
+    public async Task<(AuthResponse? Response, string? Error)> AtualizarPerfilAsync(int usuarioId, AtualizarPerfilRequest request)
+    {
+        var usuario = await context.Usuarios.FindAsync(usuarioId);
+        if (usuario is null)
+        {
+            return (null, "Usuário não encontrado.");
+        }
+
+        usuario.Nome = request.Nome.Trim();
+        usuario.FotoUrl = string.IsNullOrWhiteSpace(request.FotoUrl) ? null : request.FotoUrl.Trim();
+        await context.SaveChangesAsync();
+
+        var token = GerarToken(usuario);
+
+        return (new AuthResponse
+        {
+            Token = token,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            FotoUrl = usuario.FotoUrl,
+            TemSenha = !string.IsNullOrEmpty(usuario.SenhaHash)
+        }, null);
+    }
+
     private async Task ProvisionarDadosIniciaisAsync(int usuarioId)
     {
         var contaPadrao = new Conta
