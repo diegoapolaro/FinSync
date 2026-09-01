@@ -18,7 +18,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '../../utils/formatters';
 import { TIPO_TRANSACAO, FREQUENCIA_RECORRENCIA, STATUS_TRANSACAO } from '../../utils/constants';
 import {
   getRecorrencias,
@@ -95,7 +95,7 @@ export default function RecorrenciasSection({ contas = [], categorias = [] }) {
     setEditandoItem(item);
     setForm({
       descricao: item.descricao,
-      valor: String(item.valor).replace('.', ','),
+      valor: formatCurrencyInput(item.valor),
       tipo: item.tipo,
       frequencia: item.frequencia,
       dataInicio: item.dataInicio,
@@ -133,7 +133,7 @@ export default function RecorrenciasSection({ contas = [], categorias = [] }) {
     try {
       const payload = {
         descricao: form.descricao.trim(),
-        valor: Number(form.valor.replace(',', '.')),
+        valor: parseCurrencyInput(form.valor),
         tipo: form.tipo,
         frequencia: form.frequencia,
         dataInicio: form.dataInicio,
@@ -425,8 +425,8 @@ export default function RecorrenciasSection({ contas = [], categorias = [] }) {
                     placeholder="0,00"
                     value={form.valor}
                     onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9,]/g, '');
-                      setForm((f) => ({ ...f, valor: raw }));
+                      const formatted = formatCurrencyInput(e.target.value);
+                      setForm((f) => ({ ...f, valor: formatted }));
                     }}
                     required
                     className="rounded-xl h-10 text-sm bg-secondary border-border numeric-mono font-semibold"

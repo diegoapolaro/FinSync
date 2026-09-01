@@ -134,9 +134,9 @@ Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`
 
 - **Back-end no Azure:** API .NET 10 implantada no Azure App Service (`https://finsync-api.azurewebsites.net`), integrada ao banco PostgreSQL remoto no Supabase. CORS liberado para o domínio do Vercel e localhost.
 - **Front-end no Vercel:** Configuração SPA criada com `vercel.json` e `VITE_API_BASE_URL` direcionado para a API de produção.
-- **Testes:** 61 testes xUnit (.NET) e 79 testes Vitest (React) 100% aprovados.
+- **Testes:** 62 testes xUnit (.NET) e 102 testes Vitest (React) 100% aprovados.
 - **Recorrências & Parcelamentos:** Divisão automática de compras parceladas com projeção de faturas futuras (2x a 72x), regras de recorrência periódica (mensal, semanal, anual) com motor de projeção de até 12 meses futuros e painel de gestão dedicado em Ajustes.
-- **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, senhas com BCrypt, sessões isoladas por usuário, Google OAuth 2.0 (Google Identity Services + backend validation), rate limiting com `AddRateLimiter`, mitigação de timing attack e headers HTTP de segurança.
+- **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, expiração configurável via `Jwt:ExpiryInDays` (padrão 7 dias para equilibrar conveniência e segurança), persistência de sessão segura no cliente via `localStorage` com tratamento automático de 401 Unauthorized e logout, senhas com BCrypt, sessões isoladas por usuário, Google OAuth 2.0 (Google Identity Services + backend validation), rate limiting com `AddRateLimiter`, mitigação de timing attack e headers HTTP de segurança.
 
 ---
 
@@ -149,4 +149,4 @@ Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`
 
 ---
 
-*Última atualização: 28/08/2026*
+*Última atualização: 01/09/2026*

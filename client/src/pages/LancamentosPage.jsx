@@ -24,7 +24,7 @@ import {
   deleteTransacao,
   getCategorias,
 } from '../services/api';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '../utils/formatters';
 import {
   TIPO_TRANSACAO,
   STATUS_TRANSACAO,
@@ -183,7 +183,7 @@ export default function LancamentosPage() {
     }
     setForm({
       descricao: t.descricao,
-      valor: String(t.valor).replace('.', ','),
+      valor: formatCurrencyInput(t.valor),
       tipo: t.tipo,
       status: t.status || STATUS_TRANSACAO.PAGO,
       categoriaId: t.categoriaId || '',
@@ -202,7 +202,7 @@ export default function LancamentosPage() {
   // Previsão de parcelamento
   const previewParcelamento = useMemo(() => {
     if (form.modo !== MODO_LANCAMENTO.PARCELADO) return null;
-    const numVal = Number(form.valor.replace(',', '.')) || 0;
+    const numVal = parseCurrencyInput(form.valor);
     const n = Math.max(2, Math.min(72, Number(form.totalParcelas) || 2));
     const isModoParcela = form.modoValorParcelamento === MODO_PARCELAMENTO.PARCELA;
 
@@ -235,7 +235,7 @@ export default function LancamentosPage() {
 
       const payload = {
         descricao: form.descricao.trim(),
-        valor: Number(form.valor.replace(',', '.')),
+        valor: parseCurrencyInput(form.valor),
         tipo: form.tipo,
         status: form.status || STATUS_TRANSACAO.PAGO,
         data: dataSelecionada,
@@ -570,8 +570,8 @@ export default function LancamentosPage() {
                 inputMode="decimal"
                 value={form.valor}
                 onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9,]/g, '');
-                  setForm((f) => ({ ...f, valor: raw }));
+                  const formatted = formatCurrencyInput(e.target.value);
+                  setForm((f) => ({ ...f, valor: formatted }));
                 }}
                 required
               />

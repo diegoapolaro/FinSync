@@ -548,5 +548,68 @@ describe('LancamentosPage.jsx', () => {
       });
     });
   });
+
+  describe('Formatação Automática de Milhar no Campo de Valor', () => {
+    it('deve formatar 1000 como 1.000 ao digitar e enviar valor numérico correto', async () => {
+      api.createTransacao.mockResolvedValue({ id: 99 });
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      fireEvent.change(inputValor, { target: { value: '1000' } });
+
+      expect(inputValor.value).toBe('1.000');
+
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+      fireEvent.change(inputDesc, { target: { value: 'Serviço Prestado' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith(
+          expect.objectContaining({
+            valor: 1000,
+            descricao: 'Serviço Prestado',
+          }),
+        );
+      });
+    });
+
+    it('deve formatar valores com centavos como 1.250,50 e enviar valor correto', async () => {
+      api.createTransacao.mockResolvedValue({ id: 100 });
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      fireEvent.change(inputValor, { target: { value: '1250,50' } });
+
+      expect(inputValor.value).toBe('1.250,50');
+
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+      fireEvent.change(inputDesc, { target: { value: 'Compra de Estoque' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith(
+          expect.objectContaining({
+            valor: 1250.5,
+          }),
+        );
+      });
+    });
+  });
 });
 

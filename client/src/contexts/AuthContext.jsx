@@ -12,20 +12,26 @@ export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const saved = sessionStorage.getItem('finsync_user');
+    const saved = localStorage.getItem('finsync_user') || sessionStorage.getItem('finsync_user');
     return saved ? JSON.parse(saved) : null;
   });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedToken = sessionStorage.getItem('finsync_token');
+    const savedToken = localStorage.getItem('finsync_token') || sessionStorage.getItem('finsync_token');
     if (savedToken) {
       setAuthToken(savedToken);
+      // Garante migração para localStorage caso estivesse em sessionStorage
+      if (!localStorage.getItem('finsync_token')) {
+        localStorage.setItem('finsync_token', savedToken);
+      }
     }
   }, []);
 
   useEffect(() => {
     setOnUnauthorized(() => {
+      localStorage.removeItem('finsync_token');
+      localStorage.removeItem('finsync_user');
       sessionStorage.removeItem('finsync_token');
       sessionStorage.removeItem('finsync_user');
       setAuthToken(null);
@@ -39,8 +45,8 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, senha) => {
     const data = await apiLogin(email, senha);
-    sessionStorage.setItem('finsync_token', data.token);
-    sessionStorage.setItem(
+    localStorage.setItem('finsync_token', data.token);
+    localStorage.setItem(
       'finsync_user',
       JSON.stringify({
         nome: data.nome,
@@ -56,8 +62,8 @@ export function AuthProvider({ children }) {
 
   const registrar = useCallback(async (nome, email, senha) => {
     const data = await apiRegistrar(nome, email, senha);
-    sessionStorage.setItem('finsync_token', data.token);
-    sessionStorage.setItem(
+    localStorage.setItem('finsync_token', data.token);
+    localStorage.setItem(
       'finsync_user',
       JSON.stringify({
         nome: data.nome,
@@ -73,8 +79,8 @@ export function AuthProvider({ children }) {
 
   const loginGoogle = useCallback(async (idToken) => {
     const data = await apiLoginGoogle(idToken);
-    sessionStorage.setItem('finsync_token', data.token);
-    sessionStorage.setItem(
+    localStorage.setItem('finsync_token', data.token);
+    localStorage.setItem(
       'finsync_user',
       JSON.stringify({
         nome: data.nome,
@@ -89,6 +95,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('finsync_token');
+    localStorage.removeItem('finsync_user');
     sessionStorage.removeItem('finsync_token');
     sessionStorage.removeItem('finsync_user');
     setAuthToken(null);

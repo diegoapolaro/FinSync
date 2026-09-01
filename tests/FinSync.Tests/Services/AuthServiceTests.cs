@@ -114,6 +114,33 @@ public class AuthServiceTests : ServiceTestBase
         Assert.Equal(usuario.Id.ToString(), jwt.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
         Assert.Equal(usuario.Nome, jwt.Claims.First(c => c.Type == ClaimTypes.Name).Value);
         Assert.Equal(usuario.Email, jwt.Claims.First(c => c.Type == ClaimTypes.Email).Value);
+        Assert.True(jwt.ValidTo > DateTime.UtcNow.AddDays(6));
+    }
+
+    [Fact]
+    public async Task LoginAsync_ComExpiryInDaysCustomizado_DeveConfigurarExpiracaoCorreta()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Jwt:Key"] = "finsync-test-super-secret-key-1234567890-abc",
+                ["Jwt:Issuer"] = "FinSync",
+                ["Jwt:Audience"] = "FinSyncUsers",
+                ["Jwt:ExpiryInDays"] = "14"
+            })
+            .Build();
+        var service = CreateService(configuration);
+        var senha = "Senha123!";
+        var usuario = await CriarUsuarioAsync("expcustom@finsync.com");
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword(senha);
+        await Context.SaveChangesAsync();
+
+        var (response, error) = await service.LoginAsync(new LoginRequest { Email = usuario.Email, Senha = senha });
+
+        Assert.Null(error);
+        Assert.NotNull(response);
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(response!.Token);
+        Assert.True(jwt.ValidTo > DateTime.UtcNow.AddDays(13));
     }
 
     [Fact]

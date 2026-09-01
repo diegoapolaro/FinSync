@@ -68,3 +68,41 @@ export function formatDate(value) {
     year: 'numeric',
   });
 }
+
+export function formatCurrencyInput(value) {
+  if (value === null || value === undefined) return '';
+  let str = String(value);
+  if (!str.trim()) return '';
+
+  if (typeof value === 'number') {
+    str = str.replace('.', ',');
+  }
+
+  const clean = str.replace(/[^0-9,]/g, '');
+  if (!clean) return '';
+
+  const parts = clean.split(',');
+  let integerPart = parts[0];
+  const decimalPart = parts.length > 1 ? parts.slice(1).join('').slice(0, 2) : null;
+
+  if (integerPart.length > 1 && integerPart.startsWith('0')) {
+    integerPart = integerPart.replace(/^0+/, '') || '0';
+  } else if (!integerPart && decimalPart !== null) {
+    integerPart = '0';
+  }
+
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+  if (decimalPart !== null) {
+    return `${formattedInteger},${decimalPart}`;
+  }
+  return formattedInteger;
+}
+
+export function parseCurrencyInput(value) {
+  if (typeof value === 'number') return isNaN(value) ? 0 : value;
+  if (!value) return 0;
+  const clean = String(value).replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(clean);
+  return isNaN(num) ? 0 : num;
+}

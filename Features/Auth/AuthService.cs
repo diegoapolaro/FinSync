@@ -220,11 +220,12 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
             new Claim(ClaimTypes.Email, usuario.Email)
         };
 
+        var expiryDays = configuration.GetValue<int?>("Jwt:ExpiryInDays") ?? 7;
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(8),
+            expires: DateTime.UtcNow.AddDays(expiryDays),
             signingCredentials: creds
         );
 
