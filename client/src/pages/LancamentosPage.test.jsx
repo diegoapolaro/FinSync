@@ -140,11 +140,11 @@ describe('LancamentosPage.jsx', () => {
         expect(api.getTransacoes).toHaveBeenCalled();
       });
 
-      const btnOntem = screen.getByRole('button', { name: /Ontem/i });
+      const btnOntem = screen.getAllByRole('button', { name: /Ontem/i })[0];
       fireEvent.click(btnOntem);
 
       await waitFor(() => {
-        expect(screen.getByText(/Ontem,/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Lançamentos de Ontem/i })).toBeInTheDocument();
         expect(api.getTransacoes).toHaveBeenCalledTimes(2);
       });
 
@@ -152,8 +152,72 @@ describe('LancamentosPage.jsx', () => {
       fireEvent.click(btnAmanha);
 
       await waitFor(() => {
-        expect(screen.getByText(/Hoje,/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /Lançamentos de Hoje/i })).toBeInTheDocument();
         expect(api.getTransacoes).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    it('deve permitir selecionar uma data retroativa de vários dias atrás pelo input de data e recarregar transações', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalled();
+      });
+
+      // Mudar a data no seletor de navegação para 30 dias atrás (ex: 2026-08-01)
+      const inputDataHeader = screen.getByLabelText('Selecionar data do lançamento');
+      fireEvent.change(inputDataHeader, { target: { value: '2026-08-01' } });
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: '2026-08-01',
+          }),
+        );
+      });
+
+      // Como 2026-08-01 não é hoje, o botão de atalho "Hoje" deve aparecer no cabeçalho
+      const btnHoje = screen.getByTitle('Voltar para Hoje');
+      expect(btnHoje).toBeInTheDocument();
+
+      // Clicar em Hoje para voltar instantaneamente à data atual
+      fireEvent.click(btnHoje);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /Lançamentos de Hoje/i })).toBeInTheDocument();
+      });
+    });
+
+    it('deve permitir alterar a data diretamente pelo campo de formulário e submeter com a data escolhida', async () => {
+      api.createTransacao.mockResolvedValue({ id: 99 });
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      });
+
+      const inputDataForm = screen.getByLabelText('Data do Lançamento');
+      fireEvent.change(inputDataForm, { target: { value: '2026-07-15' } });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+
+      fireEvent.change(inputValor, { target: { value: '95,00' } });
+      fireEvent.change(inputDesc, { target: { value: 'Compra retroativa de insumos' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: '2026-07-15',
+            descricao: 'Compra retroativa de insumos',
+            valor: 95,
+          }),
+        );
       });
     });
   });

@@ -32,6 +32,7 @@ import {
   MODO_PARCELAMENTO,
   MODO_LANCAMENTO,
 } from '../utils/constants';
+import { useTema } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -44,6 +45,16 @@ function formatDateOnly(date) {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+function getHojeDateString() {
+  return formatDateOnly(new Date());
+}
+
+function getOntemDateString() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return formatDateOnly(d);
 }
 
 function formatLabel(date) {
@@ -81,6 +92,11 @@ export default function LancamentosPage() {
   const [searchParams] = useSearchParams();
   const tipoParam = searchParams.get('tipo');
   const { addToast } = useToast();
+  const { tema = 'escuro' } = useTema() || {};
+  const colorScheme = tema === 'escuro' ? 'dark' : 'light';
+
+  const hojeStr = getHojeDateString();
+  const ontemStr = getOntemDateString();
 
   const [transacoes, setTransacoes] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -162,6 +178,9 @@ export default function LancamentosPage() {
   }
 
   function editar(t) {
+    if (t.data) {
+      setDataSelecionada(t.data);
+    }
     setForm({
       descricao: t.descricao,
       valor: String(t.valor).replace('.', ','),
@@ -325,7 +344,7 @@ export default function LancamentosPage() {
       )}
 
       {/* Date Navigation Header */}
-      <div className="flex items-center justify-between mb-6 bg-card px-5 py-2.5 rounded-full border border-border/80 shadow-sm">
+      <div className="flex items-center justify-between gap-2 mb-6 bg-card px-4 md:px-5 py-2.5 rounded-2xl md:rounded-full border border-border/80 shadow-sm flex-wrap sm:flex-nowrap">
         <Button
           type="button"
           variant="ghost"
@@ -336,12 +355,39 @@ export default function LancamentosPage() {
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Ontem
         </Button>
+
         <div className="flex items-center gap-2">
-          <Calendar className="w-3.5 h-3.5 text-primary" />
-          <span className="font-bold text-sm text-foreground">
-            {formatLabel(new Date(dataSelecionada + 'T12:00:00'))}
-          </span>
+          <label
+            htmlFor="data-navegacao-header"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary/80 border border-border cursor-pointer hover:bg-secondary transition-colors"
+            title="Escolha uma data no calendário ou digite"
+          >
+            <Calendar className="w-3.5 h-3.5 text-primary" />
+            <input
+              id="data-navegacao-header"
+              type="date"
+              value={dataSelecionada}
+              onChange={(e) => e.target.value && setDataSelecionada(e.target.value)}
+              className="bg-transparent text-xs font-mono font-bold text-foreground focus:outline-none cursor-pointer"
+              style={{ colorScheme }}
+              aria-label="Selecionar data do lançamento"
+            />
+          </label>
+
+          {dataSelecionada !== hojeStr && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDataSelecionada(hojeStr)}
+              className="h-7 px-2.5 text-[11px] font-semibold rounded-full border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+              title="Voltar para Hoje"
+            >
+              Hoje
+            </Button>
+          )}
         </div>
+
         <Button
           type="button"
           variant="ghost"
@@ -654,6 +700,55 @@ export default function LancamentosPage() {
             />
           </div>
 
+          {/* Date Selector */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="form-data-transacao"
+                className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Data do Lançamento
+              </label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDataSelecionada(hojeStr)}
+                  className={cn(
+                    'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md transition-colors',
+                    dataSelecionada === hojeStr
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary',
+                  )}
+                >
+                  Hoje
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDataSelecionada(ontemStr)}
+                  className={cn(
+                    'text-[10px] uppercase font-semibold px-2 py-0.5 rounded-md transition-colors',
+                    dataSelecionada === ontemStr
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary',
+                  )}
+                >
+                  Ontem
+                </button>
+              </div>
+            </div>
+            <div className="relative">
+              <Input
+                id="form-data-transacao"
+                type="date"
+                value={dataSelecionada}
+                onChange={(e) => e.target.value && setDataSelecionada(e.target.value)}
+                className="rounded-xl h-11 text-sm bg-secondary border-border font-mono cursor-pointer"
+                style={{ colorScheme }}
+                required
+              />
+            </div>
+          </div>
+
           {/* Status Selector */}
           <div className="space-y-1.5">
             <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -779,7 +874,7 @@ export default function LancamentosPage() {
       <div className="mt-10">
         <div className="flex items-center justify-between mb-4 px-1">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Lançamentos do Dia ({dataSelecionada})
+            Lançamentos de {formatLabel(new Date(dataSelecionada + 'T12:00:00'))} ({dataSelecionada})
           </h3>
           <span className="text-xs numeric-mono text-muted-foreground font-medium">
             Total: {transacoes.length}

@@ -495,8 +495,9 @@ public class TransacaoServiceTests : ServiceTestBase
         await Context.SaveChangesAsync();
 
         var service = new TransacaoService(Context);
-        var bytes = await service.ExportarCsvAsync(conta.Id, "mes_atual", usuario.Id);
-        var csv = System.Text.Encoding.UTF8.GetString(bytes);
+        using var ms = new MemoryStream();
+        await service.ExportarCsvAsync(conta.Id, "mes_atual", usuario.Id, ms);
+        var csv = System.Text.Encoding.UTF8.GetString(ms.ToArray());
 
         Assert.Contains("Id,Descricao,Valor,Tipo,Status,Data,ContaId", csv);
         Assert.Contains("Pendente", csv);
