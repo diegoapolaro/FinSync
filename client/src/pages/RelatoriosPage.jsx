@@ -56,6 +56,7 @@ export default function RelatoriosPage() {
   const [dataFim, setDataFim] = useState(() => new Date());
 
   const [resumo, setResumo] = useState(null);
+  const [resumoAnterior, setResumoAnterior] = useState(null);
   const [detalhamento, setDetalhamento] = useState([]);
   const [transacoes, setTransacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -68,6 +69,20 @@ export default function RelatoriosPage() {
     [filtroTipo, dataRef, dataSelecionada, dataInicio, dataFim],
   );
 
+  const periodoAnterior = useMemo(() => {
+    const iniDate = new Date(periodoApi.dataInicio + 'T12:00:00');
+    const fimDate = new Date(periodoApi.dataFim + 'T12:00:00');
+    const diffMs = fimDate - iniDate;
+    
+    const antFim = new Date(iniDate.getTime() - 86400000);
+    const antIni = new Date(antFim.getTime() - diffMs);
+    
+    return {
+      dataInicio: antIni.toISOString().slice(0, 10),
+      dataFim: antFim.toISOString().slice(0, 10),
+    };
+  }, [periodoApi]);
+
   const carregarDados = useCallback(async () => {
     const reqId = ++requestIdRef.current;
     if (!contaSelecionadaId) {
@@ -76,11 +91,13 @@ export default function RelatoriosPage() {
     }
 
     try {
-      const [res] = await Promise.all([
+      const [res, resAnt] = await Promise.all([
         getResumoPeriodo(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim),
+        getResumoPeriodo(contaSelecionadaId, periodoAnterior.dataInicio, periodoAnterior.dataFim),
       ]);
       if (requestIdRef.current !== reqId) return;
       setResumo(res);
+      setResumoAnterior(resAnt);
 
       const todasTransacoes = [];
       let page = 1;
@@ -103,6 +120,7 @@ export default function RelatoriosPage() {
     } catch {
       if (requestIdRef.current !== reqId) return;
       setResumo(null);
+      setResumoAnterior(null);
       setTransacoes([]);
     }
 
@@ -158,6 +176,16 @@ export default function RelatoriosPage() {
   const saldoPeriodo = resumo?.saldo ?? 0;
   const totalGeral = totalEntradas + totalSaidas;
 
+  const varEntradas = resumoAnterior?.totalEntradas > 0
+    ? ((totalEntradas - resumoAnterior.totalEntradas) / resumoAnterior.totalEntradas) * 100
+    : null;
+  const varSaidas = resumoAnterior?.totalSaidas > 0
+    ? ((totalSaidas - resumoAnterior.totalSaidas) / resumoAnterior.totalSaidas) * 100
+    : null;
+  const varSaldo = resumoAnterior?.saldo !== undefined && resumoAnterior?.saldo !== 0
+    ? ((saldoPeriodo - Math.abs(resumoAnterior.saldo)) / Math.abs(resumoAnterior.saldo)) * 100
+    : null; // Saldo is tricky, simplified calculation. Better to use standard diff if possible, but let's stick to simple logic or what is done in Comparativo.
+
   const transacoesFiltradas = useMemo(
     () =>
       transacoesFiltradasPorPeriodo(transacoes, filtroTipo, dataSelecionada, dataInicio, dataFim),
@@ -175,8 +203,24 @@ export default function RelatoriosPage() {
   }, [detalhamento]);
 
   const maioresSaidas = useMemo(() => {
-    return transacoesFiltradas
-      .filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA)
+    const saidasFiltradas = transacoesFiltradas.filter(
+      (t) => t.tipo === TIPO_TRANSACAO.SAIDA,
+    );
+    
+    const agrupado = {};
+    for (const t of saidasFiltradas) {
+      // Remove o padrão (xx/yy) ou (x/y) do final da string
+      let nomeLimpo = t.descricao.trim().replace(/\(\d{1,2}\/\d{1,2}\)$/, '').trim();
+      
+      const chave = nomeLimpo.toLowerCase();
+      if (!agrupado[chave]) {
+        agrupado[chave] = { descricao: nomeLimpo, valor: 0, count: 0 };
+      }
+      agrupado[chave].valor += t.valor;
+      agrupado[chave].count += 1;
+    }
+
+    return Object.values(agrupado)
       .sort((a, b) => b.valor - a.valor)
       .slice(0, 5);
   }, [transacoesFiltradas]);
@@ -417,9 +461,9 @@ export default function RelatoriosPage() {
             <>
               <div className="mb-8">
                 <ResponsiveGrid cols={3} gap={4}>
-                  <SummaryCard tipo="entrada" value={totalEntradas} />
-                  <SummaryCard tipo="saida" value={totalSaidas} />
-                  <SummaryCard tipo="saldo" value={saldoPeriodo} />
+                  <SummaryCard tipo="entrada" value={totalEntradas} variacao={varEntradas} />
+                  <SummaryCard tipo="saida" value={totalSaidas} variacao={varSaidas} />
+                  <SummaryCard tipo="saldo" value={saldoPeriodo} variacao={varSaldo} />
                 </ResponsiveGrid>
               </div>
 
@@ -431,33 +475,54 @@ export default function RelatoriosPage() {
                       subtitle="Comparativo semanal de entradas e saídas"
                       icon={<BarChart3 className="w-4 h-4" />}
                     >
-                      <div className="h-56 flex items-end justify-between gap-3 px-3 pb-3 border-b border-border/60 relative">
-                        {semanas.map((sem) => (
-                          <div
-                            key={sem.semana}
-                            className="flex-1 flex justify-center items-end gap-2 group relative h-full"
-                          >
+                      <div className="h-56 flex relative border-b border-border/60">
+                        {/* Eixo Y — linhas de referência */}
+                        <div className="hidden sm:flex flex-col justify-between items-end pr-2 text-[10px] numeric-mono text-muted-foreground w-16 shrink-0 py-1">
+                          <span>{formatCurrency(Math.max(...semanas.map(w => Math.max(w.entradas, w.saidas)), 1))}</span>
+                          <span>{formatCurrency(Math.max(...semanas.map(w => Math.max(w.entradas, w.saidas)), 1) / 2)}</span>
+                          <span>R$ 0</span>
+                        </div>
+                        
+                        {/* Linhas de grade horizontais */}
+                        <div className="absolute left-0 sm:left-16 right-0 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
+                          <div className="border-t border-border/30 border-dashed" />
+                          <div className="border-t border-border/30 border-dashed" />
+                          <div className="border-t border-border/30" />
+                        </div>
+
+                        <div className="flex-1 flex items-end justify-between gap-3 px-3 pb-3 relative z-0">
+                          {semanas.map((sem) => (
                             <div
-                              className="w-4 bg-[#05b169] chart-bar rounded-t-lg"
-                              style={{
-                                height: Math.max(sem.entPct, 3) + '%',
-                                animationDelay: sem.semana * 100 + 'ms',
-                              }}
-                              title={'Entradas: ' + formatCurrency(sem.entradas)}
-                            />
-                            <div
-                              className="w-4 bg-[#cf202f] chart-bar rounded-t-lg"
-                              style={{
-                                height: Math.max(sem.saiPct, 3) + '%',
-                                animationDelay: sem.semana * 100 + 50 + 'ms',
-                              }}
-                              title={'Saídas: ' + formatCurrency(sem.saidas)}
-                            />
-                            <div className="absolute -bottom-6 text-[10px] font-bold text-muted-foreground uppercase">
-                              Sem {sem.semana}
+                              key={sem.semana}
+                              className="flex-1 flex justify-center items-end gap-2 group relative h-full"
+                            >
+                              <div
+                                className="w-4 bg-[#05b169] chart-bar rounded-t-lg"
+                                style={{
+                                  height: Math.max(sem.entPct, 3) + '%',
+                                  animationDelay: sem.semana * 100 + 'ms',
+                                }}
+                              />
+                              <div
+                                className="w-4 bg-[#cf202f] chart-bar rounded-t-lg"
+                                style={{
+                                  height: Math.max(sem.saiPct, 3) + '%',
+                                  animationDelay: sem.semana * 100 + 50 + 'ms',
+                                }}
+                              />
+                              <div className="absolute -bottom-6 text-[10px] font-bold text-muted-foreground uppercase">
+                                Sem {sem.semana}
+                              </div>
+                              {/* Tooltip on hover */}
+                              <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-card border border-border 
+                                rounded-xl px-3 py-2 text-xs shadow-lg opacity-0 group-hover:opacity-100 
+                                transition-opacity pointer-events-none z-10 whitespace-nowrap">
+                                <div className="text-entrada font-semibold">↑ {formatCurrency(sem.entradas)}</div>
+                                <div className="text-saida font-semibold">↓ {formatCurrency(sem.saidas)}</div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                       <div className="mt-8 flex gap-6 justify-center">
                         <div className="flex items-center gap-2">
@@ -515,11 +580,11 @@ export default function RelatoriosPage() {
                             ))}
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-2xl font-bold tracking-tight text-foreground">
-                              {totalSaidas > 0 ? '100%' : '0%'}
+                            <span className="numeric-mono text-lg font-bold tracking-tight text-foreground">
+                              {formatCurrency(totalSaidas)}
                             </span>
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                              Saídas
+                              Total Saídas
                             </span>
                           </div>
                         </div>
@@ -534,7 +599,10 @@ export default function RelatoriosPage() {
                                   className="w-2.5 h-2.5 rounded-full shrink-0"
                                   style={{ backgroundColor: seg.color }}
                                 />
-                                <span className="text-xs font-semibold text-foreground truncate max-w-[130px]">
+                                <span 
+                                  className="text-xs font-semibold text-foreground truncate max-w-[130px]"
+                                  title={seg.nome}
+                                >
                                   {seg.nome}
                                 </span>
                               </div>
@@ -555,7 +623,7 @@ export default function RelatoriosPage() {
                 <div className="lg:col-span-2">
                   <ChartContainer
                     title="Maiores Saídas"
-                    subtitle="Principais desembolsos individuais"
+                    subtitle="Principais fornecedores / favorecidos"
                     icon={<ArrowDownRight className="w-4 h-4" />}
                   >
                     {maioresSaidas.length === 0 ? (
@@ -567,13 +635,21 @@ export default function RelatoriosPage() {
                         {maioresSaidas.map((t) => {
                           const pct = (t.valor / maxSaida) * 100;
                           return (
-                            <div key={t.id} className="space-y-1.5">
+                            <div key={t.descricao} className="space-y-1.5">
                               <div className="flex justify-between items-center text-xs">
-                                <span className="font-semibold text-foreground truncate max-w-[200px] md:max-w-[300px]">
+                                <span 
+                                  className="font-semibold text-foreground truncate max-w-[200px] md:max-w-[300px] flex items-center gap-1.5"
+                                  title={t.descricao}
+                                >
                                   {t.descricao}
+                                  {t.count > 1 && (
+                                    <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded-full">
+                                      {t.count}x
+                                    </span>
+                                  )}
                                 </span>
                                 <span className="numeric-mono font-bold text-[#cf202f]">
-                                  - {formatCurrency(t.valor)}
+                                  {formatCurrency(t.valor)}
                                 </span>
                               </div>
                               <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden">

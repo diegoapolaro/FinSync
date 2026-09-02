@@ -1,6 +1,7 @@
 import { ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
 import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 
 const variants = {
@@ -30,7 +31,7 @@ const variants = {
   },
 };
 
-export default function SummaryCard({ tipo, value }) {
+export default function SummaryCard({ tipo, value, variacao }) {
   const v = variants[tipo] || variants.entrada;
   const { Icon } = v;
 
@@ -69,6 +70,19 @@ export default function SummaryCard({ tipo, value }) {
         >
           {formatCurrency(value)}
         </h3>
+        {variacao !== null && variacao !== undefined && (
+          <Badge 
+            variant="outline"
+            className={cn(
+              'text-[10px] px-1.5 py-0.5 rounded-full ml-2 align-middle',
+              (tipo === 'saida' ? variacao <= 0 : variacao >= 0)
+                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                : 'bg-rose-500/10 text-rose-500 border-rose-500/30',
+            )}
+          >
+            {variacao >= 0 ? '↑' : '↓'} {Math.abs(variacao).toFixed(1)}%
+          </Badge>
+        )}
       </div>
     </Card>
   );

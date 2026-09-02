@@ -57,6 +57,11 @@ export const QUICK_EMOJIS = [
   '🍕', '🧀', '🍅', '🥖', '🥤', '🥩', '🛵', '📦', '🔥', '💳', '👥', '🏪', '🧼', '🔧', '📢', '💰', '📱', '⭐'
 ];
 
+const sanitizarNome = (nome) => nome
+  .replace(/[""]/g, '"')
+  .replace(/['']/g, "'")
+  .trimStart();
+
 export default function CategoriasSection({ categorias, setCategorias }) {
   const { addToast } = useToast();
 
@@ -198,7 +203,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
                 <Input
                   placeholder="Nome da categoria (ex: Vendas, Alimentação...)"
                   value={novaCatNome}
-                  onChange={(e) => setNovaCatNome(e.target.value)}
+                  onChange={(e) => setNovaCatNome(sanitizarNome(e.target.value))}
                   disabled={salvandoNova}
                   className="bg-secondary border-border"
                 />
@@ -347,7 +352,7 @@ export default function CategoriasSection({ categorias, setCategorias }) {
               disabled={isSavingCategoria}
               placeholder="Nome"
               value={editCatNome}
-              onChange={(e) => setEditCatNome(e.target.value)}
+              onChange={(e) => setEditCatNome(sanitizarNome(e.target.value))}
               className="bg-secondary border-border"
             />
             {/* Seletor Rápido de Emojis na Edição */}
