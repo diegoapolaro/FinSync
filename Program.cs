@@ -126,12 +126,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var context = scope.ServiceProvider.GetRequiredService<FinSyncDbContext>();
+    await context.Database.MigrateAsync();
+    if (app.Environment.IsDevelopment())
     {
-        var context = scope.ServiceProvider.GetRequiredService<FinSyncDbContext>();
-        await context.Database.MigrateAsync();
         await DbSeeder.SeedAsync(context);
     }
 }

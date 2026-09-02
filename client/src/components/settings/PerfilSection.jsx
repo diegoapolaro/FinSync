@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   User,
   Camera,
@@ -46,7 +46,17 @@ export default function PerfilSection() {
   const [previewFoto, setPreviewFoto] = useState(user?.fotoUrl || null);
   const [urlInput, setUrlInput] = useState('');
   const [salvandoFoto, setSalvandoFoto] = useState(false);
+  const [fotoPerfilError, setFotoPerfilError] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setFotoPerfilError(false);
+  }, [user?.fotoUrl]);
+
+  useEffect(() => {
+    setPreviewError(false);
+  }, [previewFoto]);
 
   // Redimensiona e comprime a imagem local usando Canvas para manter payload minúsculo
   const processarArquivoImagem = (file) => {
@@ -180,10 +190,11 @@ export default function PerfilSection() {
                 aria-label="Alterar foto de perfil"
                 className="relative block w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-primary/20 group-hover:border-primary transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                {user?.fotoUrl ? (
+                {user?.fotoUrl && !fotoPerfilError ? (
                   <img
                     src={user.fotoUrl}
                     alt={user?.nome || 'Foto de perfil'}
+                    onError={() => setFotoPerfilError(true)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -304,10 +315,11 @@ export default function PerfilSection() {
           {/* Avatar Preview Central */}
           <div className="flex flex-col items-center justify-center gap-2 py-2">
             <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/20 shadow-md relative bg-secondary flex items-center justify-center">
-              {previewFoto ? (
+              {previewFoto && !previewError ? (
                 <img
                   src={previewFoto}
                   alt="Pré-visualização"
+                  onError={() => setPreviewError(true)}
                   className="w-full h-full object-cover"
                 />
               ) : (

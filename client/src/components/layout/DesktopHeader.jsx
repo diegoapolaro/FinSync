@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Download, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,6 +12,11 @@ export default function DesktopHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const [pesquisa, setPesquisa] = useState('');
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.fotoUrl]);
 
   const hoje = new Date();
   const mesAno = hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -95,10 +100,11 @@ export default function DesktopHeader() {
             title="Ver meu perfil"
             className="flex items-center gap-2 p-1 -ml-1 rounded-xl hover:bg-secondary/80 transition-all cursor-pointer group text-left focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
-            {user?.fotoUrl ? (
+            {user?.fotoUrl && !imgError ? (
               <img
                 src={user.fotoUrl}
                 alt={user?.nome || 'Foto de perfil'}
+                onError={() => setImgError(true)}
                 className="w-8 h-8 rounded-full object-cover border border-border/80 shadow-sm group-hover:border-primary/50 transition-colors shrink-0"
               />
             ) : (

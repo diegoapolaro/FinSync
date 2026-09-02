@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,6 +9,11 @@ export default function MobileTopBar() {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.fotoUrl]);
 
   return (
     <header className="md:hidden flex justify-between items-center px-4 py-3 w-full bg-background/85 backdrop-blur-md border-b border-border/80 sticky top-0 z-30 transition-colors">
@@ -35,10 +41,11 @@ export default function MobileTopBar() {
           title="Ver perfil"
           className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-secondary transition-colors max-w-[120px] text-left"
         >
-          {user?.fotoUrl ? (
+          {user?.fotoUrl && !imgError ? (
             <img
               src={user.fotoUrl}
               alt={user?.nome || 'Foto de perfil'}
+              onError={() => setImgError(true)}
               className="w-6 h-6 rounded-full object-cover border border-border/80 shrink-0"
             />
           ) : (
