@@ -1,6 +1,7 @@
 using FinSync.Data;
 using FinSync.Enums;
 using FinSync.Features.Transacoes;
+using FinSync.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinSync.Features.Recorrencias;
@@ -9,26 +10,13 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
 {
     public async Task<List<RecorrenciaDto>> GetAllAsync(int usuarioId)
     {
-        var recorrencias = await context.Recorrencias
-            .Include(r => r.Conta)
-            .Include(r => r.Categoria)
-            .Include(r => r.Transacoes)
+        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        return await context.Recorrencias
             .Where(r => r.UsuarioId == usuarioId)
             .OrderByDescending(r => r.Ativo)
             .ThenBy(r => r.Descricao)
-            .ToListAsync();
-
-        var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        return recorrencias.Select(r =>
-        {
-            var proximoVencimento = r.Transacoes
-                .Where(t => t.Data >= hoje)
-                .OrderBy(t => t.Data)
-                .Select(t => (DateOnly?)t.Data)
-                .FirstOrDefault();
-
-            return new RecorrenciaDto
+            .Select(r => new RecorrenciaDto
             {
                 Id = r.Id,
                 Descricao = r.Descricao,
@@ -39,15 +27,19 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
                 DataFim = r.DataFim,
                 StatusPadrao = r.StatusPadrao,
                 Ativo = r.Ativo,
-                ProximoVencimento = proximoVencimento ?? r.DataInicio,
+                ProximoVencimento = r.Transacoes
+                    .Where(t => t.Data >= hoje)
+                    .OrderBy(t => t.Data)
+                    .Select(t => (DateOnly?)t.Data)
+                    .FirstOrDefault() ?? r.DataInicio,
                 ContaId = r.ContaId,
-                ContaNome = r.Conta?.Nome ?? string.Empty,
+                ContaNome = r.Conta != null ? r.Conta.Nome : string.Empty,
                 CategoriaId = r.CategoriaId,
-                CategoriaNome = r.Categoria?.Nome ?? string.Empty,
-                CategoriaCor = r.Categoria?.Cor ?? string.Empty,
-                TotalTransacoesGeradas = r.Transacoes.Count
-            };
-        }).ToList();
+                CategoriaNome = r.Categoria != null ? r.Categoria.Nome : string.Empty,
+                CategoriaCor = r.Categoria != null ? r.Categoria.Cor : string.Empty,
+                TotalTransacoesGeradas = r.Transacoes.Count()
+            })
+            .ToListAsync();
     }
 
     public async Task<ResumoRecorrenciasDto> GetResumoAsync(int usuarioId)
@@ -98,40 +90,34 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
 
     public async Task<RecorrenciaDto?> GetByIdAsync(int id, int usuarioId)
     {
-        var r = await context.Recorrencias
-            .Include(r => r.Conta)
-            .Include(r => r.Categoria)
-            .Include(r => r.Transacoes)
-            .FirstOrDefaultAsync(r => r.Id == id && r.UsuarioId == usuarioId);
-
-        if (r is null) return null;
-
         var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-        var proximoVencimento = r.Transacoes
-            .Where(t => t.Data >= hoje)
-            .OrderBy(t => t.Data)
-            .Select(t => (DateOnly?)t.Data)
-            .FirstOrDefault();
 
-        return new RecorrenciaDto
-        {
-            Id = r.Id,
-            Descricao = r.Descricao,
-            Valor = r.Valor,
-            Tipo = r.Tipo,
-            Frequencia = r.Frequencia,
-            DataInicio = r.DataInicio,
-            DataFim = r.DataFim,
-            StatusPadrao = r.StatusPadrao,
-            Ativo = r.Ativo,
-            ProximoVencimento = proximoVencimento ?? r.DataInicio,
-            ContaId = r.ContaId,
-            ContaNome = r.Conta?.Nome ?? string.Empty,
-            CategoriaId = r.CategoriaId,
-            CategoriaNome = r.Categoria?.Nome ?? string.Empty,
-            CategoriaCor = r.Categoria?.Cor ?? string.Empty,
-            TotalTransacoesGeradas = r.Transacoes.Count
-        };
+        return await context.Recorrencias
+            .Where(r => r.Id == id && r.UsuarioId == usuarioId)
+            .Select(r => new RecorrenciaDto
+            {
+                Id = r.Id,
+                Descricao = r.Descricao,
+                Valor = r.Valor,
+                Tipo = r.Tipo,
+                Frequencia = r.Frequencia,
+                DataInicio = r.DataInicio,
+                DataFim = r.DataFim,
+                StatusPadrao = r.StatusPadrao,
+                Ativo = r.Ativo,
+                ProximoVencimento = r.Transacoes
+                    .Where(t => t.Data >= hoje)
+                    .OrderBy(t => t.Data)
+                    .Select(t => (DateOnly?)t.Data)
+                    .FirstOrDefault() ?? r.DataInicio,
+                ContaId = r.ContaId,
+                ContaNome = r.Conta != null ? r.Conta.Nome : string.Empty,
+                CategoriaId = r.CategoriaId,
+                CategoriaNome = r.Categoria != null ? r.Categoria.Nome : string.Empty,
+                CategoriaCor = r.Categoria != null ? r.Categoria.Cor : string.Empty,
+                TotalTransacoesGeradas = r.Transacoes.Count()
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<(RecorrenciaDto? Dto, string? Error)> CreateAsync(CreateRecorrenciaDto dto, int usuarioId)
@@ -271,7 +257,6 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
     public async Task<(bool Found, string? Error)> DeleteAsync(int id, bool excluirTransacoesFuturas, int usuarioId)
     {
         var recorrencia = await context.Recorrencias
-            .Include(r => r.Transacoes)
             .FirstOrDefaultAsync(r => r.Id == id && r.UsuarioId == usuarioId);
 
         if (recorrencia is null) return (false, "Recorrência não encontrada.");
@@ -279,11 +264,9 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
         if (excluirTransacoesFuturas)
         {
             var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
-            var transacoesFuturas = recorrencia.Transacoes
-                .Where(t => t.Data >= hoje && t.Status == StatusTransacao.Pendente)
-                .ToList();
-
-            context.Transacoes.RemoveRange(transacoesFuturas);
+            await context.Transacoes
+                .Where(t => t.RecorrenciaId == id && t.Data >= hoje && t.Status == StatusTransacao.Pendente)
+                .ExecuteDeleteAsync();
         }
 
         context.Recorrencias.Remove(recorrencia);
@@ -300,6 +283,27 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
 
         var totalNovas = 0;
         foreach (var r in recorrencias)
+        {
+            totalNovas += await GerarTransacoesProjetadasAsync(r);
+        }
+
+        if (totalNovas > 0)
+        {
+            await context.SaveChangesAsync();
+        }
+
+        return totalNovas;
+    }
+
+    public async Task<int> ProcessarTodasRecorrenciasAsync()
+    {
+        var recorrenciasAtivas = await context.Recorrencias
+            .Include(r => r.Transacoes)
+            .Where(r => r.Ativo)
+            .ToListAsync();
+
+        var totalNovas = 0;
+        foreach (var r in recorrenciasAtivas)
         {
             totalNovas += await GerarTransacoesProjetadasAsync(r);
         }
@@ -351,7 +355,7 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
                 });
             }
 
-            dataAtual = CalcularProximaData(dataAtual, recorrencia.Frequencia, diaBase);
+            dataAtual = DateRangeHelper.CalcularProximaData(dataAtual, recorrencia.Frequencia, diaBase);
         }
 
         if (novasTransacoes.Count > 0)
@@ -363,31 +367,4 @@ public class RecorrenciaService(FinSyncDbContext context) : IRecorrenciaService
         return await Task.FromResult(novasTransacoes.Count);
     }
 
-    public static DateOnly CalcularProximaData(DateOnly data, FrequenciaRecorrencia frequencia, int diaBase)
-    {
-        return frequencia switch
-        {
-            FrequenciaRecorrencia.Semanal => data.AddDays(7),
-            FrequenciaRecorrencia.Quinzenal => data.AddDays(14),
-            FrequenciaRecorrencia.Mensal => AddMesSeguro(data, 1, diaBase),
-            FrequenciaRecorrencia.Anual => AddAnoSeguro(data, 1, diaBase),
-            _ => data.AddMonths(1)
-        };
-    }
-
-    private static DateOnly AddMesSeguro(DateOnly data, int meses, int diaBase)
-    {
-        var proximoAnoMes = data.AddMonths(meses);
-        var diasNoMes = DateTime.DaysInMonth(proximoAnoMes.Year, proximoAnoMes.Month);
-        var dia = Math.Min(diaBase, diasNoMes);
-        return new DateOnly(proximoAnoMes.Year, proximoAnoMes.Month, dia);
-    }
-
-    private static DateOnly AddAnoSeguro(DateOnly data, int anos, int diaBase)
-    {
-        var proximoAno = data.Year + anos;
-        var diasNoMes = DateTime.DaysInMonth(proximoAno, data.Month);
-        var dia = Math.Min(diaBase, diasNoMes);
-        return new DateOnly(proximoAno, data.Month, dia);
-    }
 }

@@ -175,6 +175,22 @@ export async function getTransacao(id) {
   return authFetch(url(`/transacoes/${id}`));
 }
 
+export async function getSugestoesDescricao({
+  contaId = null,
+  tipo = null,
+  termo = null,
+  limite = 50,
+} = {}) {
+  const params = new URLSearchParams();
+  if (contaId) params.set('contaId', contaId);
+  if (tipo) params.set('tipo', tipo);
+  if (termo) params.set('termo', termo);
+  if (limite) params.set('limite', limite);
+  const qs = params.toString() ? `?${params}` : '';
+  return authFetch(url(`/transacoes/sugestoes-descricao${qs}`));
+}
+
+
 export async function createTransacao(transacao) {
   return authFetch(url('/transacoes'), {
     method: 'POST',

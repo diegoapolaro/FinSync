@@ -3,6 +3,7 @@ using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
 using FinSync.Features.Recorrencias;
 using FinSync.Features.Transacoes;
+using FinSync.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinSync.Data;
@@ -119,9 +120,8 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
     private void SetAuditTimestamps()
     {
         var entries = ChangeTracker
-            .Entries()
-            .Where(e => e.State is EntityState.Added or EntityState.Modified
-                     && e.Properties.Any(p => p.Metadata.Name is "CreatedAt" or "UpdatedAt"));
+            .Entries<IAuditableEntity>()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified);
 
         var now = DateTime.UtcNow;
 
@@ -129,10 +129,10 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Property("CreatedAt").CurrentValue = now;
+                entry.Entity.CreatedAt = now;
             }
 
-            entry.Property("UpdatedAt").CurrentValue = now;
+            entry.Entity.UpdatedAt = now;
         }
     }
 }

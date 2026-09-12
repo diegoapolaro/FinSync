@@ -65,6 +65,8 @@ builder.Services.AddScoped<IRecorrenciaService, RecorrenciaService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddHostedService<ProcessadorRecorrenciasWorker>();
+
 var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>();
 
 builder.Services.AddCors(options =>

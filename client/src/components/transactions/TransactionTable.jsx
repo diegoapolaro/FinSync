@@ -1,24 +1,21 @@
 import { Trash2, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, Layers, Repeat } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatDisplayDate } from '../../utils/formatters';
 import { TIPO_TRANSACAO, STATUS_TRANSACAO } from '../../utils/constants';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/table';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-
-function formatShortDate(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  return d
-    .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-    .replace('.', '');
-}
+import useI18n from '../../hooks/useI18n';
 
 export default function TransactionTable({
   transacoes,
   carregando,
   onDelete,
   onToggleStatus,
-  emptyMessage = 'Nenhuma movimentação neste período.',
+  emptyMessage,
 }) {
+  const { t } = useI18n();
+  const mensagemVazia = emptyMessage || t('tab_sem_transacoes', 'Nenhuma movimentação neste período.');
+
   return (
     <Card className="overflow-hidden border border-border/80 shadow-sm">
       <Table>
@@ -26,19 +23,19 @@ export default function TransactionTable({
           <TableRow className="hover:bg-transparent border-b border-border/70">
             <TableHead className="w-12 px-4" />
             <TableHead className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Descrição
+              {t('tab_descricao', 'Descrição')}
             </TableHead>
             <TableHead className="w-36 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Categoria
+              {t('tab_categoria', 'Categoria')}
             </TableHead>
             <TableHead className="w-28 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Status
+              {t('tab_status', 'Status')}
             </TableHead>
             <TableHead className="w-32 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Data
+              {t('tab_data', 'Data')}
             </TableHead>
             <TableHead className="w-36 text-right text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Valor
+              {t('tab_valor', 'Valor')}
             </TableHead>
             <TableHead className="w-20" />
           </TableRow>
@@ -54,9 +51,10 @@ export default function TransactionTable({
           )}
           {!carregando && transacoes.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-16 text-muted-foreground text-sm">
-                {emptyMessage}
+              <TableCell colSpan={7} className="text-center py-12 text-muted-foreground text-sm">
+                {mensagemVazia}
               </TableCell>
+
             </TableRow>
           )}
           {!carregando &&
@@ -120,8 +118,9 @@ export default function TransactionTable({
                     </span>
                   </TableCell>
                   <TableCell className="py-3.5 numeric-mono text-xs text-muted-foreground">
-                    {formatShortDate(t.data)}
+                    {formatDisplayDate(t.data)}
                   </TableCell>
+
                   <TableCell
                     className={cn(
                       'py-3.5 numeric-mono text-sm font-bold text-right tracking-tight',

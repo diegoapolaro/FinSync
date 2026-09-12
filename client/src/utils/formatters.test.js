@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatCurrency,
+  formatDate,
   formatDisplayDate,
   formatPeriodoLabel,
   formatCurrencyInput,
@@ -22,7 +23,28 @@ describe('formatCurrency', () => {
     expect(formatCurrency(null)).toContain('0,00');
     expect(formatCurrency(undefined)).toContain('0,00');
   });
+
+  it('converte e formata valor em USD com base na cotação', () => {
+    // 55.000 BRL na cotação 5.50 vira 10.000 USD
+    const result = formatCurrency(55000, 'US Dollar (USD - $)');
+    expect(result).toContain('$');
+    expect(result).toMatch(/10,000\.00/);
+  });
+
+  it('permite desabilitar a conversão passando converter: false', () => {
+    const result = formatCurrency(1234.56, 'US Dollar (USD - $)', { converter: false });
+    expect(result).toContain('$');
+    expect(result).toMatch(/1,234\.56/);
+  });
+
+  it('formats number as EUR currency when requested', () => {
+    const result = formatCurrency(60000, 'Euro (EUR - €)');
+    expect(result).toContain('€');
+    expect(result).toMatch(/10\.000,00/);
+  });
+
 });
+
 
 describe('formatDisplayDate', () => {
   it('formats ISO date string', () => {
@@ -37,6 +59,28 @@ describe('formatDisplayDate', () => {
     expect(formatDisplayDate(undefined)).toBe('');
   });
 });
+
+describe('formatDate', () => {
+  const data = '2026-08-23';
+
+  it('formata como dd/mm/aaaa por padrão', () => {
+    expect(formatDate(data, 'dd/mm/aaaa')).toBe('23/08/2026');
+  });
+
+  it('formata como aaaa-mm-dd quando configurado', () => {
+    expect(formatDate(data, 'aaaa-mm-dd')).toBe('2026-08-23');
+  });
+
+  it('formata como mm/dd/aaaa quando configurado', () => {
+    expect(formatDate(data, 'mm/dd/aaaa')).toBe('08/23/2026');
+  });
+
+  it('retorna string vazia para entradas nulas/falsy', () => {
+    expect(formatDate('')).toBe('');
+    expect(formatDate(null)).toBe('');
+  });
+});
+
 
 describe('formatPeriodoLabel', () => {
   const dataRef = new Date(2026, 7, 3); // 03/08/2026

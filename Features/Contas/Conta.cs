@@ -3,9 +3,11 @@ using FinSync.Enums;
 using FinSync.Features.Auth;
 using FinSync.Features.Transacoes;
 
+using FinSync.Shared.Interfaces;
+
 namespace FinSync.Features.Contas;
 
-public class Conta
+public class Conta : IAuditableEntity
 {
     public int Id { get; set; }
 

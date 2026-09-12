@@ -148,6 +148,7 @@ public class RecorrenciaServiceTests : ServiceTestBase
             ContaId = conta.Id
         }, usuario.Id);
 
+        Context.ChangeTracker.Clear();
         var (found, error) = await service.DeleteAsync(criado!.Id, excluirTransacoesFuturas: true, usuario.Id);
 
         Assert.True(found);

@@ -23,4 +23,6 @@ public interface ITransacaoService
     Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId);
     Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId);
     Task ExportarCsvAsync(int? contaId, string periodo, int usuarioId, Stream outputStream);
+    Task<List<SugestaoDescricaoDto>> GetSugestoesDescricaoAsync(int usuarioId, int? contaId, TipoTransacao? tipo, string? termo = null, int limite = 50);
 }
+

@@ -168,5 +168,51 @@ describe('Extrato.jsx category and status filter', () => {
       expect(api.updateTransacaoStatus).toHaveBeenCalledWith(1, 'Pendente');
     });
   });
+
+  it('deve renderizar a paginação sem erro (cn is not defined) quando houver mais de uma página de transações', async () => {
+    vi.spyOn(api, 'getTransacoesRange').mockResolvedValue({
+      data: Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        descricao: `Transação ${i + 1}`,
+        valor: 50.0,
+        tipo: 'Saida',
+        status: 'Pago',
+        data: '2026-06-15',
+        categoriaId: 10,
+        categoriaNome: 'Alimentação',
+      })),
+      total: 35,
+      totalPages: 2,
+      pageSize: 20,
+    });
+
+    render(
+      <TemaProvider>
+        <MemoryRouter>
+          <Extrato />
+        </MemoryRouter>
+      </TemaProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/1–20 de 35/)[0]).toBeInTheDocument();
+    });
+
+    // Deve exibir botões de página 1 e 2 no desktop e mobile
+    expect(screen.getAllByRole('button', { name: '1' })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: '2' })[0]).toBeInTheDocument();
+
+    // Clicar na página 2
+    fireEvent.click(screen.getAllByRole('button', { name: '2' })[0]);
+
+    await waitFor(() => {
+      expect(api.getTransacoesRange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 2,
+        }),
+      );
+    });
+  });
 });
+
 

@@ -10,4 +10,5 @@ public interface IRecorrenciaService
     Task<(bool Found, string? Error)> ToggleAtivoAsync(int id, int usuarioId);
     Task<(bool Found, string? Error)> DeleteAsync(int id, bool excluirTransacoesFuturas, int usuarioId);
     Task<int> ProcessarRecorrenciasAsync(int usuarioId);
+    Task<int> ProcessarTodasRecorrenciasAsync();
 }

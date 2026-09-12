@@ -65,11 +65,11 @@ describe('LoginPage.jsx', () => {
     it('deve renderizar a tela de login com formulário, botão Google e textos padrão', () => {
       renderLoginPage();
 
-      expect(screen.getByText('FinSync')).toBeInTheDocument();
-      expect(screen.getByText('Seu dinheiro, elegantemente organizado.')).toBeInTheDocument();
+      expect(screen.getByText('Bem-vindo de volta')).toBeInTheDocument();
+      expect(screen.getByText('Entre com suas credenciais para continuar.')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('seu@email.com')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Mínimo 8 caracteres')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Entrar no FinSync' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument();
       expect(screen.getByTestId('google-login-container')).toBeInTheDocument();
       expect(screen.getByText('signin_with')).toBeInTheDocument();
 
@@ -83,37 +83,62 @@ describe('LoginPage.jsx', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
+
+    it('deve exibir o link "Esqueci minha senha" no modo login', () => {
+      renderLoginPage();
+
+      expect(screen.getByRole('button', { name: 'Esqueci minha senha' })).toBeInTheDocument();
+    });
+  });
+
+  describe('Toggle de Visibilidade de Senha', () => {
+    it('deve alternar a visibilidade da senha ao clicar no ícone de olho', () => {
+      renderLoginPage();
+
+      const toggleBtn = screen.getByRole('button', { name: 'Mostrar senha' });
+      expect(toggleBtn).toBeInTheDocument();
+
+      fireEvent.click(toggleBtn);
+      expect(screen.getByRole('button', { name: 'Ocultar senha' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Ocultar senha' }));
+      expect(screen.getByRole('button', { name: 'Mostrar senha' })).toBeInTheDocument();
+    });
   });
 
   describe('Alternância entre Login e Registro', () => {
     it('deve alternar para modo de cadastro e voltar para login ao clicar no botão', () => {
       renderLoginPage();
 
-      const btnAlternar = screen.getByRole('button', {
-        name: 'Não tem uma conta? Cadastre-se gratuitamente',
+      const btnAlternar = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Não tem conta?');
       });
       fireEvent.click(btnAlternar);
 
       // Estado do modo cadastro
-      expect(screen.getByText('Crie sua conta para começar.')).toBeInTheDocument();
+      expect(screen.getByText('Criar sua conta')).toBeInTheDocument();
+      expect(screen.getByText('Preencha os dados abaixo para começar.')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Seu nome')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Repita a senha')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Criar Conta' })).toBeInTheDocument();
       expect(screen.getByText('signup_with')).toBeInTheDocument();
 
+      // "Esqueci minha senha" não deve estar visível no modo cadastro
+      expect(screen.queryByRole('button', { name: 'Esqueci minha senha' })).not.toBeInTheDocument();
+
       // Preencher campos e voltar para o login
       fireEvent.change(screen.getByPlaceholderText('Seu nome'), {
         target: { value: 'Diego Polaro' },
       });
-      const btnVoltarLogin = screen.getByRole('button', {
-        name: 'Já possui uma conta? Faça login',
+      const btnVoltarLogin = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Já tem conta?');
       });
       fireEvent.click(btnVoltarLogin);
 
       // Campos de cadastro devem sumir e o modo login restaurado
-      expect(screen.getByText('Seu dinheiro, elegantemente organizado.')).toBeInTheDocument();
+      expect(screen.getByText('Entre com suas credenciais para continuar.')).toBeInTheDocument();
       expect(screen.queryByPlaceholderText('Seu nome')).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Entrar no FinSync' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument();
     });
   });
 
@@ -122,11 +147,10 @@ describe('LoginPage.jsx', () => {
       renderLoginPage();
 
       // Ir para o modo cadastro
-      fireEvent.click(
-        screen.getByRole('button', {
-          name: 'Não tem uma conta? Cadastre-se gratuitamente',
-        }),
-      );
+      const btnAlternar = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Não tem conta?');
+      });
+      fireEvent.click(btnAlternar);
 
       const inputSenha = screen.getByPlaceholderText('Mínimo 8 caracteres');
 
@@ -152,11 +176,10 @@ describe('LoginPage.jsx', () => {
     it('deve exibir mensagem de erro e manter botão Criar Conta desabilitado quando as senhas não coincidirem', () => {
       renderLoginPage();
 
-      fireEvent.click(
-        screen.getByRole('button', {
-          name: 'Não tem uma conta? Cadastre-se gratuitamente',
-        }),
-      );
+      const btnAlternar = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Não tem conta?');
+      });
+      fireEvent.click(btnAlternar);
 
       const inputNome = screen.getByPlaceholderText('Seu nome');
       const inputEmail = screen.getByPlaceholderText('seu@email.com');
@@ -176,11 +199,10 @@ describe('LoginPage.jsx', () => {
     it('deve habilitar botão Criar Conta quando as senhas coincidirem', () => {
       renderLoginPage();
 
-      fireEvent.click(
-        screen.getByRole('button', {
-          name: 'Não tem uma conta? Cadastre-se gratuitamente',
-        }),
-      );
+      const btnAlternar = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Não tem conta?');
+      });
+      fireEvent.click(btnAlternar);
 
       const inputNome = screen.getByPlaceholderText('Seu nome');
       const inputEmail = screen.getByPlaceholderText('seu@email.com');
@@ -204,7 +226,7 @@ describe('LoginPage.jsx', () => {
 
       const inputEmail = screen.getByPlaceholderText('seu@email.com');
       const inputSenha = screen.getByPlaceholderText('Mínimo 8 caracteres');
-      const btnEntrar = screen.getByRole('button', { name: 'Entrar no FinSync' });
+      const btnEntrar = screen.getByRole('button', { name: 'Entrar' });
 
       fireEvent.change(inputEmail, { target: { value: 'usuario@finsync.app' } });
       fireEvent.change(inputSenha, { target: { value: 'Senha123' } });
@@ -216,31 +238,32 @@ describe('LoginPage.jsx', () => {
       });
     });
 
-    it('deve exibir toast de erro quando a função login falhar', async () => {
+    it('deve exibir erro inline e toast quando a função login falhar', async () => {
       mockLogin.mockRejectedValue(new Error('Credenciais inválidas.'));
       renderLoginPage();
 
       const inputEmail = screen.getByPlaceholderText('seu@email.com');
       const inputSenha = screen.getByPlaceholderText('Mínimo 8 caracteres');
-      const btnEntrar = screen.getByRole('button', { name: 'Entrar no FinSync' });
+      const btnEntrar = screen.getByRole('button', { name: 'Entrar' });
 
       fireEvent.change(inputEmail, { target: { value: 'errado@finsync.app' } });
       fireEvent.change(inputSenha, { target: { value: 'errada' } });
       fireEvent.click(btnEntrar);
 
       await waitFor(() => {
-        expect(screen.getByText('Credenciais inválidas.')).toBeInTheDocument();
+        // Erro aparece tanto inline quanto via toast
+        const erros = screen.getAllByText('Credenciais inválidas.');
+        expect(erros.length).toBeGreaterThanOrEqual(1);
       });
     });
 
     it('deve submeter o cadastro com sucesso chamando registrar e navegar para /', async () => {
       renderLoginPage();
 
-      fireEvent.click(
-        screen.getByRole('button', {
-          name: 'Não tem uma conta? Cadastre-se gratuitamente',
-        }),
-      );
+      const btnAlternar = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Não tem conta?');
+      });
+      fireEvent.click(btnAlternar);
 
       const inputNome = screen.getByPlaceholderText('Seu nome');
       const inputEmail = screen.getByPlaceholderText('seu@email.com');
@@ -268,11 +291,10 @@ describe('LoginPage.jsx', () => {
       mockRegistrar.mockRejectedValue(new Error('Email já cadastrado.'));
       renderLoginPage();
 
-      fireEvent.click(
-        screen.getByRole('button', {
-          name: 'Não tem uma conta? Cadastre-se gratuitamente',
-        }),
-      );
+      const btnAlternar = screen.getByText((content, element) => {
+        return element.tagName.toLowerCase() === 'button' && content.includes('Não tem conta?');
+      });
+      fireEvent.click(btnAlternar);
 
       fireEvent.change(screen.getByPlaceholderText('Seu nome'), {
         target: { value: 'Diego' },
@@ -290,7 +312,8 @@ describe('LoginPage.jsx', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Criar Conta' }));
 
       await waitFor(() => {
-        expect(screen.getByText('Email já cadastrado.')).toBeInTheDocument();
+        const erros = screen.getAllByText('Email já cadastrado.');
+        expect(erros.length).toBeGreaterThanOrEqual(1);
       });
     });
   });

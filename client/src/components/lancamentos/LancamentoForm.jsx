@@ -13,7 +13,15 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import ParcelamentoOptions from './ParcelamentoOptions';
 import RecorrenciaOptions from './RecorrenciaOptions';
-import { formatCurrencyInput } from '../../utils/formatters';
+import DescricaoAutocomplete from './DescricaoAutocomplete';
+import {
+  formatCurrencyInput,
+  parseCurrencyInput,
+  getCurrencyConfig,
+  converterParaBRL,
+  getCotacao,
+} from '../../utils/formatters';
+import usePreferencias from '../../hooks/usePreferencias';
 import {
   TIPO_TRANSACAO,
   STATUS_TRANSACAO,
@@ -21,6 +29,8 @@ import {
   MODO_LANCAMENTO,
 } from '../../utils/constants';
 import { cn } from '@/lib/utils';
+
+
 
 export default function LancamentoForm({
   form,
@@ -37,7 +47,14 @@ export default function LancamentoForm({
   categoriasFiltradas,
   previewParcelamento,
 }) {
+  const { prefs } = usePreferencias();
+  const currencyConfig = getCurrencyConfig(prefs?.moeda);
   const isEntrada = form.tipo === TIPO_TRANSACAO.ENTRADA;
+  const isEstrangeira = prefs?.moeda?.includes('USD') || prefs?.moeda?.includes('EUR');
+  const valorNumerico = parseCurrencyInput(form.valor);
+  const valorEmBRL = converterParaBRL(valorNumerico, prefs?.moeda);
+  const taxaCambio = getCotacao(prefs?.moeda);
+
 
   return (
     <Card className="p-6 md:p-8 border border-border">
@@ -190,8 +207,9 @@ export default function LancamentoForm({
                 isEntrada ? 'text-entrada' : 'text-saida',
               )}
             >
-              R$
+              {currencyConfig.symbol}
             </span>
+
             <input
               className={cn(
                 'w-full bg-transparent border-none p-0 numeric-mono text-3xl md:text-4xl font-bold focus:outline-none placeholder:text-muted-foreground/40',
@@ -208,7 +226,22 @@ export default function LancamentoForm({
               required
             />
           </div>
+          {isEstrangeira && valorNumerico > 0 && (
+            <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+              <span>≈</span>
+              <span className="font-semibold text-foreground numeric-mono">
+                {Number(valorEmBRL).toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })}
+              </span>
+              <span className="text-[11px] text-muted-foreground/80">
+                (cotação: 1 {currencyConfig.code} = R$ {taxaCambio.toFixed(2)})
+              </span>
+            </div>
+          )}
         </div>
+
 
         {/* Seção Específica: Parcelamento */}
         {form.modo === MODO_LANCAMENTO.PARCELADO && (
@@ -233,14 +266,33 @@ export default function LancamentoForm({
 
         {/* Description Input */}
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <label
+            htmlFor="form-descricao-input"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+          >
             Descrição / Origem
           </label>
-          <Input
+          <DescricaoAutocomplete
+            id="form-descricao-input"
             placeholder="Ex: Venda no balcão, Supermercado, Aluguel..."
-            type="text"
             value={form.descricao}
             onChange={(e) => setForm((f) => ({ ...f, descricao: e.target.value }))}
+            onSelect={(sugestao) => {
+              setForm((f) => {
+                const updates = { ...f, descricao: sugestao.descricao };
+                if (!f.categoriaId && sugestao.categoriaId && Array.isArray(categoriasFiltradas)) {
+                  const categoriaExiste = categoriasFiltradas.some(
+                    (c) => String(c.id) === String(sugestao.categoriaId),
+                  );
+                  if (categoriaExiste) {
+                    updates.categoriaId = String(sugestao.categoriaId);
+                  }
+                }
+                return updates;
+              });
+            }}
+            tipo={form.tipo}
+            contaId={contaSelecionadaId}
             maxLength={120}
             className="rounded-xl h-11 text-sm bg-secondary border-border"
             required

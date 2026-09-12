@@ -11,9 +11,18 @@ import {
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { cn } from '@/lib/utils';
-import { formatCurrencyInput, parseCurrencyInput } from '../../utils/formatters';
+import {
+  formatCurrencyInput,
+  parseCurrencyInput,
+  getCurrencyConfig,
+  converterDeBRL,
+  converterParaBRL,
+} from '../../utils/formatters';
 import { TIPO_TRANSACAO, STATUS_TRANSACAO } from '../../utils/constants';
 import { useTema } from '../../contexts/ThemeContext';
+import usePreferencias from '../../hooks/usePreferencias';
+
+
 
 export default function InlineTransactionEditor({
   transacao,
@@ -24,11 +33,17 @@ export default function InlineTransactionEditor({
   salvando = false,
 }) {
   const { tema = 'escuro' } = useTema() || {};
+  const { prefs } = usePreferencias();
+  const currencyConfig = getCurrencyConfig(prefs?.moeda);
   const colorScheme = tema === 'escuro' ? 'dark' : 'light';
+
+  const valorInicial = formatCurrencyInput(
+    converterDeBRL(transacao.valor || 0, prefs?.moeda)
+  );
 
   const [form, setForm] = useState(() => ({
     descricao: transacao.descricao || '',
-    valor: formatCurrencyInput(transacao.valor || 0),
+    valor: valorInicial,
     tipo: transacao.tipo || TIPO_TRANSACAO.SAIDA,
     status: transacao.status || STATUS_TRANSACAO.PAGO,
     data: transacao.data || '',
@@ -51,9 +66,12 @@ export default function InlineTransactionEditor({
     const valorNumerico = parseCurrencyInput(form.valor);
     if (!form.descricao.trim()) return;
 
+    const valorEmBRL = converterParaBRL(valorNumerico, prefs?.moeda);
+
     onSalvar({
       descricao: form.descricao.trim(),
-      valor: valorNumerico,
+      valor: valorEmBRL,
+
       tipo: form.tipo,
       status: form.status,
       data: form.data,
@@ -156,8 +174,9 @@ export default function InlineTransactionEditor({
                 isEntrada ? 'text-entrada' : 'text-saida',
               )}
             >
-              R$
+              {currencyConfig.symbol}
             </span>
+
             <input
               type="text"
               inputMode="decimal"

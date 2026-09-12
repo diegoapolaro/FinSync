@@ -96,4 +96,29 @@ public class TransacoesControllerTests : ServiceTestBase
         var result = await controller.PatchStatus(999, dto);
         Assert.IsType<NotFoundResult>(result);
     }
+
+    [Fact]
+    public async Task GetSugestoesDescricao_DeveRetornarOkComLista()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Controller", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        Context.Transacoes.AddRange(
+            new Transacao { Descricao = "Mercado", Valor = 100m, Tipo = TipoTransacao.Saida, Data = new DateOnly(2026, 7, 1), ContaId = conta.Id },
+            new Transacao { Descricao = "Mercado", Valor = 120m, Tipo = TipoTransacao.Saida, Data = new DateOnly(2026, 7, 2), ContaId = conta.Id }
+        );
+        await Context.SaveChangesAsync();
+
+        var controller = CriarController(usuario.Id);
+        var actionResult = await controller.GetSugestoesDescricao(conta.Id, TipoTransacao.Saida, null, 50);
+
+        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var sugestoes = Assert.IsType<List<SugestaoDescricaoDto>>(okResult.Value);
+        Assert.Single(sugestoes);
+        Assert.Equal("Mercado", sugestoes[0].Descricao);
+        Assert.Equal(2, sugestoes[0].TotalUsos);
+    }
 }
+

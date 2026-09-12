@@ -5,10 +5,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import useI18n from '../../hooks/useI18n';
 
 export default function DesktopHeader() {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const [pesquisa, setPesquisa] = useState('');
@@ -19,7 +21,7 @@ export default function DesktopHeader() {
   }, [user?.fotoUrl]);
 
   const hoje = new Date();
-  const mesAno = hoje.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const mesAno = hoje.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 
   function handleSearchKeyDown(e) {
     if (e.key === 'Enter' && pesquisa.trim()) {
@@ -48,7 +50,7 @@ export default function DesktopHeader() {
         <div className="relative">
           <Input
             className="h-9 pl-9 pr-4 w-60 rounded-xl bg-secondary border border-border text-xs focus-visible:ring-primary placeholder:text-muted-foreground/70"
-            placeholder="Buscar transação..."
+            placeholder={t('acao_buscar', 'Buscar transação...')}
             type="text"
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
@@ -120,7 +122,7 @@ export default function DesktopHeader() {
             variant="ghost"
             size="iconSm"
             onClick={logout}
-            title="Sair"
+            title={t('nav_sair', 'Sair')}
             className="rounded-full hover:bg-destructive/15 hover:text-destructive text-muted-foreground"
           >
             <LogOut className="w-3.5 h-3.5" />

@@ -94,8 +94,7 @@ public class ContaService(FinSyncDbContext context) : IContaService
             .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (conta is null) return (false, null);
 
-        var transacoes = await context.Transacoes.Where(t => t.ContaId == id).ToListAsync();
-        context.Transacoes.RemoveRange(transacoes);
+        await context.Transacoes.Where(t => t.ContaId == id).ExecuteDeleteAsync();
 
         context.Contas.Remove(conta);
         await context.SaveChangesAsync();

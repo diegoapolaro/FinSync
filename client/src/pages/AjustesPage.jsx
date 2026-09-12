@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import { useOutletContext, useLocation } from 'react-router-dom';
 import { User, Building, Tag, Sliders, Bell, Download, Shield, Moon, Repeat } from 'lucide-react';
-import usePreferencias from '../hooks/usePreferencias';
+import useI18n from '../hooks/useI18n';
 import { useTema } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
 import PerfilSection from '../components/settings/PerfilSection';
 import ContasSection from '../components/settings/ContasSection';
 import CategoriasSection from '../components/settings/CategoriasSection';
@@ -15,17 +14,6 @@ import ExportarSection from '../components/settings/ExportarSection';
 import { Card } from '../components/ui/card';
 import { Switch } from '../components/ui/switch';
 
-const navItems = [
-  { id: 'perfil', label: 'Perfil', Icon: User },
-  { id: 'contas', label: 'Contas', Icon: Building },
-  { id: 'categorias', label: 'Categorias', Icon: Tag },
-  { id: 'recorrencias', label: 'Recorrências & Fixos', Icon: Repeat },
-  { id: 'preferencias', label: 'Preferências', Icon: Sliders },
-  { id: 'notificacoes', label: 'Notificações', Icon: Bell },
-  { id: 'exportar', label: 'Exportar', Icon: Download },
-  { id: 'seguranca', label: 'Segurança', Icon: Shield },
-];
-
 export default function AjustesPage() {
   const context = useOutletContext() || {};
   const contas = context.contas || [];
@@ -33,10 +21,21 @@ export default function AjustesPage() {
   const categorias = context.categorias || [];
   const setCategorias = context.setCategorias || (() => {});
 
-  const { user } = useAuth();
-  const { prefs } = usePreferencias();
+  const { t } = useI18n();
   const { tema, alternarTema } = useTema();
   const location = useLocation();
+
+
+  const navItems = [
+    { id: 'perfil', label: t('ajustes_perfil', 'Perfil'), Icon: User },
+    { id: 'contas', label: t('ajustes_contas', 'Contas'), Icon: Building },
+    { id: 'categorias', label: t('ajustes_categorias', 'Categorias'), Icon: Tag },
+    { id: 'recorrencias', label: t('ajustes_recorrencias', 'Recorrências & Fixos'), Icon: Repeat },
+    { id: 'preferencias', label: t('ajustes_preferencias', 'Preferências'), Icon: Sliders },
+    { id: 'notificacoes', label: t('ajustes_notificacoes', 'Notificações'), Icon: Bell },
+    { id: 'exportar', label: t('ajustes_exportar', 'Exportar'), Icon: Download },
+    { id: 'seguranca', label: t('ajustes_seguranca', 'Segurança'), Icon: Shield },
+  ];
 
   useEffect(() => {
     if (location.hash) {
@@ -75,7 +74,9 @@ export default function AjustesPage() {
             <div className="border-t border-border mt-4 pt-4 px-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Moon className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs font-semibold text-foreground">Modo Escuro</span>
+                <span className="text-xs font-semibold text-foreground">
+                  {t('pref_modo_escuro', 'Modo Escuro')}
+                </span>
               </div>
               <Switch
                 aria-label="Modo Escuro Lateral"

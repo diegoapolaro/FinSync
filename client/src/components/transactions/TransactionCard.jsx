@@ -1,13 +1,8 @@
 import { Trash2, ArrowUpRight, ArrowDownRight, Clock, CheckCircle2, Layers, Repeat } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatDisplayDate } from '../../utils/formatters';
 import { TIPO_TRANSACAO, STATUS_TRANSACAO } from '../../utils/constants';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
-
-function formatFullDate(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
 
 export default function TransactionCard({ transacao, onDelete, onToggleStatus }) {
   const isEntrada = transacao.tipo === TIPO_TRANSACAO.ENTRADA;
@@ -36,7 +31,7 @@ export default function TransactionCard({ transacao, onDelete, onToggleStatus })
         </p>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-[11px] numeric-mono text-muted-foreground">
-            {formatFullDate(transacao.data)}
+            {formatDisplayDate(transacao.data)}
           </span>
           {transacao.categoriaNome && (
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-transparent text-muted-foreground border-border">

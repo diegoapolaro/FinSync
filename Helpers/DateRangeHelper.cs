@@ -26,4 +26,32 @@ public static class DateRangeHelper
             ),
         };
     }
+
+    public static DateOnly CalcularProximaData(DateOnly data, FinSync.Enums.FrequenciaRecorrencia frequencia, int diaBase)
+    {
+        return frequencia switch
+        {
+            FinSync.Enums.FrequenciaRecorrencia.Semanal => data.AddDays(7),
+            FinSync.Enums.FrequenciaRecorrencia.Quinzenal => data.AddDays(14),
+            FinSync.Enums.FrequenciaRecorrencia.Mensal => AddMesSeguro(data, 1, diaBase),
+            FinSync.Enums.FrequenciaRecorrencia.Anual => AddAnoSeguro(data, 1, diaBase),
+            _ => data.AddMonths(1)
+        };
+    }
+
+    public static DateOnly AddMesSeguro(DateOnly data, int meses, int diaBase)
+    {
+        var proximoAnoMes = data.AddMonths(meses);
+        var diasNoMes = DateTime.DaysInMonth(proximoAnoMes.Year, proximoAnoMes.Month);
+        var dia = Math.Min(diaBase, diasNoMes);
+        return new DateOnly(proximoAnoMes.Year, proximoAnoMes.Month, dia);
+    }
+
+    public static DateOnly AddAnoSeguro(DateOnly data, int anos, int diaBase)
+    {
+        var proximoAno = data.Year + anos;
+        var diasNoMes = DateTime.DaysInMonth(proximoAno, data.Month);
+        var dia = Math.Min(diaBase, diasNoMes);
+        return new DateOnly(proximoAno, data.Month, dia);
+    }
 }

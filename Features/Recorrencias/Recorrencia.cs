@@ -5,9 +5,11 @@ using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
 using FinSync.Features.Transacoes;
 
+using FinSync.Shared.Interfaces;
+
 namespace FinSync.Features.Recorrencias;
 
-public class Recorrencia
+public class Recorrencia : IAuditableEntity
 {
     public int Id { get; set; }
 

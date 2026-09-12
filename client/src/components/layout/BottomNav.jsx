@@ -1,19 +1,21 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ReceiptText, PlusCircle, BarChart3, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  { id: '', label: 'Início', Icon: LayoutDashboard },
-  { id: 'extrato', label: 'Extrato', Icon: ReceiptText },
-  { id: 'lancamentos', label: 'Lançar', Icon: PlusCircle },
-  { id: 'relatorios', label: 'Relatórios', Icon: BarChart3 },
-  { id: 'ajustes', label: 'Ajustes', Icon: Settings },
-];
+import useI18n from '../../hooks/useI18n';
 
 export default function BottomNav() {
+  const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const pagina = location.pathname.replace(/^\/+/, '') || '';
+
+  const navItems = [
+    { id: '', label: t('nav_dashboard', 'Início'), Icon: LayoutDashboard },
+    { id: 'extrato', label: t('nav_extrato', 'Extrato'), Icon: ReceiptText },
+    { id: 'lancamentos', label: t('nav_lancamentos', 'Lançar'), Icon: PlusCircle },
+    { id: 'relatorios', label: t('nav_relatorios', 'Relatórios'), Icon: BarChart3 },
+    { id: 'ajustes', label: t('nav_ajustes', 'Ajustes'), Icon: Settings },
+  ];
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-background/85 backdrop-blur-xl border-t border-border/80 shadow-2xl">

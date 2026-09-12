@@ -13,6 +13,17 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
 {
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    [HttpGet("sugestoes-descricao")]
+    public async Task<ActionResult<List<SugestaoDescricaoDto>>> GetSugestoesDescricao(
+        [FromQuery] int? contaId,
+        [FromQuery] TipoTransacao? tipo,
+        [FromQuery] string? termo,
+        [FromQuery] int limite = 50)
+    {
+        var sugestoes = await transacaoService.GetSugestoesDescricaoAsync(UsuarioId, contaId, tipo, termo, limite);
+        return Ok(sugestoes);
+    }
+
     [HttpGet("detalhamento")]
     public async Task<ActionResult<IEnumerable<DetalhamentoCategoriaDto>>> GetDetalhamento(int? contaId, DateOnly dataInicio, DateOnly dataFim)
     {

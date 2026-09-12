@@ -25,6 +25,7 @@ vi.mock('react-router-dom', async () => {
 vi.mock('../services/api', () => ({
   getCategorias: vi.fn(),
   getTransacoes: vi.fn(),
+  getSugestoesDescricao: vi.fn().mockResolvedValue([]),
   createTransacao: vi.fn(),
   updateTransacao: vi.fn(),
   updateTransacaoStatus: vi.fn(),

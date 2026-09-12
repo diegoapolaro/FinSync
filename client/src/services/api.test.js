@@ -3,6 +3,7 @@ import {
   alterarSenha,
   getTransacoes,
   getTransacoesRange,
+  getSugestoesDescricao,
   updateTransacaoStatus,
   setAuthToken,
 } from './api';
@@ -203,5 +204,37 @@ describe('api.js', () => {
       );
     });
   });
+
+  describe('getSugestoesDescricao', () => {
+    it('deve chamar /api/transacoes/sugestoes-descricao com query params corretos', async () => {
+      setAuthToken('mock-jwt-token');
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue(JSON.stringify([{ descricao: 'Mercado', totalUsos: 5 }])),
+      });
+
+      const resultado = await getSugestoesDescricao({
+        contaId: 2,
+        tipo: 'Saida',
+        termo: 'mer',
+        limite: 10,
+      });
+
+      expect(resultado).toEqual([{ descricao: 'Mercado', totalUsos: 5 }]);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /\/transacoes\/sugestoes-descricao\?contaId=2&tipo=Saida&termo=mer&limite=10$/,
+        ),
+        {
+          headers: {
+            Authorization: 'Bearer mock-jwt-token',
+          },
+        },
+      );
+    });
+  });
 });
+
 

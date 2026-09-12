@@ -161,6 +161,8 @@ public class ContaServiceTests : ServiceTestBase
         );
         await Context.SaveChangesAsync();
 
+        Context.ChangeTracker.Clear();
+
         var service = new ContaService(Context);
         var (success, error) = await service.DeleteAsync(conta.Id, usuario.Id);
 

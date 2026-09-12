@@ -18,8 +18,11 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Switch } from '../ui/switch';
-import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '../../utils/formatters';
+import { formatCurrency, formatCurrencyInput, parseCurrencyInput, getCurrencyConfig } from '../../utils/formatters';
+
+import usePreferencias from '../../hooks/usePreferencias';
 import { TIPO_TRANSACAO, FREQUENCIA_RECORRENCIA, STATUS_TRANSACAO } from '../../utils/constants';
+
 import {
   getRecorrencias,
   getResumoRecorrencias,
@@ -52,6 +55,8 @@ const formInicial = {
 };
 
 export default function RecorrenciasSection({ contas = [], categorias = [] }) {
+  const { prefs } = usePreferencias();
+  const currencyConfig = getCurrencyConfig(prefs?.moeda);
   const { addToast } = useToast();
   const [recorrencias, setRecorrencias] = useState([]);
   const [resumo, setResumo] = useState(null);
@@ -419,8 +424,9 @@ export default function RecorrenciasSection({ contas = [], categorias = [] }) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Valor (R$)
+                    Valor ({currencyConfig.symbol})
                   </label>
+
                   <Input
                     placeholder="0,00"
                     value={form.valor}

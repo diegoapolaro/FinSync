@@ -176,7 +176,7 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
             for (int i = 1; i <= totalParcelas; i++)
             {
                 var valorParcela = (i == 1) ? valorPrimeiraParcela : valorDemaisParcelas;
-                var dataParcela = AddMesSeguro(dto.Data, i - 1, diaBase);
+                var dataParcela = DateRangeHelper.AddMesSeguro(dto.Data, i - 1, diaBase);
                 var statusParcela = (i == 1) ? dto.Status : StatusTransacao.Pendente;
 
                 var transacaoParcelada = new Transacao
@@ -271,7 +271,7 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
                     RecorrenciaId = recorrencia.Id
                 });
 
-                dataAtual = RecorrenciaService.CalcularProximaData(dataAtual, recorrencia.Frequencia, diaBase);
+                dataAtual = DateRangeHelper.CalcularProximaData(dataAtual, recorrencia.Frequencia, diaBase);
             }
 
             if (listaRecorrentes.Count > 0)
@@ -404,26 +404,22 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
 
         if (excluirTodasParcelas && transacao.ParcelamentoId.HasValue)
         {
-            var lote = await context.Transacoes
+            await context.Transacoes
                 .Where(t => t.ParcelamentoId == transacao.ParcelamentoId && t.Conta != null && t.Conta.UsuarioId == usuarioId)
-                .ToListAsync();
-
-            context.Transacoes.RemoveRange(lote);
+                .ExecuteDeleteAsync();
         }
         else if (excluirFuturasRecorrencias && transacao.RecorrenciaId.HasValue)
         {
-            var futuras = await context.Transacoes
+            await context.Transacoes
                 .Where(t => t.RecorrenciaId == transacao.RecorrenciaId && t.Data >= transacao.Data && t.Conta != null && t.Conta.UsuarioId == usuarioId)
-                .ToListAsync();
-
-            context.Transacoes.RemoveRange(futuras);
+                .ExecuteDeleteAsync();
         }
         else
         {
             context.Transacoes.Remove(transacao);
+            await context.SaveChangesAsync();
         }
-
-        await context.SaveChangesAsync();
+        
         return true;
     }
 
@@ -527,11 +523,51 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         await writer.FlushAsync();
     }
 
-    private static DateOnly AddMesSeguro(DateOnly data, int meses, int diaBase)
+    public async Task<List<SugestaoDescricaoDto>> GetSugestoesDescricaoAsync(
+        int usuarioId,
+        int? contaId,
+        TipoTransacao? tipo,
+        string? termo = null,
+        int limite = 50)
     {
-        var proximoAnoMes = data.AddMonths(meses);
-        var diasNoMes = DateTime.DaysInMonth(proximoAnoMes.Year, proximoAnoMes.Month);
-        var dia = Math.Min(diaBase, diasNoMes);
-        return new DateOnly(proximoAnoMes.Year, proximoAnoMes.Month, dia);
+        limite = Math.Clamp(limite, 1, 100);
+
+        var query = context.Transacoes
+            .AsNoTracking()
+            .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
+            .AsQueryable();
+
+        if (contaId.HasValue)
+        {
+            query = query.Where(t => t.ContaId == contaId.Value);
+        }
+
+        if (tipo.HasValue)
+        {
+            query = query.Where(t => t.Tipo == tipo.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(termo))
+        {
+            var termoLower = termo.Trim().ToLower();
+            query = query.Where(t => t.Descricao.ToLower().Contains(termoLower));
+        }
+
+        var sugestoes = await query
+            .GroupBy(t => t.Descricao)
+            .Select(g => new SugestaoDescricaoDto
+            {
+                Descricao = g.Key,
+                TotalUsos = g.Count(),
+                UltimaData = g.Max(t => t.Data),
+                CategoriaId = g.Max(t => t.CategoriaId)
+            })
+            .OrderByDescending(s => s.TotalUsos)
+            .ThenByDescending(s => s.UltimaData)
+            .Take(limite)
+            .ToListAsync();
+
+        return sugestoes;
     }
+
 }

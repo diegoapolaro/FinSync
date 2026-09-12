@@ -23,6 +23,7 @@ import TransactionTable from '../components/transactions/TransactionTable';
 import TransactionCard from '../components/transactions/TransactionCard';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function Extrato() {
   const navigate = useNavigate();

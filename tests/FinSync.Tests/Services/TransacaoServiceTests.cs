@@ -582,4 +582,70 @@ public class TransacaoServiceTests : ServiceTestBase
         var parcelasRestantes = Context.Transacoes.Where(t => t.ParcelamentoId == result.ParcelamentoId).ToList();
         Assert.Empty(parcelasRestantes);
     }
+
+    [Fact]
+    public async Task GetSugestoesDescricaoAsync_DeveRetornarMaisFrequentesNoTopo()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Teste", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        var categoria = new Categoria { Nome = "Alimentacao", Cor = "#FF0000", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        Context.Categorias.Add(categoria);
+        await Context.SaveChangesAsync();
+
+        // 3x Mercado, 2x Padaria, 1x Farmacia
+        for (int i = 0; i < 3; i++)
+        {
+            Context.Transacoes.Add(new Transacao { Descricao = "Mercado", Valor = 100m, Tipo = TipoTransacao.Saida, ContaId = conta.Id, CategoriaId = categoria.Id, Data = new DateOnly(2026, 8, 1 + i) });
+        }
+        for (int i = 0; i < 2; i++)
+        {
+            Context.Transacoes.Add(new Transacao { Descricao = "Padaria", Valor = 30m, Tipo = TipoTransacao.Saida, ContaId = conta.Id, CategoriaId = categoria.Id, Data = new DateOnly(2026, 8, 10 + i) });
+        }
+        Context.Transacoes.Add(new Transacao { Descricao = "Farmacia", Valor = 50m, Tipo = TipoTransacao.Saida, ContaId = conta.Id, CategoriaId = categoria.Id, Data = new DateOnly(2026, 8, 20) });
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        var sugestoes = await service.GetSugestoesDescricaoAsync(usuario.Id, conta.Id, TipoTransacao.Saida);
+
+        Assert.Equal(3, sugestoes.Count);
+        Assert.Equal("Mercado", sugestoes[0].Descricao);
+        Assert.Equal(3, sugestoes[0].TotalUsos);
+        Assert.Equal(categoria.Id, sugestoes[0].CategoriaId);
+
+        Assert.Equal("Padaria", sugestoes[1].Descricao);
+        Assert.Equal(2, sugestoes[1].TotalUsos);
+
+        Assert.Equal("Farmacia", sugestoes[2].Descricao);
+        Assert.Equal(1, sugestoes[2].TotalUsos);
+    }
+
+    [Fact]
+    public async Task GetSugestoesDescricaoAsync_DeveFiltrarPorTipoEIsolarUsuario()
+    {
+        var usuario1 = await CriarUsuarioAsync("u1@teste.com");
+        var usuario2 = await CriarUsuarioAsync("u2@teste.com");
+
+        var conta1 = new Conta { Nome = "Conta 1", Tipo = TipoConta.Pessoal, UsuarioId = usuario1.Id };
+        var conta2 = new Conta { Nome = "Conta 2", Tipo = TipoConta.Pessoal, UsuarioId = usuario2.Id };
+        Context.Contas.AddRange(conta1, conta2);
+        await Context.SaveChangesAsync();
+
+        Context.Transacoes.Add(new Transacao { Descricao = "Salário Empresa", Valor = 5000m, Tipo = TipoTransacao.Entrada, ContaId = conta1.Id, Data = new DateOnly(2026, 8, 1) });
+        Context.Transacoes.Add(new Transacao { Descricao = "Aluguel", Valor = 1500m, Tipo = TipoTransacao.Saida, ContaId = conta1.Id, Data = new DateOnly(2026, 8, 5) });
+        Context.Transacoes.Add(new Transacao { Descricao = "Salário Outro Usuário", Valor = 7000m, Tipo = TipoTransacao.Entrada, ContaId = conta2.Id, Data = new DateOnly(2026, 8, 1) });
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+
+        // Filtrando por Entrada para usuario1
+        var sugestoesEntrada = await service.GetSugestoesDescricaoAsync(usuario1.Id, conta1.Id, TipoTransacao.Entrada);
+        Assert.Single(sugestoesEntrada);
+        Assert.Equal("Salário Empresa", sugestoesEntrada[0].Descricao);
+
+        // Termo de busca
+        var sugestoesTermo = await service.GetSugestoesDescricaoAsync(usuario1.Id, null, null, termo: "alug");
+        Assert.Single(sugestoesTermo);
+        Assert.Equal("Aluguel", sugestoesTermo[0].Descricao);
+    }
 }

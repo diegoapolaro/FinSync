@@ -3,9 +3,11 @@ using FinSync.Enums;
 using FinSync.Features.Auth;
 using FinSync.Features.Transacoes;
 
+using FinSync.Shared.Interfaces;
+
 namespace FinSync.Features.Categorias;
 
-public class Categoria
+public class Categoria : IAuditableEntity
 {
     public int Id { get; set; }
 

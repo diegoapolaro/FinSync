@@ -9,7 +9,8 @@ import {
   deleteTransacao,
   getCategorias,
 } from '../services/api';
-import { formatCurrencyInput, parseCurrencyInput } from '../utils/formatters';
+import { formatCurrencyInput, parseCurrencyInput, converterParaBRL } from '../utils/formatters';
+import usePreferencias from '../hooks/usePreferencias';
 import {
   TIPO_TRANSACAO,
   STATUS_TRANSACAO,
@@ -24,6 +25,7 @@ import {
 } from '../utils/dateHelpers';
 import { useTema } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import LancamentosDateHeader from '../components/lancamentos/LancamentosDateHeader';
@@ -51,7 +53,9 @@ export default function LancamentosPage() {
   const [searchParams] = useSearchParams();
   const tipoParam = searchParams.get('tipo');
   const { addToast } = useToast();
+  const { prefs } = usePreferencias();
   const { tema = 'escuro' } = useTema() || {};
+
   const colorScheme = tema === 'escuro' ? 'dark' : 'light';
 
   const hojeStr = getHojeDateString();
@@ -188,11 +192,14 @@ export default function LancamentosPage() {
     try {
       const isParcelado = form.modo === MODO_LANCAMENTO.PARCELADO;
       const isRecorrente = form.modo === MODO_LANCAMENTO.RECORRENTE;
+      const valorDigitado = parseCurrencyInput(form.valor);
+      const valorEmBRL = converterParaBRL(valorDigitado, prefs?.moeda);
 
       const payload = {
         descricao: form.descricao.trim(),
-        valor: parseCurrencyInput(form.valor),
+        valor: valorEmBRL,
         tipo: form.tipo,
+
         status: form.status || STATUS_TRANSACAO.PAGO,
         data: dataSelecionada,
         contaId: Number(contaAlvoId),

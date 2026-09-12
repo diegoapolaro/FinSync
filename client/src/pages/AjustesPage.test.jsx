@@ -214,6 +214,40 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     });
   });
 
+  it('deve atualizar o preview dinâmico e traduzir os textos ao alternar preferências', async () => {
+    renderPage();
+
+    // Validar preview inicial padrão (BRL, dd/mm/aaaa)
+    expect(screen.getByText('Pré-visualização em Tempo Real')).toBeInTheDocument();
+    expect(screen.getByText('23/08/2026')).toBeInTheDocument();
+
+    const selects = screen.getAllByRole('combobox');
+    const selectIdioma = selects.find((s) => s.value === 'Português (Brasil)');
+    const selectMoeda = selects.find((s) => s.value === 'Real Brasileiro (BRL - R$)');
+    const selectData = selects.find((s) => s.value === 'dd/mm/aaaa');
+
+    // Alternar idioma para English
+    fireEvent.change(selectIdioma, { target: { value: 'English (US)' } });
+    await waitFor(() => {
+      expect(screen.getByText('System Preferences')).toBeInTheDocument();
+      expect(screen.getByText('Real-Time Preview')).toBeInTheDocument();
+    });
+
+    // Alternar moeda para USD
+    fireEvent.change(selectMoeda, { target: { value: 'US Dollar (USD - $)' } });
+    await waitFor(() => {
+      expect(screen.getByText('$10,000.00')).toBeInTheDocument();
+    });
+
+
+    // Alternar formato de data para aaaa-mm-dd
+    fireEvent.change(selectData, { target: { value: 'aaaa-mm-dd' } });
+    await waitFor(() => {
+      expect(screen.getByText('2026-08-23')).toBeInTheDocument();
+    });
+  });
+
+
   it('deve alternar e persistir switches de notificações', async () => {
     renderPage();
 

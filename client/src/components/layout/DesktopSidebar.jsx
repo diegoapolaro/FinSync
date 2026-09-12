@@ -2,14 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ReceiptText, BarChart3, Settings, Store, User, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import logoSymbol from '@/assets/logo-symbol.png';
-
-const navLinks = [
-  { id: '', label: 'Dashboard', Icon: LayoutDashboard },
-  { id: 'extrato', label: 'Extrato', Icon: ReceiptText },
-  { id: 'lancamentos', label: 'Lançamentos', Icon: Plus },
-  { id: 'relatorios', label: 'Relatórios', Icon: BarChart3 },
-  { id: 'ajustes', label: 'Ajustes', Icon: Settings },
-];
+import useI18n from '../../hooks/useI18n';
 
 export default function DesktopSidebar({
   contas,
@@ -17,9 +10,18 @@ export default function DesktopSidebar({
   onSelectConta,
   onNovaContaClick,
 }) {
+  const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const pagina = location.pathname.replace(/^\/+/, '') || '';
+
+  const navLinks = [
+    { id: '', label: t('nav_dashboard', 'Dashboard'), Icon: LayoutDashboard },
+    { id: 'extrato', label: t('nav_extrato', 'Extrato'), Icon: ReceiptText },
+    { id: 'lancamentos', label: t('nav_lancamentos', 'Lançamentos'), Icon: Plus },
+    { id: 'relatorios', label: t('nav_relatorios', 'Relatórios'), Icon: BarChart3 },
+    { id: 'ajustes', label: t('nav_ajustes', 'Ajustes'), Icon: Settings },
+  ];
 
   return (
     <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col z-40 bg-card text-card-foreground border-r border-border select-none">
@@ -34,7 +36,7 @@ export default function DesktopSidebar({
               FinSync
             </span>
             <span className="text-[11px] font-medium text-muted-foreground tracking-wider uppercase">
-              Institucional
+              {t('nav_institucional', 'Institucional')}
             </span>
           </div>
         </div>
@@ -43,7 +45,7 @@ export default function DesktopSidebar({
         <div className="flex flex-col gap-2 mt-2">
           <div className="flex items-center justify-between px-1">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Contas
+              {t('nav_contas', 'Contas')}
             </span>
             <div className="flex items-center gap-1.5">
               {contas.length > 0 && (
@@ -55,7 +57,7 @@ export default function DesktopSidebar({
                 <button
                   type="button"
                   onClick={onNovaContaClick}
-                  title="Criar nova conta / livro"
+                  title={t('acao_nova_conta', 'Nova Conta')}
                   className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -67,8 +69,9 @@ export default function DesktopSidebar({
           {contas.length === 0 && (
             <div className="px-2 py-2 text-center bg-muted/40 rounded-xl border border-dashed border-border/70">
               <span className="text-xs text-muted-foreground block mb-2">
-                Nenhuma conta ativa
+                {t('nav_sem_contas', 'Nenhuma conta ativa')}
               </span>
+
               {onNovaContaClick && (
                 <button
                   type="button"
