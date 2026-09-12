@@ -284,4 +284,5 @@ npm test -- --run
 - [x] **Isolamento Multiusuário:** Dados de contas, categorias, transações e recorrências 100% isolados por `UsuarioId`.
 - [x] **Design Fintech:** Interface responsiva moderna inspirada no estilo Copilot Money com tema escuro/claro nativo persistido.
 - [x] **Infraestrutura em Produção:** API hospedada no Azure App Service com PostgreSQL no Supabase e frontend na Vercel.
-- [x] **Cobertura Abrangente de Testes:** 61 testes xUnit (backend) e 83 testes Vitest/Testing Library (frontend).
+- [x] **Cobertura Abrangente de Testes:** 70 testes xUnit (backend) e 83 testes Vitest/Testing Library (frontend).
+- [x] **Otimizações de Escalabilidade:** Worker assíncrono (`ProcessadorRecorrenciasWorker`) para faturas e projeções SQL altamente otimizadas via EF Core (evitando problemas de memória com `ExecuteDeleteAsync`).

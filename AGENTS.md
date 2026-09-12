@@ -93,7 +93,7 @@ FinSync/
 ├── Handlers/GlobalExceptionHandler.cs
 ├── Helpers/DateRangeHelper.cs
 ├── Migrations/                    → EF Core Npgsql (InitialPostgres, AddStatusToTransacao, AddRecorrenciasEParcelamentos)
-├── tests/FinSync.Tests/           → xUnit (Helpers, Services, Controllers, Models) — 61 testes passando
+├── tests/FinSync.Tests/           → xUnit (Helpers, Services, Controllers, Models) — 70 testes passando
 └── client/
     ├── src/
     │   ├── pages/                 → Extrato, RelatoriosPage, AjustesPage, LoginPage, LancamentosPage
@@ -140,6 +140,7 @@ Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`
 - **Recorrências & Parcelamentos:** Divisão automática de compras parceladas com projeção de faturas futuras (2x a 72x), regras de recorrência periódica (mensal, semanal, anual) com motor de projeção de até 12 meses futuros e painel de gestão dedicado em Ajustes.
 - **Perfil & Avatar:** Edição de dados de perfil e foto com suporte a upload local com compressão automática em Canvas, galeria de presets estilizados, inserção de URLs externas e remoção de foto. Navegação instantânea ao perfil a partir do clique no avatar ou nome nos cabeçalhos desktop e mobile.
 - **Auth & Segurança:** JWT Bearer com chaves isoladas em variáveis de ambiente, expiração configurável via `Jwt:ExpiryInDays` (padrão 7 dias para equilibrar conveniência e segurança), persistência de sessão segura no cliente via `localStorage` com tratamento automático de 401 Unauthorized e logout, senhas com BCrypt, sessões isoladas por usuário, Google OAuth 2.0 (Google Identity Services + backend validation), rate limiting com `AddRateLimiter`, mitigação de timing attack e headers HTTP de segurança.
+- **Alta Escalabilidade e Background Jobs:** A arquitetura do banco utiliza `ExecuteDeleteAsync()` (EF Core) para prevenir vazamento de memória e OOM em deleções de grandes lotes. As entidades implementam uma interface `IAuditableEntity` nativa tipada. O sistema também possui um `BackgroundService` em C# (`ProcessadorRecorrenciasWorker.cs`) que varre as contas ativas a cada 12h para processar automaticamente projeções de faturas sem latência de request HTTP.
 
 ---
 
@@ -152,4 +153,4 @@ Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`
 
 ---
 
-*Última atualização: 01/09/2026*
+*Última atualização: 12/09/2026*
