@@ -1,5 +1,14 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ReceiptText, BarChart3, Settings, Store, User, Plus } from 'lucide-react';
+import {
+  LayoutDashboard,
+  ReceiptText,
+  BarChart3,
+  Settings,
+  Store,
+  User,
+  Plus,
+  UploadCloud,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import logoSymbol from '@/assets/logo-symbol.png';
 import useI18n from '../../hooks/useI18n';
@@ -20,11 +29,12 @@ export default function DesktopSidebar({
     { id: 'extrato', label: t('nav_extrato', 'Extrato'), Icon: ReceiptText },
     { id: 'lancamentos', label: t('nav_lancamentos', 'Lançamentos'), Icon: Plus },
     { id: 'relatorios', label: t('nav_relatorios', 'Relatórios'), Icon: BarChart3 },
+    { id: 'importar', label: t('nav_importar', 'Importar CSV'), Icon: UploadCloud },
     { id: 'ajustes', label: t('nav_ajustes', 'Ajustes'), Icon: Settings },
   ];
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col z-40 bg-card text-card-foreground border-r border-border select-none">
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-[260px] flex-col z-40 bg-card/60 backdrop-blur-3xl text-card-foreground border-r border-white/5 select-none transition-all">
       {/* Brand Header */}
       <div className="px-5 pt-7 pb-4 flex flex-col gap-6">
         <div className="flex items-center gap-3">

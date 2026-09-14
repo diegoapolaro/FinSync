@@ -64,9 +64,14 @@ FinSync/
 │   │   └── AuthController.cs      → POST /api/auth/registrar, /api/auth/login
 │   ├── Transacoes/
 │   │   ├── Transacao.cs           → Id, Descricao, Valor, Tipo, Data, Status, ContaId, CategoriaId, ParcelamentoId, NumeroParcela, TotalParcelas, RecorrenciaId
-│   │   ├── TransacaoDtos.cs       → Create/Update/TransacaoDto, UpdateStatusTransacaoDto, PagedResponse<T>, DetalhamentoCategoriaDto
-│   │   ├── TransacaoService.cs    → CRUD + parcelamento + recorrência + filtros + paginação + export CSV + UpdateStatus
-│   │   └── TransacoesController.cs → CRUD + GET /exportar, GET /resumo-periodo, GET /detalhamento, PATCH /{id}/status
+│   │   ├── TransacaoDtos.cs       → Create/Update/TransacaoDto, UpdateStatusTransacaoDto, PagedResponse<T>, DetalhamentoCategoriaDto, TransacaoPreviewDto
+│   │   ├── TransacaoService.cs    → CRUD + parcelamento + recorrência + filtros + paginação + export CSV + UpdateStatus + lote
+│   │   └── TransacoesController.cs → CRUD + GET /exportar, GET /resumo-periodo, GET /detalhamento, PATCH /{id}/status, POST /importar, POST /lote
+│   ├── Orcamentos/
+│   │   ├── Orcamento.cs           → Id, CategoriaId, UsuarioId, ValorLimite, Mes, Ano, CreatedAt, UpdatedAt
+│   │   ├── OrcamentoDtos.cs       → CreateOrcamentoDto, UpdateOrcamentoDto, OrcamentoDto, StatusOrcamentoDto
+│   │   ├── OrcamentoService.cs    → CRUD + cálculo de status e consumo mensal por categoria
+│   │   └── OrcamentosController.cs → CRUD + GET /resumo
 │   ├── Recorrencias/
 │   │   ├── Recorrencia.cs         → Id, Descricao, Valor, Tipo, Frequencia, DataInicio, DataFim, StatusPadrao, Ativo, ContaId, CategoriaId, UsuarioId
 │   │   ├── RecorrenciaDtos.cs     → Create/Update/RecorrenciaDto, ResumoRecorrenciasDto
@@ -88,31 +93,32 @@ FinSync/
 │   ├── StatusTransacao.cs         → enum (Pago, Pendente)
 │   └── FrequenciaRecorrencia.cs   → enum (Semanal, Quinzenal, Mensal, Anual)
 ├── Data/
-│   ├── FinSyncDbContext.cs        → DbSets + relacionamentos (UsuarioId em Conta/Categoria/Recorrencia)
+│   ├── FinSyncDbContext.cs        → DbSets + relacionamentos (UsuarioId em Conta/Categoria/Recorrencia/Orcamento)
 │   └── DbSeeder.cs                → Seed automático de Usuario/Contas/Categorias
 ├── Handlers/GlobalExceptionHandler.cs
 ├── Helpers/DateRangeHelper.cs
-├── Migrations/                    → EF Core Npgsql (InitialPostgres, AddStatusToTransacao, AddRecorrenciasEParcelamentos)
-├── tests/FinSync.Tests/           → xUnit (Helpers, Services, Controllers, Models) — 70 testes passando
+├── Migrations/                    → EF Core Npgsql (InitialPostgres, AddStatusToTransacao, AddRecorrenciasEParcelamentos, AddOrcamentos)
+├── tests/FinSync.Tests/           → xUnit (Helpers, Services, Controllers, Models) — 78 testes passando
 └── client/
     ├── src/
-    │   ├── pages/                 → Extrato, RelatoriosPage, AjustesPage, LoginPage, LancamentosPage
+    │   ├── pages/                 → Extrato, RelatoriosPage, AjustesPage, LoginPage, LancamentosPage, ImportarPage
     │   ├── components/
     │   │   ├── layout/            → MobileTopBar, DesktopHeader, DesktopSidebar, BottomNav, Layout
-    │   │   ├── transactions/      → TransactionCard, TransactionTable
-    │   │   ├── reports/           → ChartContainer
-    │   │   ├── settings/          → SettingsSection, RecorrenciasSection, ContasSection, CategoriasSection
-    │   │   └── common/            → ErrorBoundary, SummaryCard, Modal, FloatingActions, PeriodoPicker, ResponsiveGrid
+    │   │   ├── transactions/      → TransactionCard, TransactionTable, InlineTransactionEditor
+    │   │   ├── reports/           → ChartContainer, BalancoPatrimonialSection, ComparativoPeriodoSection, RelatorioPdfModal
+    │   │   ├── settings/          → SettingsSection, RecorrenciasSection, OrcamentosSection, ContasSection, CategoriasSection, ExportarSection, PerfilSection, PreferenciasSection
+    │   │   └── common/            → ErrorBoundary, SummaryCard, Modal, FloatingActions, PeriodoPicker, ResponsiveGrid, NovaContaModal
     │   ├── contexts/              → AuthContext, ThemeContext, ToastContext
     │   ├── hooks/usePreferencias.js → fonte única de verdade do tema e preferências
-    │   ├── services/api.js        → base URL via import.meta.env, parsing de erros, token JWT, transações, contas, categorias e recorrências
+    │   ├── hooks/useSmoothScroll.js → rolagem suave nativa com ajuste dinâmico de offset
+    │   ├── services/api.js        → base URL via import.meta.env, parsing de erros, token JWT, transações, orçamentos, contas, categorias e recorrências
     │   ├── utils/
     │   │   ├── constants.js       → TIPO_TRANSACAO, STATUS_TRANSACAO, FREQUENCIA_RECORRENCIA, MODO_PARCELAMENTO, MODO_LANCAMENTO
     │   │   ├── filterTransacoes.js → filtro por período (dia/mês/range), evita bug de timezone
     │   │   └── formatters.js      → formatação monetária, datas e rótulos de período
     │   ├── styles/
     │   └── test/
-    └── package.json               → Vitest com 79 testes passando
+    └── package.json               → Vitest com 177 testes passando
 
 **Padrão arquitetural:** vertical slices (feature-first) — Controller, Service, Dto e Entidade juntos por domínio dentro de `Features/`. Infra compartilhada em `Data/`, `Handlers/`, `Helpers/`; enums em `Shared/Enums/`.
 
@@ -125,8 +131,9 @@ FinSync/
 3. **Recorrencia** — Id, Descricao, Valor, Tipo (enum), Frequencia (enum), DataInicio (DateOnly), DataFim (DateOnly?), StatusPadrao (enum), Ativo (bool), ContaId, CategoriaId, UsuarioId, navegação para Transacoes
 4. **Conta** — Id, Nome, Tipo (enum Comercial/Pessoal), Arquivada, UsuarioId, navegação para Transacoes
 5. **Categoria** — Id, Nome, Cor (hex), Tipo (enum), UsuarioId
+6. **Orcamento** — Id, CategoriaId, UsuarioId, ValorLimite, Mes, Ano, CreatedAt, UpdatedAt
 
-Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`; Transações herdam isolamento via `ContaId`.
+Dados isolados por usuário: Contas, Categorias, Recorrências e Orçamentos têm `UsuarioId`; Transações herdam isolamento via `ContaId`.
 
 ---
 
@@ -134,7 +141,10 @@ Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`
 
 - **Back-end no Azure:** API .NET 10 implantada no Azure App Service (`https://finsync-api.azurewebsites.net`), integrada ao banco PostgreSQL remoto no Supabase. CORS liberado para o domínio do Vercel e localhost.
 - **Front-end no Vercel:** Configuração SPA criada com `vercel.json` e `VITE_API_BASE_URL` direcionado para a API de produção.
-- **Testes:** 70 testes xUnit (.NET) e 159 testes Vitest (React) 100% aprovados.
+- **Testes:** 78 testes xUnit (.NET) e 177 testes Vitest (React) 100% aprovados.
+- **Orçamentos (Budgets) por Categoria:** Definição de tetos de gastos mensais por categoria em Ajustes (`OrcamentosSection.jsx` e `OrcamentoModal.jsx`), com cálculo dinâmico de percentual consumido vs. transações de saída reais no mês e alertas visuais de estouro.
+- **Conciliação & Importação CSV em Lote:** Página dedicada `/importar` (`ImportarPage.jsx`) com drag-and-drop de extratos bancários, parsing instantâneo de lançamentos, seleção de categorias por linha e importação atômica em massa (`POST /api/transacoes/lote`).
+- **PWA & Animações Fluidas:** Suporte a Progressive Web App via `vite-plugin-pwa`, tema Deep Space Navy (`#000814`), dock móvel flutuante com Framer Motion (`layoutId="bubble"`) e navegação em Ajustes com ScrollSpy via IntersectionObserver e hook personalizado `useSmoothScroll`.
 - **Selecionador de Datas Shadcn UI:** Calendário interativo puro em React 19 + Tailwind CSS com suporte a seleção pontual (`single`) e de intervalo (`range`), grade de 12 meses com seletor de ano, atalhos rápidos com 1 clique (*Hoje*, *Ontem*, *Últimos 7 dias*, *Últimos 30 dias*, *Este Mês*, *Mês Passado*, *Este Ano*), pré-visualização no hover, design tokenizado Copilot Money e gatilho em pílula fintech com tipografia tabular em `IBM Plex Mono`.
 - **Autocomplete Inteligente de Descrições:** Preenchimento automático dinâmico no campo de descrição de lançamentos, ordenado por frequência de uso (mais digitadas no topo), com filtragem instantânea sem acento/maiúsculas, suporte completo a navegação por teclado e pré-seleção inteligente da categoria correspondente.
 - **Recorrências & Parcelamentos:** Divisão automática de compras parceladas com projeção de faturas futuras (2x a 72x), regras de recorrência periódica (mensal, semanal, anual) com motor de projeção de até 12 meses futuros e painel de gestão dedicado em Ajustes.
@@ -153,4 +163,4 @@ Dados isolados por usuário: Contas, Categorias e Recorrências têm `UsuarioId`
 
 ---
 
-*Última atualização: 12/09/2026*
+*Última atualização: 14/09/2026*

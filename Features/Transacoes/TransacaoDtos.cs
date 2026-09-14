@@ -105,3 +105,11 @@ public class DetalhamentoCategoriaDto
     public string CategoriaCor { get; set; } = string.Empty;
     public decimal Total { get; set; }
 }
+
+public class TransacaoPreviewDto
+{
+    public DateOnly Data { get; set; }
+    public string Descricao { get; set; } = string.Empty;
+    public decimal Valor { get; set; }
+    public TipoTransacao Tipo { get; set; }
+}

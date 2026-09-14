@@ -12,6 +12,7 @@ import Extrato from './pages/Extrato';
 import LancamentosPage from './pages/LancamentosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
 import AjustesPage from './pages/AjustesPage';
+import ImportarPage from './pages/ImportarPage';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
@@ -39,6 +40,7 @@ export default function App() {
                       <Route path="/extrato" element={<Extrato />} />
                       <Route path="/lancamentos" element={<LancamentosPage />} />
                       <Route path="/relatorios" element={<RelatoriosPage />} />
+                      <Route path="/importar" element={<ImportarPage />} />
                       <Route path="/ajustes" element={<AjustesPage />} />
                       <Route path="/perfil" element={<Navigate to="/ajustes#perfil" replace />} />
                     </Route>

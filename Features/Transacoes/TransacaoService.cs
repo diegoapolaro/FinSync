@@ -492,10 +492,18 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         };
     }
 
-    public async Task ExportarCsvAsync(int? contaId, string periodo, int usuarioId, Stream outputStream)
+    public async Task ExportarCsvAsync(
+        int? contaId,
+        string periodo,
+        int usuarioId,
+        Stream outputStream,
+        DateOnly? dataInicio = null,
+        DateOnly? dataFim = null)
     {
         var query = context.Transacoes
             .AsNoTracking()
+            .Include(t => t.Conta)
+            .Include(t => t.Categoria)
             .Where(t => t.Conta != null && t.Conta.UsuarioId == usuarioId)
             .AsQueryable();
 
@@ -504,20 +512,41 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
             query = query.Where(t => t.ContaId == contaId);
         }
 
-        var (inicio, fim) = DateRangeHelper.GetPeriodo(periodo);
+        DateOnly inicio;
+        DateOnly fim;
+        if (dataInicio.HasValue && dataFim.HasValue)
+        {
+            inicio = dataInicio.Value;
+            fim = dataFim.Value.AddDays(1);
+        }
+        else
+        {
+            (inicio, fim) = DateRangeHelper.GetPeriodo(periodo);
+        }
+
         query = query.Where(t => t.Data >= inicio && t.Data < fim)
-                     .OrderByDescending(t => t.Data);
+                     .OrderByDescending(t => t.Data)
+                     .ThenByDescending(t => t.Id);
 
         // BOM UTF-8
         await outputStream.WriteAsync(new byte[] { 0xEF, 0xBB, 0xBF });
 
         await using var writer = new StreamWriter(outputStream, leaveOpen: true);
-        await writer.WriteLineAsync("Id,Descricao,Valor,Tipo,Status,Data,ContaId");
+        await writer.WriteLineAsync("Id,Data,Descricao,Categoria,Conta,Tipo,Valor,Status,Parcela");
 
         await foreach (var t in query.AsAsyncEnumerable())
         {
             var descricao = t.Descricao.Replace("\"", "\"\"");
-            await writer.WriteLineAsync($"{t.Id},\"{descricao}\",{t.Valor.ToString(System.Globalization.CultureInfo.InvariantCulture)},{t.Tipo},{t.Status},{t.Data:yyyy-MM-dd},{t.ContaId}");
+            var categoria = (t.Categoria?.Nome ?? "Sem Categoria").Replace("\"", "\"\"");
+            var contaNome = (t.Conta?.Nome ?? "-").Replace("\"", "\"\"");
+            var tipo = t.Tipo == TipoTransacao.Entrada ? "Entrada" : "Saida";
+            var status = t.Status.ToString();
+            var valor = t.Valor.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            var parcela = t.TotalParcelas.HasValue && t.TotalParcelas > 1
+                ? $"{t.NumeroParcela}/{t.TotalParcelas}"
+                : "-";
+
+            await writer.WriteLineAsync($"{t.Id},{t.Data:yyyy-MM-dd},\"{descricao}\",\"{categoria}\",\"{contaNome}\",{tipo},{valor},{status},{parcela}");
         }
 
         await writer.FlushAsync();
@@ -570,4 +599,70 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         return sugestoes;
     }
 
+    public async Task<List<TransacaoDto>> CriarEmLoteAsync(List<CreateTransacaoDto> dtos, int usuarioId)
+    {
+        if (dtos == null || dtos.Count == 0) return [];
+
+        var contasIds = dtos.Select(d => d.ContaId).Distinct().ToList();
+        var categoriasIds = dtos.Where(d => d.CategoriaId.HasValue).Select(d => d.CategoriaId!.Value).Distinct().ToList();
+
+        var contasValidas = await context.Contas
+            .Where(c => c.UsuarioId == usuarioId && contasIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        var categoriasValidas = await context.Categorias
+            .Where(c => c.UsuarioId == usuarioId && categoriasIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        var transacoes = new List<Transacao>();
+
+        foreach (var dto in dtos)
+        {
+            if (!contasValidas.Contains(dto.ContaId)) continue; 
+            if (dto.CategoriaId.HasValue && !categoriasValidas.Contains(dto.CategoriaId.Value)) dto.CategoriaId = null;
+
+            transacoes.Add(new Transacao
+            {
+                Descricao = dto.Descricao.Trim(),
+                Valor = dto.Valor,
+                Tipo = dto.Tipo,
+                Status = dto.Status,
+                Data = dto.Data,
+                ContaId = dto.ContaId,
+                CategoriaId = dto.CategoriaId
+            });
+        }
+
+        if (transacoes.Count > 0)
+        {
+            await context.Transacoes.AddRangeAsync(transacoes);
+            await context.SaveChangesAsync();
+        }
+
+        var result = new List<TransacaoDto>();
+        foreach (var t in transacoes)
+        {
+            await context.Entry(t).Reference(x => x.Conta).LoadAsync();
+            await context.Entry(t).Reference(x => x.Categoria).LoadAsync();
+            
+            result.Add(new TransacaoDto
+            {
+                Id = t.Id,
+                Descricao = t.Descricao,
+                Valor = t.Valor,
+                Tipo = t.Tipo,
+                Status = t.Status,
+                Data = t.Data,
+                ContaId = t.ContaId,
+                ContaNome = t.Conta?.Nome ?? string.Empty,
+                CategoriaId = t.CategoriaId,
+                CategoriaNome = t.Categoria?.Nome ?? string.Empty,
+                CategoriaCor = t.Categoria?.Cor ?? string.Empty
+            });
+        }
+
+        return result;
+    }
 }

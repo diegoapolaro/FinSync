@@ -84,10 +84,10 @@
   --color-azul: #0052ff;
 
   /* Shadcn CSS Variables (Dark) - 3-tier Elevation Hierarchy */
-  --background: 222 47% 4%; /* #0a0b0d - Floor Canvas */
+  --background: 222 100% 4%; /* #000814 - Deep Space Navy (Floor Canvas) */
   --foreground: 0 0% 100%; /* #ffffff - Pure White Text */
 
-  --card: 220 13% 9%; /* #14161a - Card Surface Tier 1 */
+  --card: 217 68% 11%; /* #09182F - Cards Navy (Tier 1) */
   --card-foreground: 0 0% 100%;
 
   --popover: 220 15% 11%; /* #181b21 - Popover / Dropdown */

@@ -8,6 +8,7 @@ using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
 using FinSync.Features.Recorrencias;
 using FinSync.Features.Transacoes;
+using FinSync.Features.Orcamentos;
 using FinSync.Handlers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +64,7 @@ builder.Services.AddScoped<IContaService, ContaService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IRecorrenciaService, RecorrenciaService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddHostedService<ProcessadorRecorrenciasWorker>();

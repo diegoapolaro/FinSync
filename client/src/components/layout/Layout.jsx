@@ -37,7 +37,7 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="bg-background text-foreground antialiased min-h-screen overflow-hidden font-sans">
+    <div className="bg-background text-foreground antialiased min-h-screen overflow-hidden font-sans bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-background via-background to-background dark:from-[#000d23] dark:via-background dark:to-background selection:bg-primary/30">
       <MobileTopBar onNovaContaClick={abrirModalNovaConta} />
 
       <DesktopSidebar
@@ -47,7 +47,7 @@ export default function Layout() {
         onNovaContaClick={abrirModalNovaConta}
       />
 
-      <div className="md:ml-64 flex flex-col h-screen">
+      <div className="md:ml-[260px] flex flex-col h-screen relative z-10">
         <DesktopHeader />
 
         <main className="flex-1 overflow-y-auto">

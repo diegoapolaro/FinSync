@@ -7,10 +7,7 @@ import {
   Calendar,
   Edit2,
   Trash2,
-  CheckCircle2,
   X,
-  Clock,
-  Sparkles,
 } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Card } from '../ui/card';

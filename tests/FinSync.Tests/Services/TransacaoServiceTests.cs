@@ -3,6 +3,7 @@ using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
 using FinSync.Features.Transacoes;
 using FinSync.Tests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace FinSync.Tests.Services;
@@ -486,10 +487,12 @@ public class TransacaoServiceTests : ServiceTestBase
         var usuario = await CriarUsuarioAsync();
         var conta = new Conta { Nome = "Conta CSV", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
         Context.Contas.Add(conta);
+        var categoria = new Categoria { Nome = "Utilidades", Cor = "#FF0000", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        Context.Categorias.Add(categoria);
         await Context.SaveChangesAsync();
 
         Context.Transacoes.AddRange(
-            new Transacao { Descricao = "Luz", Valor = 120m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pendente, Data = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 5), ContaId = conta.Id },
+            new Transacao { Descricao = "Luz", Valor = 120m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pendente, Data = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 5), ContaId = conta.Id, CategoriaId = categoria.Id },
             new Transacao { Descricao = "Salario", Valor = 5000m, Tipo = TipoTransacao.Entrada, Status = StatusTransacao.Pago, Data = new DateOnly(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1), ContaId = conta.Id }
         );
         await Context.SaveChangesAsync();
@@ -499,9 +502,43 @@ public class TransacaoServiceTests : ServiceTestBase
         await service.ExportarCsvAsync(conta.Id, "mes_atual", usuario.Id, ms);
         var csv = System.Text.Encoding.UTF8.GetString(ms.ToArray());
 
-        Assert.Contains("Id,Descricao,Valor,Tipo,Status,Data,ContaId", csv);
+        Assert.Contains("Id,Data,Descricao,Categoria,Conta,Tipo,Valor,Status,Parcela", csv);
+        Assert.Contains("Conta CSV", csv);
+        Assert.Contains("Utilidades", csv);
         Assert.Contains("Pendente", csv);
         Assert.Contains("Pago", csv);
+    }
+
+    [Fact]
+    public async Task ExportarCsvAsync_ComPeriodo30dEComDataCustomizada_DeveFiltrarCorretamente()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "Conta Teste", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var hoje = DateOnly.FromDateTime(DateTime.Today);
+        Context.Transacoes.AddRange(
+            new Transacao { Descricao = "Dentro 30d", Valor = 50m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pago, Data = hoje.AddDays(-10), ContaId = conta.Id },
+            new Transacao { Descricao = "Fora 30d", Valor = 100m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pago, Data = hoje.AddDays(-60), ContaId = conta.Id }
+        );
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+
+        // Teste com periodo 30d
+        using var ms30d = new MemoryStream();
+        await service.ExportarCsvAsync(conta.Id, "30d", usuario.Id, ms30d);
+        var csv30d = System.Text.Encoding.UTF8.GetString(ms30d.ToArray());
+        Assert.Contains("Dentro 30d", csv30d);
+        Assert.DoesNotContain("Fora 30d", csv30d);
+
+        // Teste com datas customizadas
+        using var msCustom = new MemoryStream();
+        await service.ExportarCsvAsync(conta.Id, "mes_atual", usuario.Id, msCustom, dataInicio: hoje.AddDays(-70), dataFim: hoje.AddDays(-50));
+        var csvCustom = System.Text.Encoding.UTF8.GetString(msCustom.ToArray());
+        Assert.Contains("Fora 30d", csvCustom);
+        Assert.DoesNotContain("Dentro 30d", csvCustom);
     }
 
     [Fact]
@@ -647,5 +684,39 @@ public class TransacaoServiceTests : ServiceTestBase
         var sugestoesTermo = await service.GetSugestoesDescricaoAsync(usuario1.Id, null, null, termo: "alug");
         Assert.Single(sugestoesTermo);
         Assert.Equal("Aluguel", sugestoesTermo[0].Descricao);
+    }
+
+    [Fact]
+    public async Task CriarEmLoteAsync_DeveCriarTransacoesValidasEIsolarUsuario()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var outroUsuario = await CriarUsuarioAsync("outro@teste.com");
+
+        var conta = new Conta { Nome = "Minha Conta", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        var contaOutro = new Conta { Nome = "Conta Outro", Tipo = TipoConta.Pessoal, UsuarioId = outroUsuario.Id };
+        Context.Contas.AddRange(conta, contaOutro);
+
+        var categoria = new Categoria { Nome = "Mercado", Cor = "#00FF00", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        Context.Categorias.Add(categoria);
+        await Context.SaveChangesAsync();
+
+        var dtos = new List<CreateTransacaoDto>
+        {
+            new() { Descricao = "Compra 1", Valor = 100m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pago, Data = new DateOnly(2026, 9, 1), ContaId = conta.Id, CategoriaId = categoria.Id },
+            new() { Descricao = "Compra 2", Valor = 50m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pago, Data = new DateOnly(2026, 9, 2), ContaId = conta.Id, CategoriaId = null },
+            new() { Descricao = "Tentativa Invasão", Valor = 999m, Tipo = TipoTransacao.Saida, Status = StatusTransacao.Pago, Data = new DateOnly(2026, 9, 3), ContaId = contaOutro.Id }
+        };
+
+        var service = new TransacaoService(Context);
+        var result = await service.CriarEmLoteAsync(dtos, usuario.Id);
+
+        // Deve criar apenas as 2 transações da conta do usuário, ignorando a conta do outro usuário
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, t => t.Descricao == "Compra 1");
+        Assert.Contains(result, t => t.Descricao == "Compra 2");
+        Assert.DoesNotContain(result, t => t.Descricao == "Tentativa Invasão");
+
+        var noBanco = await Context.Transacoes.Where(t => t.ContaId == conta.Id).ToListAsync();
+        Assert.Equal(2, noBanco.Count);
     }
 }

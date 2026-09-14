@@ -8,15 +8,27 @@ public static class DateRangeHelper
 
         return periodo.ToLowerInvariant() switch
         {
-            "mes_passado" => (
-                new DateOnly(hoje.Year, hoje.Month, 1).AddMonths(-1),
-                new DateOnly(hoje.Year, hoje.Month, 1)
+            "30d" or "ultimos_30" or "30_dias" => (
+                hoje.AddDays(-29),
+                hoje.AddDays(1)
             ),
             "ultimos_90" => (
                 hoje.AddDays(-89),
                 hoje.AddDays(1)
             ),
-            "todos" => (
+            "ano" or "este_ano" or "ano_atual" => (
+                new DateOnly(hoje.Year, 1, 1),
+                new DateOnly(hoje.Year + 1, 1, 1)
+            ),
+            "ano_passado" => (
+                new DateOnly(hoje.Year - 1, 1, 1),
+                new DateOnly(hoje.Year, 1, 1)
+            ),
+            "mes_passado" => (
+                new DateOnly(hoje.Year, hoje.Month, 1).AddMonths(-1),
+                new DateOnly(hoje.Year, hoje.Month, 1)
+            ),
+            "todo" or "todos" or "todo_historico" => (
                 DateOnly.MinValue,
                 DateOnly.MaxValue
             ),

@@ -65,7 +65,10 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     expect(screen.getByRole('heading', { name: 'Perfil do Usuário' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Contas e Livros' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Categorias' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Recorrências & Lançamentos Fixos' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Recorrências & Lançamentos Fixos' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /orçamentos/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Preferências do Sistema' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Notificações e Alertas' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Exportação de Relatórios' })).toBeInTheDocument();
@@ -239,14 +242,12 @@ describe('AjustesPage.jsx and Settings Sections', () => {
       expect(screen.getByText('$10,000.00')).toBeInTheDocument();
     });
 
-
     // Alternar formato de data para aaaa-mm-dd
     fireEvent.change(selectData, { target: { value: 'aaaa-mm-dd' } });
     await waitFor(() => {
       expect(screen.getByText('2026-08-23')).toBeInTheDocument();
     });
   });
-
 
   it('deve alternar e persistir switches de notificações', async () => {
     renderPage();
@@ -312,6 +313,51 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     await waitFor(() => {
       expect(api.exportarTransacoes).toHaveBeenCalledWith(null, '30d', 'csv');
       expect(clickSpy).toHaveBeenCalled();
+    });
+  });
+
+  it('deve abrir o modal de Relatório PDF ao selecionar PDF e clicar em Visualizar e Salvar PDF', async () => {
+    vi.spyOn(api, 'getResumoPeriodo').mockResolvedValue({
+      totalEntradas: 5000,
+      totalSaidas: 2000,
+      saldo: 3000,
+    });
+    vi.spyOn(api, 'getDetalhamento').mockResolvedValue([]);
+    vi.spyOn(api, 'getTransacoesRange').mockResolvedValue({
+      data: [],
+      total: 0,
+      totalPages: 1,
+      pageSize: 100,
+    });
+
+    renderPage();
+
+    const pdfRadio = screen.getByRole('radio', { name: /pdf/i });
+    fireEvent.click(pdfRadio);
+
+    const btnPdf = screen.getByRole('button', { name: /Visualizar e Salvar PDF/i });
+    fireEvent.click(btnPdf);
+
+    await waitFor(() => {
+      expect(screen.getByText('Relatório Financeiro Formatado')).toBeInTheDocument();
+      expect(screen.getByText('Imprimir / Salvar PDF')).toBeInTheDocument();
+    });
+  });
+
+  it('deve atualizar a categoria ativa e disparar rolagem suave ao clicar em uma categoria', async () => {
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+    renderPage();
+
+    // Encontra os links de navegação lateral
+    const linksOrcamento = screen.getAllByText('Orçamentos');
+    expect(linksOrcamento.length).toBeGreaterThan(0);
+
+    // Clica no link de Orçamentos
+    fireEvent.click(linksOrcamento[0]);
+
+    await waitFor(() => {
+      expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '#orcamentos');
     });
   });
 });

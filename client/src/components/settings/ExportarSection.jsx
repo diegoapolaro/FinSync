@@ -1,36 +1,95 @@
 import { useState } from 'react';
-import { Download } from 'lucide-react';
-import { exportarTransacoes } from '../../services/api';
+import { Download, FileText } from 'lucide-react';
+import {
+  exportarTransacoes,
+  getResumoPeriodo,
+  getDetalhamento,
+  getTransacoesRange,
+} from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import SettingsSection from './SettingsSection';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
+import RelatorioPdfModal from '../reports/RelatorioPdfModal';
+
+function calcularDatasPeriodo(periodo) {
+  const hoje = new Date();
+  if (periodo === 'ano') {
+    const ano = hoje.getFullYear();
+    return {
+      dataInicio: `${ano}-01-01`,
+      dataFim: `${ano}-12-31`,
+      nome: `Este Ano (${ano})`,
+    };
+  }
+  if (periodo === 'todo') {
+    return {
+      dataInicio: '2000-01-01',
+      dataFim: '2099-12-31',
+      nome: 'Todo o Histórico',
+    };
+  }
+  // Padrão 30d
+  const ini = new Date(hoje);
+  ini.setDate(hoje.getDate() - 29);
+  return {
+    dataInicio: ini.toISOString().slice(0, 10),
+    dataFim: hoje.toISOString().slice(0, 10),
+    nome: 'Últimos 30 dias',
+  };
+}
 
 export default function ExportarSection() {
   const { addToast } = useToast();
   const [exportPeriodo, setExportPeriodo] = useState('30d');
   const [exportFormato, setExportFormato] = useState('csv');
   const [exportando, setExportando] = useState(false);
+  const [modalPdfAberto, setModalPdfAberto] = useState(false);
+  const [pdfData, setPdfData] = useState({
+    periodoNome: 'Últimos 30 dias',
+    resumo: {},
+    detalhamento: [],
+    transacoes: [],
+  });
 
   async function handleExportar() {
     setExportando(true);
     try {
-      const blob = await exportarTransacoes(null, exportPeriodo, exportFormato);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `exportacao_${exportPeriodo}.${exportFormato}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      addToast('Arquivo exportado com sucesso!', 'success');
+      if (exportFormato === 'csv') {
+        const blob = await exportarTransacoes(null, exportPeriodo, 'csv');
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `exportacao_${exportPeriodo}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        addToast('Arquivo CSV exportado com sucesso!', 'success');
+      } else {
+        const { dataInicio, dataFim, nome } = calcularDatasPeriodo(exportPeriodo);
+        const [resumoData, detalheData, txnsData] = await Promise.all([
+          getResumoPeriodo(null, dataInicio, dataFim),
+          getDetalhamento(null, dataInicio, dataFim),
+          getTransacoesRange({ dataInicio, dataFim, pageSize: 100 }),
+        ]);
+
+        setPdfData({
+          periodoNome: nome,
+          resumo: resumoData || {},
+          detalhamento: detalheData || [],
+          transacoes: txnsData?.data || [],
+        });
+        setModalPdfAberto(true);
+      }
     } catch (err) {
-      addToast(err.message, 'error');
+      addToast(err.message || 'Erro ao processar exportação', 'error');
     } finally {
       setExportando(false);
     }
   }
+
+  const anoAtual = new Date().getFullYear();
 
   return (
     <SettingsSection id="exportar" title="Exportação de Relatórios" icon={Download}>
@@ -47,7 +106,7 @@ export default function ExportarSection() {
               disabled={exportando}
             >
               <option value="30d">Últimos 30 dias</option>
-              <option value="ano">Este Ano (2026)</option>
+              <option value="ano">Este Ano ({anoAtual})</option>
               <option value="todo">Todo o Histórico</option>
             </select>
           </div>
@@ -92,10 +151,31 @@ export default function ExportarSection() {
           disabled={exportando}
           className="w-full"
         >
-          <Download className="w-4 h-4 mr-2" />
-          {exportando ? 'Exportando...' : 'Baixar Arquivo'}
+          {exportFormato === 'pdf' ? (
+            <>
+              <FileText className="w-4 h-4 mr-2" />
+              {exportando ? 'Preparando Relatório...' : 'Visualizar e Salvar PDF'}
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              {exportando ? 'Exportando...' : 'Baixar Arquivo'}
+            </>
+          )}
         </Button>
       </Card>
+
+      {modalPdfAberto && (
+        <RelatorioPdfModal
+          aberto={modalPdfAberto}
+          onFechar={() => setModalPdfAberto(false)}
+          periodoNome={pdfData.periodoNome}
+          resumo={pdfData.resumo}
+          detalhamento={pdfData.detalhamento}
+          transacoes={pdfData.transacoes}
+          contaNome="Todas as Contas"
+        />
+      )}
     </SettingsSection>
   );
 }

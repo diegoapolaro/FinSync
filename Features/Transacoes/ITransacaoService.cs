@@ -22,7 +22,8 @@ public interface ITransacaoService
     Task<bool> DeleteAsync(int id, int usuarioId, bool excluirTodasParcelas = false, bool excluirFuturasRecorrencias = false);
     Task<List<DetalhamentoCategoriaDto>> GetDetalhamentoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId);
     Task<object> GetResumoPeriodoAsync(int? contaId, DateOnly dataInicio, DateOnly dataFim, int usuarioId);
-    Task ExportarCsvAsync(int? contaId, string periodo, int usuarioId, Stream outputStream);
+    Task ExportarCsvAsync(int? contaId, string periodo, int usuarioId, Stream outputStream, DateOnly? dataInicio = null, DateOnly? dataFim = null);
     Task<List<SugestaoDescricaoDto>> GetSugestoesDescricaoAsync(int usuarioId, int? contaId, TipoTransacao? tipo, string? termo = null, int limite = 50);
+    Task<List<TransacaoDto>> CriarEmLoteAsync(List<CreateTransacaoDto> dtos, int usuarioId);
 }
 

@@ -37,7 +37,12 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
     }
 
     [HttpGet("exportar")]
-    public async Task Exportar(int? contaId, string periodo = "mes_atual", string formato = "csv")
+    public async Task Exportar(
+        int? contaId,
+        string periodo = "mes_atual",
+        DateOnly? dataInicio = null,
+        DateOnly? dataFim = null,
+        string formato = "csv")
     {
         if (!string.Equals(formato, "csv", StringComparison.OrdinalIgnoreCase))
         {
@@ -48,7 +53,7 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
 
         Response.ContentType = "text/csv";
         Response.Headers.Append("Content-Disposition", $"attachment; filename=extrato_{DateTime.Today:yyyyMMdd}.csv");
-        await transacaoService.ExportarCsvAsync(contaId, periodo, UsuarioId, Response.Body);
+        await transacaoService.ExportarCsvAsync(contaId, periodo, UsuarioId, Response.Body, dataInicio, dataFim);
     }
 
     [HttpGet]
@@ -110,5 +115,49 @@ public class TransacoesController(ITransacaoService transacaoService) : Controll
         var deleted = await transacaoService.DeleteAsync(id, UsuarioId, excluirTodasParcelas, excluirFuturas);
         if (!deleted) return NotFound();
         return NoContent();
+    }
+
+    [HttpPost("importar")]
+    public async Task<ActionResult<List<TransacaoPreviewDto>>> Importar(IFormFile arquivo)
+    {
+        if (arquivo == null || arquivo.Length == 0) return BadRequest("Arquivo inválido.");
+
+        var preview = new List<TransacaoPreviewDto>();
+
+        using var reader = new StreamReader(arquivo.OpenReadStream());
+        var header = await reader.ReadLineAsync();
+        if (string.IsNullOrWhiteSpace(header)) return BadRequest("Arquivo vazio.");
+
+        while (await reader.ReadLineAsync() is { } line)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            var cols = line.Split(',');
+            if (cols.Length < 4) continue;
+
+            if (DateOnly.TryParseExact(cols[0].Trim(), "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out var data) &&
+                decimal.TryParse(cols[2].Trim(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var valor) &&
+                Enum.TryParse<TipoTransacao>(cols[3].Trim(), true, out var tipo))
+            {
+                preview.Add(new TransacaoPreviewDto
+                {
+                    Data = data,
+                    Descricao = cols[1].Trim().Trim('"'),
+                    Valor = valor,
+                    Tipo = tipo
+                });
+            }
+        }
+
+        return Ok(preview);
+    }
+
+    [HttpPost("lote")]
+    public async Task<ActionResult<List<TransacaoDto>>> CriarEmLote([FromBody] List<CreateTransacaoDto> transacoes)
+    {
+        if (transacoes == null || !transacoes.Any()) return BadRequest("Lista vazia.");
+
+        var result = await transacaoService.CriarEmLoteAsync(transacoes, UsuarioId);
+        return Ok(result);
     }
 }

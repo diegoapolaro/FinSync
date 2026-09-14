@@ -30,25 +30,39 @@ async function handleResponse(res) {
   if (!res.ok) {
     let message = `Erro ${res.status}: ${res.statusText}`;
     try {
-      const body = await res.json();
-      if (body.error) {
-        message = body.error;
-      } else if (body.detail) {
-        message = body.detail;
-      } else if (body.title) {
-        message = body.title;
+      if (typeof res.json === 'function') {
+        const body = await res.json();
+        if (typeof body === 'string') {
+          message = body;
+        } else if (body?.error) {
+          message = body.error;
+        } else if (body?.detail) {
+          message = body.detail;
+        } else if (body?.title) {
+          message = body.title;
+        }
+        if (body?.errors) {
+          const errosDetalhados = Object.entries(body.errors)
+            .map(([campo, msgs]) => `${campo}: ${msgs.join(', ')}`)
+            .join('; ');
+          if (errosDetalhados) message = `${message} (${errosDetalhados})`;
+        }
+      } else if (typeof res.text === 'function') {
+        const text = await res.text();
+        if (text && text.trim()) message = text;
       }
-      if (body.errors) {
-        const errosDetalhados = Object.entries(body.errors)
-          .map(([campo, msgs]) => `${campo}: ${msgs.join(', ')}`)
-          .join('; ');
-        if (errosDetalhados) message = `${message} (${errosDetalhados})`;
-      }
-    } catch {}
+    } catch {
+      try {
+        if (typeof res.text === 'function') {
+          const text = await res.text();
+          if (text && text.trim()) message = text;
+        }
+      } catch {}
+    }
     throw new Error(message);
   }
   if (res.status === 204) return;
-  const text = await res.text();
+  const text = typeof res.text === 'function' ? await res.text() : undefined;
   return text ? JSON.parse(text) : undefined;
 }
 
@@ -190,7 +204,6 @@ export async function getSugestoesDescricao({
   return authFetch(url(`/transacoes/sugestoes-descricao${qs}`));
 }
 
-
 export async function createTransacao(transacao) {
   return authFetch(url('/transacoes'), {
     method: 'POST',
@@ -310,11 +323,13 @@ export async function getResumoPeriodo(contaId, dataInicio, dataFim) {
   return authFetch(url(`/transacoes/resumo-periodo?${params}`));
 }
 
-export async function exportarTransacoes(contaId, periodo, formato) {
+export async function exportarTransacoes(contaId, periodo, formato, dataInicio, dataFim) {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);
-  params.set('periodo', periodo);
-  params.set('formato', formato);
+  if (periodo) params.set('periodo', periodo);
+  if (formato) params.set('formato', formato);
+  if (dataInicio) params.set('dataInicio', dataInicio);
+  if (dataFim) params.set('dataFim', dataFim);
   const res = await fetch(url(`/transacoes/exportar?${params}`), {
     headers: { ...getAuthHeaders() },
   });
@@ -330,4 +345,53 @@ export async function exportarTransacoes(contaId, periodo, formato) {
     throw new Error(message);
   }
   return res.blob();
+}
+
+// Orcamentos
+export async function getOrcamentosResumo(mes, ano) {
+  const params = new URLSearchParams();
+  if (mes) params.set('mes', mes);
+  if (ano) params.set('ano', ano);
+  return authFetch(url(`/orcamentos/resumo?${params}`));
+}
+
+export async function createOrcamento(orcamento) {
+  return authFetch(url('/orcamentos'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orcamento),
+  });
+}
+
+export async function updateOrcamento(id, orcamento) {
+  return authFetch(url(`/orcamentos/${id}`), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orcamento),
+  });
+}
+
+export async function deleteOrcamento(id) {
+  return authFetch(url(`/orcamentos/${id}`), {
+    method: 'DELETE',
+  });
+}
+// Importacao
+export async function importarArquivoCsv(file) {
+  const formData = new FormData();
+  formData.append('arquivo', file);
+  const res = await fetch(url('/transacoes/importar'), {
+    method: 'POST',
+    headers: { ...getAuthHeaders() },
+    body: formData,
+  });
+  return handleResponse(res);
+}
+
+export async function createTransacoesLote(transacoes) {
+  return authFetch(url('/transacoes/lote'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(transacoes),
+  });
 }

@@ -5,31 +5,47 @@ import { cn } from '@/lib/utils';
 export function Dialog({ open, onOpenChange, children }) {
   const dialogRef = React.useRef(null);
   const previousActiveElement = React.useRef(null);
+  const onOpenChangeRef = React.useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const wasOpenRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      if (wasOpenRef.current && previousActiveElement.current?.focus) {
+        previousActiveElement.current.focus();
+      }
+      wasOpenRef.current = false;
+      return;
+    }
 
-    previousActiveElement.current = document.activeElement;
-    const dialog = dialogRef.current;
-    const focusable = dialog?.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-    const focusableElements = focusable ? Array.from(focusable) : [];
-    const firstFocusable = focusableElements[0] ?? dialog;
-
-    firstFocusable?.focus();
+    if (!wasOpenRef.current) {
+      wasOpenRef.current = true;
+      previousActiveElement.current = document.activeElement;
+      const dialog = dialogRef.current;
+      const focusable = dialog?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      const focusableElements = focusable ? Array.from(focusable) : [];
+      const firstInput = focusableElements.find(
+        (el) =>
+          (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') &&
+          !el.hasAttribute('disabled'),
+      );
+      const elementToFocus = firstInput || focusableElements[0] || dialog;
+      elementToFocus?.focus();
+    }
 
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        onOpenChange?.(false);
+        onOpenChangeRef.current?.(false);
         return;
       }
 
-      if (event.key !== 'Tab' || !dialog) return;
+      if (event.key !== 'Tab' || !dialogRef.current) return;
 
       const focusableItems = Array.from(
-        dialog.querySelectorAll(
+        dialogRef.current.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         ),
       ).filter((el) => !el.hasAttribute('disabled'));
@@ -55,11 +71,8 @@ export function Dialog({ open, onOpenChange, children }) {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      if (previousActiveElement.current?.focus) {
-        previousActiveElement.current.focus();
-      }
     };
-  }, [open, onOpenChange]);
+  }, [open]);
 
   if (!open) return null;
 

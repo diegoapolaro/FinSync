@@ -3,6 +3,7 @@ bin/
 obj/
 publish/
 publish_clean/
+publish_output/
 *.zip
 *.user
 *.suo

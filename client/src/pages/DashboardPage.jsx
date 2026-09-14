@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useOutletContext, useNavigate, Link } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
   Wallet,
   PiggyBank,
   PieChart,
-  BarChart3,
   ChevronLeft,
   ChevronRight,
   Clock,
   CheckCircle2,
-  ArrowRight,
   PlusCircle,
   Sparkles,
 } from 'lucide-react';
@@ -22,11 +20,7 @@ import {
   updateTransacaoStatus,
 } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import {
-  primeiroDiaMes,
-  ultimoDiaMes,
-  periodoEfetivoParaApi,
-} from '../utils/filterTransacoes';
+import { primeiroDiaMes, ultimoDiaMes, periodoEfetivoParaApi } from '../utils/filterTransacoes';
 import { TIPO_TRANSACAO, STATUS_TRANSACAO } from '../utils/constants';
 import { useToast } from '../contexts/ToastContext';
 import ChartContainer from '../components/reports/ChartContainer';
@@ -34,6 +28,7 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const donutColors = [
   '#0052ff', // Coinbase Blue
@@ -45,6 +40,41 @@ const donutColors = [
   '#ec4899', // Pink
   '#64748b', // Slate
 ];
+
+// Componente para números animados (Odômetro sutil)
+function AnimatedNumber({ value }) {
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    let startTime;
+    let animationFrame;
+    const duration = 1000;
+    const startValue = displayValue;
+    const distance = value - startValue;
+
+    if (distance === 0) return;
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+
+      // Easing out-cubic
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(startValue + distance * easeProgress);
+
+      if (progress < 1) {
+        animationFrame = window.requestAnimationFrame(step);
+      } else {
+        setDisplayValue(value);
+      }
+    };
+
+    animationFrame = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [value]);
+
+  return <>{formatCurrency(displayValue)}</>;
+}
 
 export default function DashboardPage() {
   const { contaSelecionadaId, contas = [], abrirModalNovaConta } = useOutletContext() || {};
@@ -60,7 +90,14 @@ export default function DashboardPage() {
   const requestIdRef = useRef(0);
 
   const periodoApi = useMemo(
-    () => periodoEfetivoParaApi('mes', dataRef, new Date(), primeiroDiaMes(dataRef), ultimoDiaMes(dataRef)),
+    () =>
+      periodoEfetivoParaApi(
+        'mes',
+        dataRef,
+        new Date(),
+        primeiroDiaMes(dataRef),
+        ultimoDiaMes(dataRef),
+      ),
     [dataRef],
   );
 
@@ -111,9 +148,8 @@ export default function DashboardPage() {
 
   const totalEntradas = resumo?.totalEntradas ?? 0;
   const totalSaidas = resumo?.totalSaidas ?? 0;
-  const saldoMes = resumo?.saldo ?? (totalEntradas - totalSaidas);
+  const saldoMes = resumo?.saldo ?? totalEntradas - totalSaidas;
 
-  // Taxa de Poupança = ((Entradas - Saídas) / Entradas) * 100
   const taxaPoupanca = useMemo(() => {
     if (totalEntradas <= 0) return 0;
     const taxa = ((totalEntradas - totalSaidas) / totalEntradas) * 100;
@@ -124,32 +160,31 @@ export default function DashboardPage() {
     if (taxaPoupanca >= 25) {
       return {
         label: 'Excelente',
-        badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
-        desc: `${taxaPoupanca}% guardada da sua renda neste mês.`,
+        badgeClass: 'bg-emerald-500/15 text-emerald-500 border-none',
+        desc: `${taxaPoupanca}% guardada.`,
       };
     }
     if (taxaPoupanca >= 10) {
       return {
         label: 'Boa',
-        badgeClass: 'bg-primary/10 text-primary border-primary/30',
-        desc: `${taxaPoupanca}% reservada da receita líquida.`,
+        badgeClass: 'bg-primary/15 text-primary border-none',
+        desc: `${taxaPoupanca}% reservada.`,
       };
     }
     if (taxaPoupanca >= 0) {
       return {
         label: 'Atenção',
-        badgeClass: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
-        desc: 'Saldo positivo, mas com margem de poupança estreita.',
+        badgeClass: 'bg-amber-500/15 text-amber-500 border-none',
+        desc: 'Margem estreita.',
       };
     }
     return {
       label: 'Déficit',
-      badgeClass: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
-      desc: 'Despesas superaram os ganhos neste período.',
+      badgeClass: 'bg-rose-500/15 text-rose-500 border-none',
+      desc: 'Despesas > Ganhos.',
     };
   }, [taxaPoupanca]);
 
-  // Despesas por Categoria para Donut
   const categorias = useMemo(() => {
     const saidas = detalhamento.filter((d) => d.total < 0);
     const total = saidas.reduce((s, d) => s + Math.abs(d.total), 0);
@@ -171,7 +206,10 @@ export default function DashboardPage() {
       const seg = {
         ...c,
         pct,
-        color: c.corOriginal && c.corOriginal !== '#747874' ? c.corOriginal : donutColors[i % donutColors.length],
+        color:
+          c.corOriginal && c.corOriginal !== '#747874'
+            ? c.corOriginal
+            : donutColors[i % donutColors.length],
         dasharray: `${dashLen} ${circ}`,
         dashoffset: -offset,
       };
@@ -180,45 +218,6 @@ export default function DashboardPage() {
     });
   }, [categorias]);
 
-  // Evolução Semanal / Mensal do Fluxo de Caixa
-  const semanasEvolucao = useMemo(() => {
-    const entradas = transacoes.filter((t) => t.tipo === TIPO_TRANSACAO.ENTRADA);
-    const saidas = transacoes.filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA);
-    const ultimoDia = ultimoDiaMes(dataRef).getDate();
-    const weeklyData = [];
-
-    for (let w = 0; w < 4; w++) {
-      const diaInicio = w * 7 + 1;
-      const diaFim = Math.min((w + 1) * 7, ultimoDia);
-      const entSemana = entradas
-        .filter((t) => {
-          const d = parseInt(t.data.slice(8, 10), 10);
-          return d >= diaInicio && d <= diaFim;
-        })
-        .reduce((s, t) => s + t.valor, 0);
-      const saiSemana = saidas
-        .filter((t) => {
-          const d = parseInt(t.data.slice(8, 10), 10);
-          return d >= diaInicio && d <= diaFim;
-        })
-        .reduce((s, t) => s + t.valor, 0);
-      weeklyData.push({
-        semana: w + 1,
-        label: `Sem ${w + 1} (${diaInicio}-${diaFim})`,
-        entradas: entSemana,
-        saidas: saiSemana,
-      });
-    }
-
-    const maxVal = Math.max(...weeklyData.map((w) => Math.max(w.entradas, w.saidas)), 1);
-    return weeklyData.map((w) => ({
-      ...w,
-      entPct: (w.entradas / maxVal) * 100,
-      saiPct: (w.saidas / maxVal) * 100,
-    }));
-  }, [transacoes, dataRef]);
-
-  // Contas / Lançamentos Próximos do Vencimento
   const contasVencimento = useMemo(() => {
     const pendentes = transacoes.filter((t) => t.status === STATUS_TRANSACAO.PENDENTE);
     const hojeDate = new Date();
@@ -235,29 +234,23 @@ export default function DashboardPage() {
 
         let statusVencimento = 'futuro';
         let statusTexto = `Em ${diffDias} dias`;
-        let badgeColor = 'bg-secondary text-foreground border-border';
+        let badgeColor = 'bg-secondary text-foreground border-none';
 
         if (diffDias < 0) {
           statusVencimento = 'atrasado';
-          statusTexto = `Atrasado há ${Math.abs(diffDias)}d`;
-          badgeColor = 'bg-rose-500/10 text-rose-500 border-rose-500/30 font-semibold';
+          statusTexto = `Atrasado ${Math.abs(diffDias)}d`;
+          badgeColor = 'bg-rose-500/15 text-rose-500 border-none font-semibold';
         } else if (diffDias === 0) {
           statusVencimento = 'hoje';
           statusTexto = 'Vence Hoje!';
-          badgeColor = 'bg-amber-500/10 text-amber-500 border-amber-500/30 font-bold animate-pulse';
+          badgeColor = 'bg-amber-500/20 text-amber-500 border-none font-bold';
         } else if (diffDias <= 3) {
           statusVencimento = 'proximo';
           statusTexto = `Vence em ${diffDias}d`;
-          badgeColor = 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+          badgeColor = 'bg-amber-500/15 text-amber-500 border-none';
         }
 
-        return {
-          ...t,
-          diffDias,
-          statusVencimento,
-          statusTexto,
-          badgeColor,
-        };
+        return { ...t, diffDias, statusVencimento, statusTexto, badgeColor };
       })
       .sort((a, b) => a.diffDias - b.diffDias);
   }, [transacoes]);
@@ -270,7 +263,9 @@ export default function DashboardPage() {
       setTransacoes((prev) =>
         prev.map((t) => (t.id === transacao.id ? { ...t, status: STATUS_TRANSACAO.PAGO } : t)),
       );
-      getResumoPeriodo(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim).then(setResumo);
+      getResumoPeriodo(contaSelecionadaId, periodoApi.dataInicio, periodoApi.dataFim).then(
+        setResumo,
+      );
     } catch (err) {
       addToast(err.message || 'Erro ao atualizar status', 'error');
     } finally {
@@ -281,282 +276,280 @@ export default function DashboardPage() {
   const mesAnoDisplay = dataRef.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   const contaAtual = contas?.find((c) => String(c.id) === String(contaSelecionadaId));
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
+  };
+
   return (
     <div className="px-4 md:px-8 max-w-7xl mx-auto pb-32 md:pb-12 pt-6">
-      {/* Header com Boas-vindas e Seletor de Mês */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-              Dashboard Principal
-            </h1>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Visão Geral</h1>
             {contaAtual && (
-              <Badge variant="outline" className="hidden sm:inline-flex text-xs px-2.5 py-0.5 rounded-full border-primary/30 text-primary">
+              <Badge className="hidden sm:inline-flex rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-none font-semibold">
                 {contaAtual.nome}
               </Badge>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Visão consolidada de receitas, despesas, reserva financeira e compromissos
+          <p className="text-sm text-muted-foreground mt-1 font-medium">
+            Seu painel financeiro consolidado
           </p>
-        </div>
+        </motion.div>
 
-        <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
-          {/* Mês Selector */}
-          <div className="flex items-center bg-card rounded-xl border border-border p-1 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-between sm:justify-end"
+        >
+          <div className="flex items-center bg-card/60 backdrop-blur-md rounded-2xl border border-border/50 shadow-sm p-1">
             <Button
               variant="ghost"
-              size="iconSm"
+              size="icon"
               onClick={() => navegarMes(-1)}
               title="Mês anterior"
-              className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground"
+              aria-label="Mês anterior"
+              className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary/60"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5 shrink-0" />
             </Button>
-            <span className="text-xs font-semibold text-foreground px-3 capitalize min-w-[130px] text-center">
+            <span className="text-sm font-semibold text-foreground px-4 capitalize min-w-[140px] text-center select-none">
               {mesAnoDisplay}
             </span>
             <Button
               variant="ghost"
-              size="iconSm"
+              size="icon"
               onClick={() => navegarMes(1)}
               title="Próximo mês"
-              className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground"
+              aria-label="Próximo mês"
+              className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary/60"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5 shrink-0" />
             </Button>
           </div>
 
           <Button
             onClick={() => navigate('/lancamentos')}
-            className="rounded-xl shadow-sm text-xs font-semibold flex items-center gap-1.5"
-            size="sm"
+            className="rounded-2xl shadow-lg shadow-primary/20 text-sm font-bold flex items-center gap-2 h-11 px-5 bg-primary hover:brightness-110 transition-all"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>Novo Lançamento</span>
+            <PlusCircle className="w-5 h-5" />
+            <span>Novo</span>
           </Button>
-        </div>
+        </motion.div>
       </header>
 
       {carregando && (
-        <div className="text-center py-20 text-muted-foreground text-sm">
-          <span className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin align-middle mr-3" />
-          Sincronizando indicadores do dashboard...
+        <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
+          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+          <span className="text-sm font-medium animate-pulse">Sincronizando dados...</span>
         </div>
       )}
 
       {!carregando && !contaSelecionadaId && (
-        <Card className="p-8 sm:p-12 text-center border-dashed border-border/80 bg-gradient-to-b from-card to-card/50 max-w-2xl mx-auto my-8 shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-5 shadow-inner">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-2">
-            Bem-vindo ao FinSync!
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6 leading-relaxed">
-            Crie sua primeira conta ou livro de caixa para começar a organizar suas receitas, despesas e relatórios financeiros com total clareza.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            {abrirModalNovaConta ? (
-              <Button
-                onClick={abrirModalNovaConta}
-                size="lg"
-                className="rounded-xl font-semibold gap-2 shadow-sm w-full sm:w-auto"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Criar Primeira Conta</span>
-              </Button>
-            ) : (
-              <Button
-                onClick={() => navigate('/ajustes')}
-                size="lg"
-                className="rounded-xl font-semibold gap-2 shadow-sm w-full sm:w-auto"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Criar Conta em Ajustes</span>
-              </Button>
-            )}
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <Card className="p-8 sm:p-12 text-center border-dashed border-white/10 bg-gradient-to-b from-card/40 to-transparent max-w-2xl mx-auto my-8 shadow-xl backdrop-blur-sm rounded-3xl">
+            <div className="w-20 h-20 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Sparkles className="w-10 h-10" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-3">
+              Bem-vindo ao FinSync
+            </h2>
+            <p className="text-base text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
+              Crie sua primeira conta para começar a organizar sua vida financeira com clareza
+              absoluta.
+            </p>
             <Button
-              variant="outline"
-              onClick={() => navigate('/ajustes')}
+              onClick={abrirModalNovaConta || (() => navigate('/ajustes'))}
               size="lg"
-              className="rounded-xl text-xs font-semibold w-full sm:w-auto"
+              className="rounded-2xl font-bold gap-2 shadow-lg h-12 px-8"
             >
-              Configurar em Ajustes
+              <PlusCircle className="w-5 h-5" />
+              <span>Criar Conta</span>
             </Button>
-          </div>
-        </Card>
+          </Card>
+        </motion.div>
       )}
 
       {!carregando && contaSelecionadaId && (
-        <>
-          {/* 1. Cards de Resumo & Taxa de Poupança */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Total de Entradas */}
-            <Card className="p-5 relative overflow-hidden flex flex-col justify-between border-border/70 hover:border-border transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Total de Entradas
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-semibold tracking-tight numeric-mono text-emerald-500">
-                  {formatCurrency(totalEntradas)}
-                </span>
-                <p className="text-[11px] text-muted-foreground mt-1">Receitas totais do mês</p>
-              </div>
-            </Card>
-
-            {/* Total de Saídas */}
-            <Card className="p-5 relative overflow-hidden flex flex-col justify-between border-border/70 hover:border-border transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Total de Saídas
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
-                  <TrendingDown className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <span className="text-2xl sm:text-3xl font-semibold tracking-tight numeric-mono text-rose-500">
-                  {formatCurrency(totalSaidas)}
-                </span>
-                <p className="text-[11px] text-muted-foreground mt-1">Despesas e pagamentos</p>
-              </div>
-            </Card>
-
-            {/* Saldo do Mês */}
-            <Card className="p-5 relative overflow-hidden flex flex-col justify-between border-border/70 hover:border-border transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Saldo do Mês
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <Wallet className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <span
-                  className={cn(
-                    'text-2xl sm:text-3xl font-semibold tracking-tight numeric-mono',
-                    saldoMes >= 0 ? 'text-emerald-500' : 'text-rose-500',
-                  )}
-                >
-                  {saldoMes >= 0 ? '+ ' : '- '}
-                  {formatCurrency(Math.abs(saldoMes))}
-                </span>
-                <p className="text-[11px] text-muted-foreground mt-1">Resultado líquido do período</p>
-              </div>
-            </Card>
-
-            {/* Taxa de Poupança (% guardada) */}
-            <Card className="p-5 relative overflow-hidden flex flex-col justify-between border-border/70 hover:border-border transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Taxa de Poupança
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
-                  <PiggyBank className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-3">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-bold tracking-tight numeric-mono text-foreground">
-                    {taxaPoupanca > 0 ? `${taxaPoupanca}%` : '0%'}
+        <motion.div variants={containerVariants} initial="hidden" animate="show">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <motion.div variants={itemVariants}>
+              <Card className="p-6 relative overflow-hidden flex flex-col justify-between border-white/5 bg-card/60 backdrop-blur-md shadow-lg hover:bg-card/80 transition-colors rounded-3xl group">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
+                <div className="flex items-center justify-between z-10">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    Receitas
                   </span>
-                  <Badge variant="outline" className={cn('text-[10px] px-2 py-0.5 rounded-full uppercase', statusPoupanca.badgeClass)}>
-                    {statusPoupanca.label}
-                  </Badge>
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{statusPoupanca.desc}</p>
-              </div>
-            </Card>
+                <div className="mt-6 z-10">
+                  <span className="text-3xl font-bold tracking-tight numeric-mono text-emerald-500">
+                    <AnimatedNumber value={totalEntradas} />
+                  </span>
+                </div>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Card className="p-6 relative overflow-hidden flex flex-col justify-between border-white/5 bg-card/60 backdrop-blur-md shadow-lg hover:bg-card/80 transition-colors rounded-3xl group">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-colors" />
+                <div className="flex items-center justify-between z-10">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    Despesas
+                  </span>
+                  <div className="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="mt-6 z-10">
+                  <span className="text-3xl font-bold tracking-tight numeric-mono text-rose-500">
+                    <AnimatedNumber value={totalSaidas} />
+                  </span>
+                </div>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Card className="p-6 relative overflow-hidden flex flex-col justify-between border-white/5 bg-card/60 backdrop-blur-md shadow-lg hover:bg-card/80 transition-colors rounded-3xl group">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+                <div className="flex items-center justify-between z-10">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    Saldo Mensal
+                  </span>
+                  <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                    <Wallet className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="mt-6 z-10 flex flex-col">
+                  <span
+                    className={cn(
+                      'text-3xl font-bold tracking-tight numeric-mono flex',
+                      saldoMes >= 0 ? 'text-emerald-500' : 'text-rose-500',
+                    )}
+                  >
+                    <span>{saldoMes >= 0 ? '+ ' : '- '}</span>
+                    <AnimatedNumber value={Math.abs(saldoMes)} />
+                  </span>
+                </div>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Card className="p-6 relative overflow-hidden flex flex-col justify-between border-white/5 bg-card/60 backdrop-blur-md shadow-lg hover:bg-card/80 transition-colors rounded-3xl group">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors" />
+                <div className="flex items-center justify-between z-10">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    Poupança
+                  </span>
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                    <PiggyBank className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="mt-5 z-10">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-3xl font-bold tracking-tight numeric-mono text-foreground">
+                      {taxaPoupanca > 0 ? <AnimatedNumber value={taxaPoupanca} /> : '0'}%
+                    </span>
+                    <Badge
+                      className={cn(
+                        'text-[10px] px-2 py-0.5 rounded-md uppercase font-bold',
+                        statusPoupanca.badgeClass,
+                      )}
+                    >
+                      {statusPoupanca.label}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium">{statusPoupanca.desc}</p>
+                </div>
+              </Card>
+            </motion.div>
           </div>
 
-          {/* 2. Gráficos Dinâmicos: Rosca de Despesas e Evolução Mensal */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-            {/* Gráfico de Rosca / Donut: Despesas por Categoria */}
-            <div className="lg:col-span-2">
+            <motion.div variants={itemVariants} className="lg:col-span-2">
               <ChartContainer
-                title="Despesas por Categoria"
-                subtitle="Distribuição relativa das saídas do mês"
-                icon={<PieChart className="w-4 h-4" />}
+                title="Distribuição de Despesas"
+                subtitle="Seus gastos categorizados"
+                icon={<PieChart className="w-5 h-5" />}
               >
                 {categorias.length === 0 ? (
                   <div className="py-12 text-center px-4">
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-                      <PieChart className="w-5 h-5" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">Nenhuma despesa neste mês</p>
-                    <p className="text-xs text-muted-foreground mt-1 mb-4">
-                      Registre suas saídas para visualizar a distribuição dos seus gastos por categoria.
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate('/lancamentos?tipo=Saida')}
-                      className="rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border-rose-500/30"
-                    >
-                      <TrendingDown className="w-3.5 h-3.5 mr-1" />
-                      Registrar Despesa
-                    </Button>
+                    <PieChart className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground">Sem dados</p>
                   </div>
                 ) : (
                   <>
-                    <div className="relative flex justify-center my-4">
-                      <svg className="-rotate-90" height="170" viewBox="0 0 100 100" width="170">
+                    <div className="relative flex justify-center my-6">
+                      <svg className="-rotate-90" height="200" viewBox="0 0 100 100" width="200">
                         <circle
                           cx="50"
                           cy="50"
                           fill="transparent"
                           r="40"
-                          stroke="hsl(var(--secondary))"
-                          strokeWidth="16"
+                          stroke="var(--color-surface-soft)"
+                          strokeWidth="12"
                         />
-                        {donutSegments.map((seg, i) => (
-                          <circle
-                            key={i}
-                            className="donut-segment transition-all duration-300 hover:opacity-80"
-                            cx="50"
-                            cy="50"
-                            fill="transparent"
-                            r="40"
-                            stroke={seg.color}
-                            strokeDasharray={seg.dasharray}
-                            strokeDashoffset={seg.dashoffset}
-                            strokeWidth="16"
-                          />
-                        ))}
+                        <AnimatePresence>
+                          {donutSegments.map((seg, i) => (
+                            <motion.circle
+                              key={i}
+                              initial={{ strokeDashoffset: seg.dasharray.split(' ')[1] }}
+                              animate={{ strokeDashoffset: seg.dashoffset }}
+                              transition={{ duration: 1, ease: 'easeOut', delay: i * 0.1 }}
+                              className="hover:opacity-80 cursor-pointer"
+                              cx="50"
+                              cy="50"
+                              fill="transparent"
+                              r="40"
+                              stroke={seg.color}
+                              strokeDasharray={seg.dasharray}
+                              strokeWidth="12"
+                              strokeLinecap="round"
+                            />
+                          ))}
+                        </AnimatePresence>
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-2xl font-bold tracking-tight text-foreground numeric-mono">
-                          {totalSaidas > 0 ? '100%' : '0%'}
+                        <span className="text-3xl font-bold tracking-tight text-foreground numeric-mono">
+                          100%
                         </span>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                          Total Despesas
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                          Despesas
                         </span>
                       </div>
                     </div>
-
-                    <div className="space-y-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar mt-4">
+                    <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                       {donutSegments.map((seg, i) => (
                         <div
                           key={i}
-                          className="flex justify-between items-center py-1.5 border-b border-border/40 last:border-0"
+                          className="flex justify-between items-center bg-background/40 p-2.5 rounded-xl border border-white/5"
                         >
-                          <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex items-center gap-3">
                             <div
-                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: seg.color }}
                             />
-                            <span className="text-xs font-medium text-foreground truncate max-w-[130px]">
+                            <span className="text-sm font-semibold text-foreground">
                               {seg.nome}
                             </span>
                           </div>
-                          <div className="flex gap-2 numeric-mono text-xs font-semibold shrink-0">
+                          <div className="flex gap-3 numeric-mono text-sm font-bold">
                             <span className="text-muted-foreground">{seg.pct.toFixed(0)}%</span>
                             <span className="text-foreground">{formatCurrency(seg.total)}</span>
                           </div>
@@ -566,201 +559,94 @@ export default function DashboardPage() {
                   </>
                 )}
               </ChartContainer>
-            </div>
+            </motion.div>
 
-            {/* Gráfico de Evolução Mensal / Semanal de Fluxo */}
-            <div className="lg:col-span-3">
-              <ChartContainer
-                title="Evolução Mensal do Fluxo"
-                subtitle="Comparativo semanal de Entradas x Saídas"
-                icon={<BarChart3 className="w-4 h-4" />}
-              >
-                {totalEntradas === 0 && totalSaidas === 0 ? (
-                  <div className="py-12 text-center px-4">
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-                      <BarChart3 className="w-5 h-5" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">Sem movimentação no período</p>
-                    <p className="text-xs text-muted-foreground mt-1 mb-4">
-                      Seu fluxo de caixa semanal será desenhado automaticamente conforme você registrar entradas e saídas.
+            <motion.div variants={itemVariants} className="lg:col-span-3">
+              <Card className="p-6 border-white/5 bg-card/60 backdrop-blur-md rounded-3xl h-full shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground">Agenda Financeira</h3>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      Contas próximas do vencimento
                     </p>
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/lancamentos?tipo=Entrada')}
-                        className="rounded-lg text-xs font-semibold text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/30"
-                      >
-                        <TrendingUp className="w-3.5 h-3.5 mr-1" />
-                        Nova Entrada
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/lancamentos?tipo=Saida')}
-                        className="rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border-rose-500/30"
-                      >
-                        <TrendingDown className="w-3.5 h-3.5 mr-1" />
-                        Nova Saída
-                      </Button>
-                    </div>
                   </div>
-                ) : (
-                  <>
-                    <div className="h-60 flex items-end justify-between gap-4 px-4 pb-4 border-b border-border/60 relative mt-4">
-                      {semanasEvolucao.map((sem) => (
-                        <div
-                          key={sem.semana}
-                          className="flex-1 flex justify-center items-end gap-2.5 group relative h-full"
-                        >
-                          <div
-                            className="w-4 sm:w-5 bg-emerald-500 chart-bar rounded-t-lg transition-all duration-300 hover:brightness-110"
-                            style={{
-                              height: Math.max(sem.entPct, 4) + '%',
-                              animationDelay: sem.semana * 100 + 'ms',
-                            }}
-                            title={`Entradas: ${formatCurrency(sem.entradas)}`}
-                          />
-                          <div
-                            className="w-4 sm:w-5 bg-rose-500 chart-bar rounded-t-lg transition-all duration-300 hover:brightness-110"
-                            style={{
-                              height: Math.max(sem.saiPct, 4) + '%',
-                              animationDelay: sem.semana * 100 + 50 + 'ms',
-                            }}
-                            title={`Saídas: ${formatCurrency(sem.saidas)}`}
-                          />
-                          <div className="absolute -bottom-6 text-[11px] font-medium text-muted-foreground uppercase text-center w-full truncate">
-                            {sem.label}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-8 flex gap-8 justify-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-semibold text-muted-foreground tracking-wider">
-                          Entradas: {formatCurrency(totalEntradas)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-rose-500" />
-                        <span className="text-xs font-semibold text-muted-foreground tracking-wider">
-                          Saídas: {formatCurrency(totalSaidas)}
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </ChartContainer>
-            </div>
-          </div>
-
-          {/* 3. Lista de Contas Próximas do Vencimento */}
-          <div className="mb-8">
-            <Card className="p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center">
                     <Clock className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-foreground">
-                      Contas e Lançamentos Próximos do Vencimento
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Compromissos pendentes com liquidação programada
+                </div>
+
+                {contasVencimento.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <CheckCircle2 className="w-14 h-14 text-emerald-500/30 mx-auto mb-4" />
+                    <h4 className="text-base font-bold text-foreground">Tudo tranquilo!</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Nenhum vencimento pendente no radar.
                     </p>
                   </div>
-                </div>
-
-                {contasVencimento.length > 0 && (
-                  <Link
-                    to="/extrato?status=Pendente"
-                    className="text-xs text-primary hover:underline font-semibold flex items-center gap-1"
-                  >
-                    Ver todas as pendências ({contasVencimento.length})
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                )}
-              </div>
-
-              {contasVencimento.length === 0 ? (
-                <div className="py-8 text-center bg-secondary/30 rounded-2xl border border-border/50">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2 opacity-80" />
-                  <h4 className="text-sm font-semibold text-foreground">Nenhuma conta pendente para este mês!</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Todos os seus lançamentos programados estão quitados e em dia.
-                  </p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border/60">
-                  {contasVencimento.slice(0, 6).map((item) => (
-                    <div
-                      key={item.id}
-                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-secondary/40 px-2 rounded-xl transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className={cn(
-                            'w-2.5 h-2.5 rounded-full shrink-0',
-                            item.tipo === TIPO_TRANSACAO.ENTRADA ? 'bg-emerald-500' : 'bg-rose-500',
-                          )}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{item.descricao}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                            <span>Vencimento: {formatDate(item.data)}</span>
-                            {item.categoriaNome && (
-                              <>
-                                <span>•</span>
-                                <span className="truncate">{item.categoriaNome}</span>
-                              </>
+                ) : (
+                  <div className="space-y-3">
+                    {contasVencimento.slice(0, 5).map((item, i) => (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        key={item.id}
+                        className="p-4 bg-background/40 border border-white/5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-background/80 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={cn(
+                              'w-1.5 h-10 rounded-full',
+                              item.tipo === TIPO_TRANSACAO.ENTRADA
+                                ? 'bg-emerald-500'
+                                : 'bg-rose-500',
                             )}
+                          />
+                          <div>
+                            <p className="text-sm font-bold text-foreground">{item.descricao}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+                              Vence em: {formatDate(item.data)}
+                            </p>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 justify-between sm:justify-end shrink-0 pl-5 sm:pl-0">
-                        <div className="text-right">
-                          <span
-                            className={cn(
-                              'numeric-mono text-sm font-bold block',
-                              item.tipo === TIPO_TRANSACAO.ENTRADA ? 'text-emerald-500' : 'text-rose-500',
-                            )}
+                        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 pl-5 sm:pl-0">
+                          <div className="text-left sm:text-right">
+                            <span
+                              className={cn(
+                                'numeric-mono text-base font-bold block',
+                                item.tipo === TIPO_TRANSACAO.ENTRADA
+                                  ? 'text-emerald-500'
+                                  : 'text-rose-500',
+                              )}
+                            >
+                              {formatCurrency(item.valor)}
+                            </span>
+                            <Badge
+                              className={cn(
+                                'text-[10px] uppercase font-bold mt-1',
+                                item.badgeColor,
+                              )}
+                            >
+                              {item.statusTexto}
+                            </Badge>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleQuitarTransacao(item)}
+                            disabled={atualizandoStatusId === item.id}
+                            className="rounded-xl h-10 bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors"
                           >
-                            {item.tipo === TIPO_TRANSACAO.ENTRADA ? '+ ' : '- '}
-                            {formatCurrency(item.valor)}
-                          </span>
-                          <Badge variant="outline" className={cn('text-[10px] px-2 py-0.2 rounded-full', item.badgeColor)}>
-                            {item.statusTexto}
-                          </Badge>
+                            <CheckCircle2 className="w-4 h-4 mr-1.5" /> Quitar
+                          </Button>
                         </div>
-
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleQuitarTransacao(item)}
-                          disabled={atualizandoStatusId === item.id}
-                          className="h-8 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all"
-                        >
-                          {atualizandoStatusId === item.id ? (
-                            'Quitando...'
-                          ) : (
-                            <>
-                              <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                              Quitar
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </motion.div>
           </div>
-        </>
+        </motion.div>
       )}
     </div>
   );

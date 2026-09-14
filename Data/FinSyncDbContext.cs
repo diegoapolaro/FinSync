@@ -3,6 +3,7 @@ using FinSync.Features.Categorias;
 using FinSync.Features.Contas;
 using FinSync.Features.Recorrencias;
 using FinSync.Features.Transacoes;
+using FinSync.Features.Orcamentos;
 using FinSync.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
     public DbSet<Conta> Contas => Set<Conta>();
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Recorrencia> Recorrencias => Set<Recorrencia>();
+    public DbSet<Orcamento> Orcamentos => Set<Orcamento>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -90,6 +92,22 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
             entity.HasIndex(r => r.UsuarioId);
             entity.HasIndex(r => r.ContaId);
             entity.HasIndex(r => r.Ativo);
+        });
+
+        modelBuilder.Entity<Orcamento>(entity =>
+        {
+            entity.HasOne(o => o.Usuario)
+                  .WithMany()
+                  .HasForeignKey(o => o.UsuarioId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(o => o.Categoria)
+                  .WithMany()
+                  .HasForeignKey(o => o.CategoriaId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(o => o.UsuarioId);
+            entity.HasIndex(o => new { o.UsuarioId, o.Mes, o.Ano });
         });
     }
 

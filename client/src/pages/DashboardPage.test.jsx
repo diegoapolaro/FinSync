@@ -78,7 +78,7 @@ describe('DashboardPage.jsx', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Dashboard Principal')).toBeInTheDocument();
+      expect(screen.getByText('Visão Geral')).toBeInTheDocument();
       expect(screen.getByText('Conta Principal')).toBeInTheDocument();
     });
   });
@@ -93,10 +93,10 @@ describe('DashboardPage.jsx', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Total de Entradas')).toBeInTheDocument();
-      expect(screen.getByText('Total de Saídas')).toBeInTheDocument();
-      expect(screen.getByText('Saldo do Mês')).toBeInTheDocument();
-      expect(screen.getByText('Taxa de Poupança')).toBeInTheDocument();
+      expect(screen.getByText('Receitas')).toBeInTheDocument();
+      expect(screen.getAllByText('Despesas')[0]).toBeInTheDocument();
+      expect(screen.getByText('Saldo Mensal')).toBeInTheDocument();
+      expect(screen.getByText('Poupança')).toBeInTheDocument();
     });
 
     // Taxa de poupança = ((5000 - 2000) / 5000) * 100 = 60%
@@ -104,7 +104,30 @@ describe('DashboardPage.jsx', () => {
     expect(screen.getByText('Excelente')).toBeInTheDocument();
   });
 
-  it('deve listar contas pendentes próximas do vencimento e permitir quitação com 1 clique', async () => {
+  it('deve renderizar as setas de navegação de meses com acessibilidade e permitir avançar/retroceder', async () => {
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      </ToastProvider>,
+    );
+
+    const btnAnterior = await screen.findByRole('button', { name: /Mês anterior/i });
+    const btnProximo = await screen.findByRole('button', { name: /Próximo mês/i });
+
+    expect(btnAnterior).toBeInTheDocument();
+    expect(btnProximo).toBeInTheDocument();
+
+    const chamadasIniciais = api.getResumoPeriodo.mock.calls.length;
+    fireEvent.click(btnAnterior);
+
+    await waitFor(() => {
+      expect(api.getResumoPeriodo.mock.calls.length).toBeGreaterThan(chamadasIniciais);
+    });
+  });
+
+  it('deve listar contas pendentes na Agenda Financeira e permitir quitação com 1 clique', async () => {
     render(
       <ToastProvider>
         <MemoryRouter>
@@ -126,7 +149,7 @@ describe('DashboardPage.jsx', () => {
     });
   });
 
-  it('deve renderizar as seções de gráficos de categoria e evolução mensal', async () => {
+  it('deve renderizar as seções de distribuição de despesas e agenda financeira', async () => {
     render(
       <ToastProvider>
         <MemoryRouter>
@@ -136,8 +159,8 @@ describe('DashboardPage.jsx', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Despesas por Categoria')).toBeInTheDocument();
-      expect(screen.getByText('Evolução Mensal do Fluxo')).toBeInTheDocument();
+      expect(screen.getByText('Distribuição de Despesas')).toBeInTheDocument();
+      expect(screen.getByText('Agenda Financeira')).toBeInTheDocument();
       expect(screen.getAllByText('Alimentação')[0]).toBeInTheDocument();
       expect(screen.getByText('Transporte')).toBeInTheDocument();
     });
@@ -160,11 +183,11 @@ describe('DashboardPage.jsx', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Bem-vindo ao FinSync!')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Criar Primeira Conta/i })).toBeInTheDocument();
+      expect(screen.getByText('Bem-vindo ao FinSync')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Criar Conta/i })).toBeInTheDocument();
     });
 
-    const btnCriar = screen.getByRole('button', { name: /Criar Primeira Conta/i });
+    const btnCriar = screen.getByRole('button', { name: /Criar Conta/i });
     fireEvent.click(btnCriar);
     expect(abrirModalMock).toHaveBeenCalled();
   });

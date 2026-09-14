@@ -30,8 +30,8 @@ Sistema web full-stack de controle financeiro (entradas e saídas), multiusuári
 - **Hospedagem:** Vercel
 
 ### Testes Automatizados
-- **Backend:** xUnit + Entity Framework In-Memory (**61 testes aprovados**)
-- **Frontend:** Vitest + React Testing Library (**83 testes aprovados**)
+- **Backend:** xUnit + Entity Framework In-Memory (**78 testes aprovados**)
+- **Frontend:** Vitest + React Testing Library (**177 testes aprovados**)
 
 ---
 
@@ -52,8 +52,13 @@ FinSync/
 │   ├── Transacoes/               → Lançamentos financeiros com categorização, parcelas e status
 │   │   ├── Transacao.cs          → Entidade Transacao (Descricao, Valor, Tipo, Data, Status, ParcelamentoId, RecorrenciaId)
 │   │   ├── TransacaoDtos.cs      → DTOs de CRUD, paginação, resumo, detalhamento e atualização de status
-│   │   ├── TransacaoService.cs   → CRUD + parcelamento + recorrência + paginação + exportação CSV + toggle status
-│   │   └── TransacoesController.cs → Endpoints de transações, resumo, detalhamento, exportação e PATCH status
+│   │   ├── TransacaoService.cs   → CRUD + parcelamento + recorrência + paginação + exportação CSV + toggle status + lote
+│   │   └── TransacoesController.cs → Endpoints de transações, resumo, detalhamento, exportação, importação CSV e lote
+│   ├── Orcamentos/               → Gestão de limites mensais (budgets) por categoria e competência
+│   │   ├── Orcamento.cs          → Entidade Orcamento (CategoriaId, UsuarioId, ValorLimite, Mes, Ano)
+│   │   ├── OrcamentoDtos.cs      → DTOs de criação, atualização e cálculo consolidado de teto vs. realizado
+│   │   ├── OrcamentoService.cs   → CRUD e cálculo de consumo real em relação ao limite estipulado
+│   │   └── OrcamentosController.cs → Endpoints de orçamentos e resumo de status
 │   ├── Recorrencias/             → Regras de recorrência periódica e projeção financeira futura
 │   │   ├── Recorrencia.cs        → Entidade Recorrencia (Frequencia, Valor, StatusPadrao, Ativo, Periodos)
 │   │   ├── RecorrenciaDtos.cs    → DTOs de criação, edição, listagem e métricas consolidadas
@@ -84,15 +89,16 @@ FinSync/
 │   └── DateRangeHelper.cs        → Utilitários de cálculo de intervalos de datas
 ├── Migrations/                   → Migrações gerenciadas pelo EF Core para PostgreSQL
 ├── tests/
-│   └── FinSync.Tests/            → Testes unitários e de integração xUnit do backend (61 testes)
-└── client/                       → Frontend React 19 (Vite)
-    ├── package.json              → Dependências e scripts de teste / build (83 testes Vitest)
-    ├── vite.config.js            → Configuração do Vite e proxy reverso local
+│   └── FinSync.Tests/            → Testes unitários e de integração xUnit do backend (78 testes)
+└── client/                       → Frontend React 19 (Vite) + PWA
+    ├── package.json              → Dependências e scripts de teste / build (177 testes Vitest)
+    ├── vite.config.js            → Configuração do Vite, PWA e proxy reverso local
     └── src/
-        ├── pages/                → DashboardPage, Extrato, LancamentosPage, RelatoriosPage, AjustesPage, LoginPage
+        ├── pages/                → DashboardPage, Extrato, LancamentosPage, RelatoriosPage, ImportarPage, AjustesPage, LoginPage
         ├── components/           → Componentes divididos por domínio (layout, transactions, reports, settings, common, ui)
         ├── contexts/             → AuthContext, ThemeContext, ToastContext
         ├── hooks/usePreferencias.js → Gerenciador central de preferências e tema escuro/claro
+        ├── hooks/useSmoothScroll.js → Rolagem suave e navegação com offset dinâmico
         ├── services/api.js        → Cliente HTTP com injeção automática de JWT e tratamento de erros
         └── utils/                → Formatadores monetários, constantes, filtros de data
 ```
@@ -191,6 +197,19 @@ npm test -- --run
 | `GET` | `/api/transacoes/resumo-periodo` | Totais de entradas, saídas e balanço consolidado no período |
 | `GET` | `/api/transacoes/detalhamento` | Agrupamento por categoria com valores e percentuais para relatórios |
 | `GET` | `/api/transacoes/exportar` | Exportação de transações em CSV (`contaId`, `dataInicio`, `dataFim`, `formato=csv`) |
+| `POST` | `/api/transacoes/importar` | Upload e pré-visualização de extrato bancário CSV em lote |
+| `POST` | `/api/transacoes/lote` | Inserção atômica de múltiplos lançamentos importados com validação de isolamento |
+
+### Orçamentos (`/api/orcamentos`)
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `GET` | `/api/orcamentos` | Lista metas e orçamentos configurados pelo usuário |
+| `GET` | `/api/orcamentos/{id}` | Busca orçamento específico por ID |
+| `GET` | `/api/orcamentos/resumo` | Retorna status de teto vs. consumo real por categoria no mês/ano (`mes`, `ano`) |
+| `POST` | `/api/orcamentos` | Cria novo limite mensal de gastos para uma categoria |
+| `PUT` | `/api/orcamentos/{id}` | Atualiza o valor limite do orçamento |
+| `DELETE` | `/api/orcamentos/{id}` | Remove meta de orçamento |
 
 ### Recorrências (`/api/recorrencias`)
 
@@ -281,8 +300,12 @@ npm test -- --run
 - [x] **Dashboard Cinemático:** Indicadores em tempo real (Entradas, Saídas, Saldo, Taxa de Poupança), gráfico Donut de categorias e Evolução Semanal do fluxo de caixa.
 - [x] **Empty States Inteligentes:** Welcome Hero e CTAs contextuais para registrar a primeira entrada/despesa.
 - [x] **Relatórios Avançados & PDF:** Balanço Patrimonial, Comparativo de Períodos e Exportação em PDF e CSV.
-- [x] **Isolamento Multiusuário:** Dados de contas, categorias, transações e recorrências 100% isolados por `UsuarioId`.
+- [x] **Orçamentos Mensais (Budgets):** Definição de tetos de gastos por categoria e mês/ano com acompanhamento visual em barras de progresso dinâmicas e badges de alerta.
+- [x] **Conciliação e Importação CSV em Lote:** Importação drag-and-drop de extratos bancários, parsing instantâneo de lançamentos e atribuição de categorias em lote.
+- [x] **Progressive Web App (PWA):** Instalação nativa via `vite-plugin-pwa`, suporte offline básico e identidade visual consistente.
+- [x] **Navegação & Micro-interações:** Bottom Navigation Bar móvel flutuante animada com Framer Motion (`layoutId`) e navegação lateral desktop aprimorada.
+- [x] **Isolamento Multiusuário:** Dados de contas, categorias, transações, orçamentos e recorrências 100% isolados por `UsuarioId`.
 - [x] **Design Fintech:** Interface responsiva moderna inspirada no estilo Copilot Money com tema escuro/claro nativo persistido.
 - [x] **Infraestrutura em Produção:** API hospedada no Azure App Service com PostgreSQL no Supabase e frontend na Vercel.
-- [x] **Cobertura Abrangente de Testes:** 70 testes xUnit (backend) e 83 testes Vitest/Testing Library (frontend).
+- [x] **Cobertura Abrangente de Testes:** 78 testes xUnit (backend) e 177 testes Vitest/Testing Library (frontend) 100% aprovados.
 - [x] **Otimizações de Escalabilidade:** Worker assíncrono (`ProcessadorRecorrenciasWorker`) para faturas e projeções SQL altamente otimizadas via EF Core (evitando problemas de memória com `ExecuteDeleteAsync`).

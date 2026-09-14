@@ -10,7 +10,6 @@ import {
   FileSpreadsheet,
   FileText,
   Landmark,
-  Layers,
 } from 'lucide-react';
 import { getDetalhamento, getResumoPeriodo, getTransacoesRange, exportarTransacoes } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
@@ -154,7 +153,13 @@ export default function RelatoriosPage() {
   async function handleExportarCsv() {
     setExportandoCsv(true);
     try {
-      const blob = await exportarTransacoes(contaSelecionadaId, 'mes_atual', 'csv');
+      const blob = await exportarTransacoes(
+        contaSelecionadaId,
+        null,
+        'csv',
+        periodoApi.dataInicio,
+        periodoApi.dataFim,
+      );
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
