@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, Download, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import { Search, Download, Settings, LogOut, Moon, Sun, Keyboard } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import useI18n from '../../hooks/useI18n';
 
-export default function DesktopHeader() {
+export default function DesktopHeader({ onOpenAtalhos }) {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { t, locale } = useI18n();
@@ -49,6 +49,7 @@ export default function DesktopHeader() {
       <div className="flex items-center gap-3">
         <div className="relative">
           <Input
+            data-shortcut="search"
             className="h-9 pl-9 pr-4 w-60 rounded-xl bg-secondary border border-border text-xs focus-visible:ring-primary placeholder:text-muted-foreground/70"
             placeholder={t('acao_buscar', 'Buscar transação...')}
             type="text"
@@ -58,6 +59,17 @@ export default function DesktopHeader() {
           />
           <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-2.5" />
         </div>
+
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={onOpenAtalhos}
+          title="Atalhos de teclado (?)"
+          aria-label="Atalhos de teclado"
+          className="rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          <Keyboard className="w-4 h-4" />
+        </Button>
 
         <Button
           variant="ghost"

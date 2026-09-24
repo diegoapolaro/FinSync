@@ -106,7 +106,7 @@ public class DetalhamentoCategoriaDto
     public decimal Total { get; set; }
 }
 
-public class TransacaoPreviewDto
+public record class TransacaoPreviewDto
 {
     public DateOnly Data { get; set; }
     public string Descricao { get; set; } = string.Empty;

@@ -24,6 +24,7 @@ import { primeiroDiaMes, ultimoDiaMes, periodoEfetivoParaApi } from '../utils/fi
 import { TIPO_TRANSACAO, STATUS_TRANSACAO } from '../utils/constants';
 import { useToast } from '../contexts/ToastContext';
 import ChartContainer from '../components/reports/ChartContainer';
+import OrcamentosWidget from '../components/dashboard/OrcamentosWidget';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -77,7 +78,12 @@ function AnimatedNumber({ value }) {
 }
 
 export default function DashboardPage() {
-  const { contaSelecionadaId, contas = [], abrirModalNovaConta } = useOutletContext() || {};
+  const {
+    contaSelecionadaId,
+    contas = [],
+    categorias: categoriasContext = [],
+    abrirModalNovaConta,
+  } = useOutletContext() || {};
   const navigate = useNavigate();
   const { addToast } = useToast();
 
@@ -644,6 +650,16 @@ export default function DashboardPage() {
                   </div>
                 )}
               </Card>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 mb-8">
+            <motion.div variants={itemVariants}>
+              <OrcamentosWidget
+                mes={dataRef.getMonth() + 1}
+                ano={dataRef.getFullYear()}
+                categorias={categoriasContext}
+              />
             </motion.div>
           </div>
         </motion.div>

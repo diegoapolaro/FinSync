@@ -447,8 +447,7 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         var idsComCategoria = grouped
             .Where(g => g.CategoriaId.HasValue)
             .Select(g => g.CategoriaId!.Value)
-            .Distinct()
-            .ToList();
+            .ToHashSet();
 
         if (idsComCategoria.Count != 0)
         {
@@ -603,18 +602,20 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
     {
         if (dtos == null || dtos.Count == 0) return [];
 
-        var contasIds = dtos.Select(d => d.ContaId).Distinct().ToList();
-        var categoriasIds = dtos.Where(d => d.CategoriaId.HasValue).Select(d => d.CategoriaId!.Value).Distinct().ToList();
+        var contasIds = dtos.Select(d => d.ContaId).ToHashSet();
+        var categoriasIds = dtos.Where(d => d.CategoriaId.HasValue).Select(d => d.CategoriaId!.Value).ToHashSet();
 
-        var contasValidas = await context.Contas
+        var contasValidas = (await context.Contas
             .Where(c => c.UsuarioId == usuarioId && contasIds.Contains(c.Id))
             .Select(c => c.Id)
-            .ToListAsync();
+            .ToListAsync())
+            .ToHashSet();
 
-        var categoriasValidas = await context.Categorias
+        var categoriasValidas = (await context.Categorias
             .Where(c => c.UsuarioId == usuarioId && categoriasIds.Contains(c.Id))
             .Select(c => c.Id)
-            .ToListAsync();
+            .ToListAsync())
+            .ToHashSet();
 
         var transacoes = new List<Transacao>();
 

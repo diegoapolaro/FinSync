@@ -213,6 +213,113 @@ describe('Extrato.jsx category and status filter', () => {
       );
     });
   });
+
+  it('deve filtrar transações por texto em tempo real usando a barra de busca', async () => {
+    vi.spyOn(api, 'getTransacoesRange').mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          descricao: 'Mercado SuperTop',
+          valor: 150.0,
+          tipo: 'Saida',
+          status: 'Pago',
+          data: '2026-08-10',
+          categoriaId: 10,
+          categoriaNome: 'Alimentação',
+        },
+        {
+          id: 2,
+          descricao: 'Farmácia Central',
+          valor: 85.0,
+          tipo: 'Saida',
+          status: 'Pago',
+          data: '2026-08-11',
+          categoriaId: 10,
+          categoriaNome: 'Saúde',
+        },
+      ],
+      total: 2,
+      totalPages: 1,
+      pageSize: 20,
+    });
+
+    render(
+      <TemaProvider>
+        <MemoryRouter>
+          <Extrato />
+        </MemoryRouter>
+      </TemaProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Mercado SuperTop')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Farmácia Central')[0]).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getAllByLabelText('Buscar transações')[0];
+    fireEvent.change(searchInput, { target: { value: 'Farmácia' } });
+
+    expect(screen.queryByText('Mercado SuperTop')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Farmácia Central')[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/Filtro ativo: 1 movimentação\(ões\) encontrada\(s\)/)[0]).toBeInTheDocument();
+  });
+
+  it('deve filtrar transações pelo seletor de tipo (Entradas / Saídas)', async () => {
+    vi.spyOn(api, 'getTransacoesRange').mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          descricao: 'Venda de Consultoria',
+          valor: 2500.0,
+          tipo: 'Entrada',
+          status: 'Pago',
+          data: '2026-08-10',
+          categoriaId: 20,
+          categoriaNome: 'Salário',
+        },
+        {
+          id: 2,
+          descricao: 'Aluguel do Mês',
+          valor: 1200.0,
+          tipo: 'Saida',
+          status: 'Pago',
+          data: '2026-08-11',
+          categoriaId: 10,
+          categoriaNome: 'Moradia',
+        },
+      ],
+      total: 2,
+      totalPages: 1,
+      pageSize: 20,
+    });
+
+    render(
+      <TemaProvider>
+        <MemoryRouter>
+          <Extrato />
+        </MemoryRouter>
+      </TemaProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Venda de Consultoria')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Aluguel do Mês')[0]).toBeInTheDocument();
+    });
+
+    // Clicar em Entradas
+    const btnEntradas = screen.getAllByRole('button', { name: /entradas/i })[0];
+    fireEvent.click(btnEntradas);
+
+    expect(screen.getAllByText('Venda de Consultoria')[0]).toBeInTheDocument();
+    expect(screen.queryByText('Aluguel do Mês')).not.toBeInTheDocument();
+
+    // Clicar em Saídas
+    const btnSaidas = screen.getAllByRole('button', { name: /saídas/i })[0];
+    fireEvent.click(btnSaidas);
+
+    expect(screen.queryByText('Venda de Consultoria')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Aluguel do Mês')[0]).toBeInTheDocument();
+  });
 });
 
 

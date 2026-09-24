@@ -101,7 +101,7 @@ public class OrcamentoService(FinSyncDbContext context) : IOrcamentoService
 
         if (orcamentos.Count == 0) return [];
 
-        var categoriaIds = orcamentos.Select(o => o.CategoriaId).ToList();
+        var categoriaIds = orcamentos.Select(o => o.CategoriaId).ToHashSet();
 
         var gastosPorCategoria = await context.Transacoes
             .Where(t => t.Conta!.UsuarioId == usuarioId 

@@ -66,4 +66,13 @@ public static class DateRangeHelper
         var dia = Math.Min(diaBase, diasNoMes);
         return new DateOnly(proximoAno, data.Month, dia);
     }
+
+    /// <summary>
+    /// Retorna um SortedSet mantendo datas únicas em ordem cronológica estrita,
+    /// otimizando consultas por faixa (GetViewBetween) e acesso a extremos (Min/Max).
+    /// </summary>
+    public static SortedSet<DateOnly> ObterDatasOrdenadasUnicas(IEnumerable<DateOnly> datas)
+    {
+        return new SortedSet<DateOnly>(datas);
+    }
 }

@@ -66,6 +66,22 @@ describe('DesktopHeader & MobileTopBar - Perfil e Navegação', () => {
     expect(avatarImg).toHaveAttribute('src', 'https://exemplo.com/avatar.jpg');
   });
 
+  it('DesktopHeader: deve disparar onOpenAtalhos ao clicar no botão de atalhos', () => {
+    const handleOpenAtalhos = vi.fn();
+    render(
+      <AuthContext.Provider value={{ user: mockUser, logout: mockLogout }}>
+        <TemaProvider>
+          <DesktopHeader onOpenAtalhos={handleOpenAtalhos} />
+        </TemaProvider>
+      </AuthContext.Provider>,
+    );
+
+    const atalhosBtn = screen.getByRole('button', { name: /atalhos de teclado/i });
+    fireEvent.click(atalhosBtn);
+
+    expect(handleOpenAtalhos).toHaveBeenCalledTimes(1);
+  });
+
   it('MobileTopBar: deve navegar para perfil ao clicar no botão de usuário', () => {
     mockNavigate.mockClear();
     renderMobileTopBar();

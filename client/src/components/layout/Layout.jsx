@@ -6,12 +6,24 @@ import DesktopHeader from './DesktopHeader';
 import DesktopSidebar from './DesktopSidebar';
 import BottomNav from './BottomNav';
 import NovaContaModal from '../common/NovaContaModal';
+import KeyboardShortcutsModal from '../common/KeyboardShortcutsModal';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 export default function Layout() {
   const [contas, setContas] = useState([]);
   const [contaSelecionadaId, setContaSelecionadaId] = useState('');
   const [categorias, setCategorias] = useState([]);
   const [modalNovaContaAberto, setModalNovaContaAberto] = useState(false);
+  const [modalAtalhosAberto, setModalAtalhosAberto] = useState(false);
+
+  useKeyboardShortcuts({
+    onToggleHelp: () => setModalAtalhosAberto((prev) => !prev),
+    onCloseModal: () => {
+      setModalAtalhosAberto(false);
+      setModalNovaContaAberto(false);
+    },
+    isHelpOpen: modalAtalhosAberto,
+  });
 
   const abrirModalNovaConta = useCallback(() => {
     setModalNovaContaAberto(true);
@@ -48,7 +60,7 @@ export default function Layout() {
       />
 
       <div className="md:ml-[260px] flex flex-col h-screen relative z-10">
-        <DesktopHeader />
+        <DesktopHeader onOpenAtalhos={() => setModalAtalhosAberto(true)} />
 
         <main className="flex-1 overflow-y-auto">
           <Outlet
@@ -71,6 +83,11 @@ export default function Layout() {
         open={modalNovaContaAberto}
         onOpenChange={setModalNovaContaAberto}
         onContaCriada={handleContaCriada}
+      />
+
+      <KeyboardShortcutsModal
+        open={modalAtalhosAberto}
+        onClose={() => setModalAtalhosAberto(false)}
       />
     </div>
   );

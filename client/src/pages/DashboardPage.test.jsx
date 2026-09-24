@@ -66,6 +66,15 @@ describe('DashboardPage.jsx', () => {
       pageSize: 100,
     });
     vi.spyOn(api, 'updateTransacaoStatus').mockResolvedValue();
+    vi.spyOn(api, 'getOrcamentosResumo').mockResolvedValue([
+      {
+        id: 1,
+        categoriaId: 1,
+        valorLimite: 1500,
+        totalGasto: 1200,
+        percentualUso: 80,
+      },
+    ]);
   });
 
   it('deve renderizar o título do Dashboard e nome da conta', async () => {
@@ -161,8 +170,9 @@ describe('DashboardPage.jsx', () => {
     await waitFor(() => {
       expect(screen.getByText('Distribuição de Despesas')).toBeInTheDocument();
       expect(screen.getByText('Agenda Financeira')).toBeInTheDocument();
+      expect(screen.getByText('Orçamentos do Mês')).toBeInTheDocument();
       expect(screen.getAllByText('Alimentação')[0]).toBeInTheDocument();
-      expect(screen.getByText('Transporte')).toBeInTheDocument();
+      expect(screen.getAllByText('Transporte')[0]).toBeInTheDocument();
     });
   });
 

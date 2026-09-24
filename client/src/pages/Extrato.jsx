@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
-import { ChevronDown, ChevronLeft, ChevronRight, Receipt, Tag, CheckCircle2 } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Receipt, Tag, CheckCircle2, Search, X } from 'lucide-react';
 import {
   deleteTransacao,
   getCategorias,
@@ -38,6 +38,10 @@ export default function Extrato() {
   const [statusSelecionado, setStatusSelecionado] = useState(
     () => searchParams.get('status') || '',
   );
+  const [termoBusca, setTermoBusca] = useState(
+    () => searchParams.get('search') || '',
+  );
+  const [tipoSelecionado, setTipoSelecionado] = useState('todos');
 
   const hoje = useMemo(() => new Date(), []);
   const [filtroTipo, setFiltroTipo] = useState('mes');
@@ -119,20 +123,46 @@ export default function Extrato() {
   const totalSaidas = resumo?.totalSaidas ?? 0;
   const saldo = resumo?.saldo ?? 0;
 
-  const transacoesDoPeriodo = useMemo(
-    () =>
-      transacoesFiltradasPorPeriodo(transacoes, filtroTipo, dataSelecionada, dataInicio, dataFim),
-    [transacoes, filtroTipo, dataSelecionada, dataInicio, dataFim],
-  );
+  const transacoesDoPeriodo = useMemo(() => {
+    let list = transacoesFiltradasPorPeriodo(
+      transacoes,
+      filtroTipo,
+      dataSelecionada,
+      dataInicio,
+      dataFim,
+    );
+
+    if (tipoSelecionado !== 'todos') {
+      list = list.filter((t) => t.tipo === tipoSelecionado);
+    }
+
+    if (termoBusca.trim()) {
+      const q = termoBusca.toLowerCase().trim();
+      list = list.filter(
+        (t) =>
+          t.descricao?.toLowerCase().includes(q) ||
+          t.categoriaNome?.toLowerCase().includes(q) ||
+          String(t.valor).includes(q),
+      );
+    }
+
+    return list;
+  }, [transacoes, filtroTipo, dataSelecionada, dataInicio, dataFim, tipoSelecionado, termoBusca]);
 
   const labelPeriodo = formatPeriodoLabel(filtroTipo, dataSelecionada, dataInicio, dataFim, hoje);
 
-  const mensagemVazia =
-    filtroTipo === 'dia'
-      ? `Nenhuma transação em ${labelPeriodo}.`
-      : filtroTipo === 'periodo'
-        ? `Nenhuma transação entre ${labelPeriodo}.`
-        : 'Nenhuma movimentação neste período.';
+  const mensagemVazia = useMemo(() => {
+    if (termoBusca || tipoSelecionado !== 'todos') {
+      return 'Nenhuma transação encontrada com os filtros aplicados.';
+    }
+    if (filtroTipo === 'dia') {
+      return `Nenhuma transação em ${labelPeriodo}.`;
+    }
+    if (filtroTipo === 'periodo') {
+      return `Nenhuma transação entre ${labelPeriodo}.`;
+    }
+    return 'Nenhuma movimentação neste período.';
+  }, [termoBusca, tipoSelecionado, filtroTipo, labelPeriodo]);
 
   async function handleDelete(id) {
     try {
@@ -183,6 +213,75 @@ export default function Extrato() {
       setDataFim={setDataFim}
       mesReferencia={hoje}
     />
+  );
+
+  const barraBusca = (
+    <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <input
+        data-shortcut="search"
+        type="text"
+        value={termoBusca}
+        onChange={(e) => setTermoBusca(e.target.value)}
+        placeholder="Buscar por descrição ou valor (/)..."
+        aria-label="Buscar transações"
+        className="w-full h-10 pl-8 pr-8 rounded-xl border border-border bg-secondary text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all"
+      />
+      {termoBusca && (
+        <button
+          type="button"
+          onClick={() => setTermoBusca('')}
+          aria-label="Limpar busca"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-md"
+          title="Limpar busca"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+
+  const seletorTipo = (
+    <div className="inline-flex items-center p-1 rounded-xl bg-secondary/80 border border-border">
+      <button
+        type="button"
+        onClick={() => setTipoSelecionado('todos')}
+        className={cn(
+          'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+          tipoSelecionado === 'todos'
+            ? 'bg-background text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        Todas
+      </button>
+      <button
+        type="button"
+        onClick={() => setTipoSelecionado('Entrada')}
+        className={cn(
+          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+          tipoSelecionado === 'Entrada'
+            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shadow-sm'
+            : 'text-muted-foreground hover:text-emerald-500',
+        )}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        Entradas
+      </button>
+      <button
+        type="button"
+        onClick={() => setTipoSelecionado('Saida')}
+        className={cn(
+          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+          tipoSelecionado === 'Saida'
+            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 shadow-sm'
+            : 'text-muted-foreground hover:text-rose-500',
+        )}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+        Saídas
+      </button>
+    </div>
   );
 
   const seletorStatus = (
@@ -288,10 +387,16 @@ export default function Extrato() {
       {/* Desktop */}
       <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden bg-background">
         <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar max-w-7xl w-full mx-auto">
-          <div className="mb-6 flex items-center justify-end gap-3 flex-wrap">
-            {seletorStatus}
-            {seletorCategoria}
-            {picker}
+          <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap flex-1">
+              {barraBusca}
+              {seletorTipo}
+            </div>
+            <div className="flex items-center gap-2.5 flex-wrap justify-end">
+              {seletorStatus}
+              {seletorCategoria}
+              {picker}
+            </div>
           </div>
 
           <ResponsiveGrid cols={3} gap={4}>
@@ -300,7 +405,25 @@ export default function Extrato() {
             <SummaryCard tipo="saldo" value={saldo} />
           </ResponsiveGrid>
 
-          <div className="mt-8">
+          {(termoBusca || tipoSelecionado !== 'todos') && (
+            <div className="mt-4 flex items-center justify-between px-1 text-xs text-muted-foreground">
+              <span>
+                Filtro ativo: {transacoesDoPeriodo.length} movimentação(ões) encontrada(s)
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setTermoBusca('');
+                  setTipoSelecionado('todos');
+                }}
+                className="text-primary hover:underline font-medium"
+              >
+                Limpar filtros de busca
+              </button>
+            </div>
+          )}
+
+          <div className="mt-6">
             <TransactionTable
               transacoes={transacoesDoPeriodo}
               carregando={carregando}
@@ -322,10 +445,18 @@ export default function Extrato() {
 
       {/* Mobile */}
       <div className="md:hidden px-4 pt-4 pb-32 bg-background min-h-screen">
-        <div className="mb-4 flex items-center justify-end gap-2 flex-wrap">
-          {seletorStatus}
-          {seletorCategoria}
-          {picker}
+        <div className="mb-4 space-y-2.5">
+          <div className="flex items-center gap-2">
+            {barraBusca}
+          </div>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            {seletorTipo}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {seletorStatus}
+              {seletorCategoria}
+            </div>
+          </div>
+          <div>{picker}</div>
         </div>
 
         <ResponsiveGrid cols={1} gap={3}>
