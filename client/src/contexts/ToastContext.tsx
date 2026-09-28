@@ -1,0 +1,86 @@
+import React, { createContext, useCallback, useContext, useState, ReactNode } from 'react';
+import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface ToastItem {
+  id: number;
+  message: string;
+  type: ToastType;
+}
+
+export interface ToastContextType {
+  addToast: (message: string, type?: ToastType, duration?: number) => void;
+  removeToast: (id: number) => void;
+}
+
+const ToastContext = createContext<ToastContextType | null>(null);
+
+let toastId = 0;
+
+interface Props {
+  children: ReactNode;
+}
+
+export function ToastProvider({ children }: Props) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const addToast = useCallback((message: string, type: ToastType = 'error', duration: number = 4000) => {
+    const id = ++toastId;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  }, []);
+
+  const removeToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return (
+    <ToastContext.Provider value={{ addToast, removeToast }}>
+      {children}
+      <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+        {toasts.map((toast) => {
+          const isSuccess = toast.type === 'success';
+          return (
+            <div
+              key={toast.id}
+              role="alert"
+              className={cn(
+                'pointer-events-auto px-4 py-3 rounded-full shadow-elevation border flex items-center justify-between gap-3 text-xs font-semibold animate-in fade-in slide-in-from-bottom-3 duration-200',
+                isSuccess
+                  ? 'bg-copilot-navy-900 text-[#00cc4b] border-[#00cc4b]/30'
+                  : 'bg-copilot-navy-900 text-[#ff4433] border-[#ff4433]/30',
+              )}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                {isSuccess ? (
+                  <CheckCircle2 className="w-4 h-4 text-[#00cc4b] shrink-0 stroke-[2.5]" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-[#ff4433] shrink-0 stroke-[2.5]" />
+                )}
+                <span className="truncate">{toast.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => removeToast(toast.id)}
+                className="opacity-70 hover:opacity-100 shrink-0 p-1"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span className="sr-only">Fechar</span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast(): ToastContextType {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error('useToast deve ser usado dentro de ToastProvider');
+  return ctx;
+}

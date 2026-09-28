@@ -1,0 +1,372 @@
+import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import AjustesPage from './AjustesPage';
+import { TemaProvider } from '../contexts/ThemeContext';
+import { ToastProvider } from '../contexts/ToastContext';
+import { AuthContext } from '../contexts/AuthContext';
+import * as api from '../services/api';
+
+import { ContaDto, CategoriaDto } from '../types/api';
+const mockContas: ContaDto[] = [
+  { id: 1, nome: 'Conta Corrente', tipo: 'Pessoal', arquivada: false },
+  { id: 2, nome: 'Caixa Empresa', tipo: 'Comercial', arquivada: false },
+];
+
+const mockCategorias: CategoriaDto[] = [
+  { id: 10, nome: 'Alimentação', tipo: 'Saida', cor: '#ff4433' },
+  { id: 20, nome: 'Salário', tipo: 'Entrada', cor: '#00cc4b' },
+];
+
+const mockSetContas = vi.fn();
+const mockSetCategorias = vi.fn();
+
+const mockUserDefault = {
+  nome: 'Diego Polaro',
+  email: 'diego@finsync.app',
+  fotoUrl: null,
+  temSenha: true,
+};
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useLocation: () => ({ hash: '', pathname: '/ajustes' }),
+    useOutletContext: () => ({
+      contas: mockContas,
+      setContas: mockSetContas,
+      categorias: mockCategorias,
+      setCategorias: mockSetCategorias,
+    }),
+  };
+});
+
+describe('AjustesPage.jsx and Settings Sections', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem('finsync_preferencias', JSON.stringify({
+      formatoData: 'dd/mm/aaaa',
+      moeda: 'Real Brasileiro (BRL - R$)',
+      idioma: 'Portugu�s (Brasil)',
+      tema: 'claro',
+      lembreteDiario: true,
+      alertaSaldoBaixo: false,
+    }));
+    vi.restoreAllMocks();
+  });
+
+  function renderPage(user = mockUserDefault) {
+    return render(
+      <AuthContext.Provider value={{ user, isAuthenticated: !!user, logout: vi.fn() }}>
+        <ToastProvider>
+          <TemaProvider>
+            <AjustesPage />
+          </TemaProvider>
+        </ToastProvider>
+      </AuthContext.Provider>,
+    );
+  }
+
+  it('deve renderizar todas as seções principais de ajustes', () => {
+    renderPage();
+
+    expect(screen.getByRole('heading', { name: 'Perfil do Usuário' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Contas e Livros' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Categorias' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Recorrências & Lançamentos Fixos' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /orçamentos/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Preferências do Sistema' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Notificações e Alertas' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Exportação de Relatórios' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Segurança da Conta' })).toBeInTheDocument();
+  });
+
+  it('deve exibir dados reais do usuário autenticado no card de perfil com avatar inicial', () => {
+    renderPage();
+
+    expect(screen.getByText('Diego Polaro')).toBeInTheDocument();
+    expect(screen.getByText('diego@finsync.app')).toBeInTheDocument();
+    expect(screen.getByText('D')).toBeInTheDocument();
+  });
+
+  it('deve exibir a imagem de perfil quando fotoUrl estiver preenchida', () => {
+    const userComFoto = {
+      nome: 'Maria Silva',
+      email: 'maria@gmail.com',
+      fotoUrl: 'https://lh3.googleusercontent.com/a/foto-maria',
+      temSenha: false,
+    };
+    renderPage(userComFoto);
+
+    expect(screen.getByText('Maria Silva')).toBeInTheDocument();
+    expect(screen.getByText('maria@gmail.com')).toBeInTheDocument();
+    const foto = screen.getByRole('img', { name: 'Maria Silva' });
+    expect(foto).toBeInTheDocument();
+    expect(foto).toHaveAttribute('src', 'https://lh3.googleusercontent.com/a/foto-maria');
+  });
+
+  it('deve abrir modal de alterar foto ao clicar no botão Alterar Foto', () => {
+    renderPage();
+
+    const btnAlterarFoto = screen.getByText('Alterar Foto');
+    fireEvent.click(btnAlterarFoto);
+
+    expect(screen.getByRole('heading', { name: 'Alterar Foto de Perfil' })).toBeInTheDocument();
+    expect(screen.getByText('Enviar Foto')).toBeInTheDocument();
+    expect(screen.getByText('Galeria')).toBeInTheDocument();
+    expect(screen.getByText('Link URL')).toBeInTheDocument();
+  });
+
+  it('deve permitir selecionar avatar da galeria de presets', async () => {
+    const mockAtualizarPerfil = vi.fn().mockResolvedValue({
+      nome: 'Diego Polaro',
+      email: 'diego@finsync.app',
+      fotoUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=FinSync1&backgroundColor=1c6cff',
+      temSenha: true,
+    });
+
+    render(
+      <AuthContext.Provider
+        value={{
+          user: mockUserDefault,
+          isAuthenticated: true,
+          logout: vi.fn(),
+          atualizarPerfil: mockAtualizarPerfil,
+        }}
+      >
+        <ToastProvider>
+          <TemaProvider>
+            <AjustesPage />
+          </TemaProvider>
+        </ToastProvider>
+      </AuthContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByText('Alterar Foto'));
+    fireEvent.click(screen.getByText('Galeria'));
+
+    const roboPreset = screen.getByText('Robo Tech');
+    expect(roboPreset).toBeInTheDocument();
+    fireEvent.click(roboPreset);
+
+    const btnSalvar = screen.getByRole('button', { name: 'Salvar Foto' });
+    fireEvent.click(btnSalvar);
+
+    await waitFor(() => {
+      expect(mockAtualizarPerfil).toHaveBeenCalledWith({
+        nome: 'Diego Polaro',
+        fotoUrl: expect.stringContaining('dicebear.com'),
+      });
+    });
+  });
+
+  it('deve exibir contas existentes e permitir abrir formulário de nova conta', async () => {
+    renderPage();
+
+    expect(screen.getByText('Conta Corrente')).toBeInTheDocument();
+    expect(screen.getByText('Caixa Empresa')).toBeInTheDocument();
+
+    const btnNovaConta = screen.getByRole('button', { name: /Nova Conta/i });
+    fireEvent.click(btnNovaConta);
+
+    expect(screen.getByRole('heading', { name: 'Cadastrar Nova Conta' })).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Nome da conta (ex: Caixa Principal, Pessoal...)'),
+    ).toBeInTheDocument();
+  });
+
+  it('deve exibir categorias existentes e permitir abrir formulário de nova categoria', async () => {
+    renderPage();
+
+    expect(screen.getByText('Alimentação')).toBeInTheDocument();
+    expect(screen.getByText('Salário')).toBeInTheDocument();
+
+    const btnNovaCategoria = screen.getByRole('button', { name: /Nova Categoria/i });
+    fireEvent.click(btnNovaCategoria);
+
+    expect(screen.getByRole('heading', { name: 'Nova Categoria' })).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('Nome da categoria (ex: Vendas, Alimentação...)'),
+    ).toBeInTheDocument();
+  });
+
+  it('deve atualizar preferências (Idioma, Moeda, Formato de Data) e persistir no localStorage', async () => {
+    renderPage();
+
+    const selects = screen.getAllByRole('combobox');
+    const selectIdioma = selects.find((s) => s.value === 'Português (Brasil)');
+    expect(selectIdioma).toBeDefined();
+
+    fireEvent.change(selectIdioma, { target: { value: 'English (US)' } });
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias'));
+      expect(saved.idioma).toBe('English (US)');
+    });
+
+    const selectMoeda = selects.find((s) => s.value === 'Real Brasileiro (BRL - R$)');
+    expect(selectMoeda).toBeDefined();
+    fireEvent.change(selectMoeda, { target: { value: 'US Dollar (USD - $)' } });
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias'));
+      expect(saved.moeda).toBe('US Dollar (USD - $)');
+    });
+
+    const selectData = selects.find((s) => s.value === 'dd/mm/aaaa');
+    expect(selectData).toBeDefined();
+    fireEvent.change(selectData, { target: { value: 'aaaa-mm-dd' } });
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias'));
+      expect(saved.formatoData).toBe('aaaa-mm-dd');
+    });
+  });
+
+  it('deve atualizar o preview dinâmico e traduzir os textos ao alternar preferências', async () => {
+    renderPage();
+
+    // Validar preview inicial padrão (BRL, dd/mm/aaaa)
+    expect(screen.getByText('Pré-visualização em Tempo Real')).toBeInTheDocument();
+    expect(screen.getByText('23/08/2026')).toBeInTheDocument();
+
+    const selects = screen.getAllByRole('combobox');
+    const selectIdioma = selects.find((s) => s.value === 'Português (Brasil)');
+    const selectMoeda = selects.find((s) => s.value === 'Real Brasileiro (BRL - R$)');
+    const selectData = selects.find((s) => s.value === 'dd/mm/aaaa');
+
+    // Alternar idioma para English
+    fireEvent.change(selectIdioma, { target: { value: 'English (US)' } });
+    await waitFor(() => {
+      expect(screen.getByText('System Preferences')).toBeInTheDocument();
+      expect(screen.getByText('Real-Time Preview')).toBeInTheDocument();
+    });
+
+    // Alternar moeda para USD
+    fireEvent.change(selectMoeda, { target: { value: 'US Dollar (USD - $)' } });
+    await waitFor(() => {
+      expect(screen.getByText('$10,000.00')).toBeInTheDocument();
+    });
+
+    // Alternar formato de data para aaaa-mm-dd
+    fireEvent.change(selectData, { target: { value: 'aaaa-mm-dd' } });
+    await waitFor(() => {
+      expect(screen.getByText('2026-08-23')).toBeInTheDocument();
+    });
+  });
+
+  it('deve alternar e persistir switches de notificações', async () => {
+    renderPage();
+
+    const alertaSwitch = screen.getByRole('switch', { name: 'Alertas de Saldo Baixo' });
+    expect(alertaSwitch).toBeInTheDocument();
+    expect(alertaSwitch.getAttribute('aria-checked')).toBe('false');
+
+    fireEvent.click(alertaSwitch);
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias'));
+      expect(saved.alertaSaldoBaixo).toBe(true);
+    });
+
+    const lembreteSwitch = screen.getByRole('switch', { name: 'Lembrete Diário de Lançamentos' });
+    expect(lembreteSwitch).toBeInTheDocument();
+    expect(lembreteSwitch.getAttribute('aria-checked')).toBe('true');
+
+    fireEvent.click(lembreteSwitch);
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias'));
+      expect(saved.lembreteDiario).toBe(false);
+    });
+  });
+
+  it('deve abrir formulário de alteração de senha e chamar API de alteração', async () => {
+    vi.spyOn(api, 'alterarSenha').mockResolvedValue({});
+    renderPage();
+
+    const alterarSenhaCard = screen.getByText('Atualizar credencial de login');
+    fireEvent.click(alterarSenhaCard);
+
+    expect(screen.getByText('Alteração de Senha')).toBeInTheDocument();
+
+    const inputAtual = screen.getByPlaceholderText('Senha atual');
+    const inputNova = screen.getByPlaceholderText('Nova senha (mínimo 8 caracteres)');
+
+    fireEvent.change(inputAtual, { target: { value: 'Senha@123' } });
+    fireEvent.change(inputNova, { target: { value: 'NovaSenha@456' } });
+
+    const btnSalvar = screen.getByRole('button', { name: /Salvar Nova Senha/i });
+    fireEvent.click(btnSalvar);
+
+    await waitFor(() => {
+      expect(api.alterarSenha).toHaveBeenCalledWith('Senha@123', 'NovaSenha@456');
+    });
+  });
+
+  it('deve permitir exportação de relatório', async () => {
+    const mockBlob = new Blob(['csv data'], { type: 'text/csv' });
+    vi.spyOn(api, 'exportarTransacoes').mockResolvedValue(mockBlob);
+    window.URL.createObjectURL = vi.fn().mockReturnValue('blob:http://localhost/dummy');
+    window.URL.revokeObjectURL = vi.fn();
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    renderPage();
+
+    const btnBaixar = screen.getByRole('button', { name: /Baixar Arquivo/i });
+    fireEvent.click(btnBaixar);
+
+    await waitFor(() => {
+      expect(api.exportarTransacoes).toHaveBeenCalledWith(null, '30d', 'csv');
+      expect(clickSpy).toHaveBeenCalled();
+    });
+  });
+
+  it('deve abrir o modal de Relatório PDF ao selecionar PDF e clicar em Visualizar e Salvar PDF', async () => {
+    vi.spyOn(api, 'getResumoPeriodo').mockResolvedValue({
+      totalEntradas: 5000,
+      totalSaidas: 2000,
+      saldo: 3000,
+    });
+    vi.spyOn(api, 'getDetalhamento').mockResolvedValue([]);
+    vi.spyOn(api, 'getTransacoesRange').mockResolvedValue({
+      data: [],
+      total: 0,
+      totalPages: 1,
+      pageSize: 100,
+    });
+
+    renderPage();
+
+    const pdfRadio = screen.getByRole('radio', { name: /pdf/i });
+    fireEvent.click(pdfRadio);
+
+    const btnPdf = screen.getByRole('button', { name: /Visualizar e Salvar PDF/i });
+    fireEvent.click(btnPdf);
+
+    await waitFor(() => {
+      expect(screen.getByText('Relatório Financeiro Formatado')).toBeInTheDocument();
+      expect(screen.getByText('Imprimir / Salvar PDF')).toBeInTheDocument();
+    });
+  });
+
+  it('deve atualizar a categoria ativa e disparar rolagem suave ao clicar em uma categoria', async () => {
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+    renderPage();
+
+    // Encontra os links de navegação lateral
+    const linksOrcamento = screen.getAllByText('Orçamentos');
+    expect(linksOrcamento.length).toBeGreaterThan(0);
+
+    // Clica no link de Orçamentos
+    fireEvent.click(linksOrcamento[0]);
+
+    await waitFor(() => {
+      expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '#orcamentos');
+    });
+  });
+});

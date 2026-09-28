@@ -1,0 +1,150 @@
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Download, Settings, LogOut, Moon, Sun, Keyboard } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import useI18n from '../../hooks/useI18n';
+
+interface Props {
+  onOpenAtalhos: () => void;
+}
+
+export default function DesktopHeader({ onOpenAtalhos }: Props) {
+  const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  const { t, locale } = useI18n();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [pesquisa, setPesquisa] = useState('');
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.fotoUrl]);
+
+  const hoje = new Date();
+  const mesAno = hoje.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+
+  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' && pesquisa.trim()) {
+      navigate('/?search=' + encodeURIComponent(pesquisa.trim()));
+    }
+  }
+
+  return (
+    <header className="hidden md:flex justify-between items-center px-8 py-3.5 w-full border-b border-border/80 bg-background/80 backdrop-blur-md sticky top-0 z-30 transition-colors">
+      <div className="flex items-center gap-3">
+        {location.pathname === '/' ? (
+          <>
+            <h1 className="font-normal text-xl tracking-[-0.03em] text-foreground">Extrato</h1>
+            <div className="px-3 py-1 bg-secondary text-muted-foreground rounded-full text-[11px] font-medium capitalize border border-border/50">
+              {mesAno}
+            </div>
+          </>
+        ) : (
+          <h1 className="font-normal text-xl tracking-[-0.03em] text-foreground capitalize">
+            {location.pathname.replace('/', '') || 'FinSync'}
+          </h1>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <Input
+            data-shortcut="search"
+            className="h-9 pl-9 pr-4 w-60 rounded-xl bg-secondary border border-border text-xs focus-visible:ring-primary placeholder:text-muted-foreground/70"
+            placeholder={t('acao_buscar', 'Buscar transação...')}
+            type="text"
+            value={pesquisa}
+            onChange={(e) => setPesquisa(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+          />
+          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-2.5" />
+        </div>
+
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={onOpenAtalhos}
+          title="Atalhos de teclado (?)"
+          aria-label="Atalhos de teclado"
+          className="rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          <Keyboard className="w-4 h-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={toggleTheme}
+          title={isDark ? 'Tema Claro' : 'Tema Escuro'}
+          className="rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          {isDark ? (
+            <Sun className="w-4 h-4 text-amber-400" />
+          ) : (
+            <Moon className="w-4 h-4 text-indigo-400" />
+          )}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={() => navigate('/ajustes#exportar')}
+          title="Exportar dados"
+          className="rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          <Download className="w-4 h-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={() => navigate('/ajustes')}
+          title="Configurações"
+          className="rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+        >
+          <Settings className="w-4 h-4" />
+        </Button>
+
+        <div className="h-5 w-px bg-border/80 mx-1" />
+
+        <div className="flex items-center gap-2 pl-1">
+          <button
+            type="button"
+            onClick={() => navigate('/ajustes#perfil')}
+            title="Ver meu perfil"
+            className="flex items-center gap-2 p-1 -ml-1 rounded-xl hover:bg-secondary/80 transition-all cursor-pointer group text-left focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            {user?.fotoUrl && !imgError ? (
+              <img
+                src={user.fotoUrl}
+                alt={user?.nome || 'Foto de perfil'}
+                onError={() => setImgError(true)}
+                className="w-8 h-8 rounded-full object-cover border border-border/80 shadow-sm group-hover:border-primary/50 transition-colors shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-semibold text-primary-foreground text-xs shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                {user?.nome ? user.nome.charAt(0).toUpperCase() : 'U'}
+              </div>
+            )}
+            <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate max-w-[120px]">
+              {user?.nome}
+            </span>
+          </button>
+          <Button
+            variant="ghost"
+            size="iconSm"
+            onClick={logout}
+            title={t('nav_sair', 'Sair')}
+            className="rounded-full hover:bg-destructive/15 hover:text-destructive text-muted-foreground"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}

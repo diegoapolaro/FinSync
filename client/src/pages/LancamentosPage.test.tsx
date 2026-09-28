@@ -1,0 +1,640 @@
+// @ts-nocheck
+import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import LancamentosPage from './LancamentosPage';
+import { ToastProvider } from '../contexts/ToastContext';
+import * as api from '../services/api';
+
+let mockOutletContext = {
+  contas: [
+    { id: 1, nome: 'Principal', tipo: 'Pessoal' },
+    { id: 2, nome: 'Empresa', tipo: 'Comercial' },
+  ],
+  contaSelecionadaId: '1',
+};
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useOutletContext: () => mockOutletContext,
+    useSearchParams: () => [new URLSearchParams(), vi.fn()],
+  };
+});
+
+vi.mock('../services/api', () => ({
+  getCategorias: vi.fn(),
+  getTransacoes: vi.fn(),
+  getSugestoesDescricao: vi.fn().mockResolvedValue([] as any as any),
+  createTransacao: vi.fn(),
+  updateTransacao: vi.fn(),
+  updateTransacaoStatus: vi.fn(),
+  deleteTransacao: vi.fn(),
+}));
+
+const mockCategorias: any = [
+  { id: 10, nome: 'Vendas Balcão', tipo: 'Entrada' },
+  { id: 11, nome: 'Rendimentos', tipo: 'Entrada' },
+  { id: 20, nome: 'Alimentação', tipo: 'Saida' },
+  { id: 21, nome: 'Transporte', tipo: 'Saida' },
+];
+
+const mockTransacoes: any = [
+  {
+    id: 1,
+    descricao: 'Venda de Pizza',
+    valor: 85.5,
+    tipo: 'Entrada',
+    status: 'Pago',
+    data: '2026-08-26',
+    contaId: 1,
+    categoriaId: 10,
+    categoriaNome: 'Vendas Balcão',
+  },
+  {
+    id: 2,
+    descricao: 'Compra de Insumos',
+    valor: 42.0,
+    tipo: 'Saida',
+    status: 'Pendente',
+    data: '2026-08-26',
+    contaId: 1,
+    categoriaId: 20,
+    categoriaNome: 'Alimentação',
+  },
+];
+
+describe('LancamentosPage.jsx', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.scrollTo = vi.fn();
+    mockOutletContext = {
+      contas: [
+        { id: 1, nome: 'Principal', tipo: 'Pessoal' },
+        { id: 2, nome: 'Empresa', tipo: 'Comercial' },
+      ],
+      contaSelecionadaId: '1',
+    };
+    vi.mocked(api.getCategorias).mockResolvedValue(mockCategorias as any as any);
+    vi.mocked(api.getTransacoes).mockResolvedValue({
+      data: mockTransacoes,
+      total: 2,
+      totalPages: 1,
+    } as any as any);
+    vi.mocked(api.updateTransacaoStatus).mockResolvedValue({} as any as any);
+  });
+
+  function renderPage() {
+    return render(
+      <ToastProvider>
+        <LancamentosPage />
+      </ToastProvider>,
+    );
+  }
+
+  describe('Renderização e Navegação', () => {
+    it('deve renderizar o cabeçalho com data, campos do formulário e botões de tipo', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/Hoje,/i)).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Receita/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Despesa/i })).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText('Ex: Venda no balcão, Supermercado, Aluguel...'),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Confirmar Lançamento/i })).toBeInTheDocument();
+    });
+
+    it('deve listar as transações da data carregada com status e badges', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+        expect(screen.getByText('Compra de Insumos')).toBeInTheDocument();
+      });
+
+      expect(screen.getAllByText('Vendas Balcão').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Alimentação')).toBeInTheDocument();
+      expect(screen.getAllByText('Pago').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Pendente').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Total:\s*2/i)).toBeInTheDocument();
+    });
+
+    it('deve exibir mensagem de estado vazio quando não houver transações', async () => {
+      vi.mocked(api.getTransacoes).mockResolvedValue({ data: [], total: 0 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Nenhum lançamento registrado nesta data.')).toBeInTheDocument();
+      });
+    });
+
+    it('deve navegar para Ontem e Amanhã recarregando os registros', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalled();
+      });
+
+      const btnOntem = screen.getAllByRole('button', { name: /Ontem/i })[0];
+      fireEvent.click(btnOntem as any);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /Lançamentos de Ontem/i })).toBeInTheDocument();
+        expect(api.getTransacoes).toHaveBeenCalledTimes(2);
+      });
+
+      const btnAmanha = screen.getByRole('button', { name: /Amanhã/i });
+      fireEvent.click(btnAmanha as any);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /Lançamentos de Hoje/i })).toBeInTheDocument();
+        expect(api.getTransacoes).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    it('deve permitir selecionar uma data retroativa de vários dias atrás pelo input de data e recarregar transações', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalled();
+      });
+
+      // Mudar a data no seletor de navegação para 30 dias atrás (ex: 2026-08-01)
+      const inputDataHeader = screen.getByLabelText('Selecionar data do lançamento');
+      fireEvent.change(inputDataHeader as any, { target: { value: '2026-08-01' } });
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: '2026-08-01',
+          }),
+        );
+      });
+
+      // Como 2026-08-01 não é hoje, o botão de atalho "Hoje" deve aparecer no cabeçalho
+      const btnHoje = screen.getByTitle('Voltar para Hoje');
+      expect(btnHoje).toBeInTheDocument();
+
+      // Clicar em Hoje para voltar instantaneamente à data atual
+      fireEvent.click(btnHoje as any);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: /Lançamentos de Hoje/i })).toBeInTheDocument();
+      });
+    });
+
+    it('deve permitir alterar a data diretamente pelo campo de formulário e submeter com a data escolhida', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 99 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      });
+
+      const inputDataForm = screen.getByLabelText('Data do Lançamento');
+      fireEvent.change(inputDataForm as any, { target: { value: '2026-07-15' } });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+
+      fireEvent.change(inputValor as any, { target: { value: '95,00' } });
+      fireEvent.change(inputDesc as any, { target: { value: 'Compra retroativa de insumos' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: '2026-07-15',
+            descricao: 'Compra retroativa de insumos',
+            valor: 95,
+          }),
+        );
+      });
+    });
+  });
+
+  describe('Alternância de Tipo e Filtro de Categorias', () => {
+    it('deve filtrar categorias conforme o tipo selecionado (Receita vs Despesa)', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Vendas Balcão' })).toBeInTheDocument();
+      });
+
+      // Em modo Receita (padrão)
+      expect(screen.getByRole('option', { name: 'Vendas Balcão' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Rendimentos' })).toBeInTheDocument();
+      expect(screen.queryByRole('option', { name: 'Alimentação' })).not.toBeInTheDocument();
+
+      // Alternar para Despesa
+      const btnDespesa = screen.getByRole('button', { name: /Despesa/i });
+      fireEvent.click(btnDespesa as any);
+
+      // Em modo Despesa
+      expect(screen.getByRole('option', { name: 'Alimentação' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Transporte' })).toBeInTheDocument();
+      expect(screen.queryByRole('option', { name: 'Vendas Balcão' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Preenchimento e Criação de Lançamento', () => {
+    it('deve preencher o formulário e chamar createTransacao ao submeter com sucesso', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 3 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: 'Vendas Balcão' })).toBeInTheDocument();
+      });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+      const selectCat = screen.getAllByRole('combobox').find((el) => !el.id.includes('contaId'));
+
+      fireEvent.change(inputValor as any, { target: { value: '120,50' } });
+      fireEvent.change(inputDesc as any, { target: { value: 'Consultoria Financeira' } });
+      fireEvent.change(selectCat as any, { target: { value: '10' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith({
+          descricao: 'Consultoria Financeira',
+          valor: 120.5,
+          tipo: 'Entrada',
+          status: 'Pago',
+          data: expect.any(String),
+          contaId: 1,
+          categoriaId: 10,
+          parcelado: false,
+          totalParcelas: null,
+          modoValorParcelamento: null,
+          tornarRecorrente: false,
+          frequenciaRecorrencia: null,
+          dataFimRecorrencia: null,
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Lançamento registrado com sucesso!')).toBeInTheDocument();
+      });
+
+      // Formulário deve ser limpo
+      expect(((inputValor as any) as any).value).toBe('');
+      expect(((inputDesc as any) as any).value).toBe('');
+    });
+
+    it('deve permitir selecionar status Pendente e trocar de conta ao criar transação', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 4 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('button', { name: /Pendente/i })[0]).toBeInTheDocument();
+      });
+
+      const btnPendente = screen.getAllByRole('button', { name: /Pendente/i })[0];
+      fireEvent.click(btnPendente as any);
+
+      const selectConta = screen.getByLabelText('Conta');
+      fireEvent.change(selectConta as any, { target: { value: '2' } });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+
+      fireEvent.change(inputValor as any, { target: { value: '200' } });
+      fireEvent.change(inputDesc as any, { target: { value: 'Prestação de Serviço' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith({
+          descricao: 'Prestação de Serviço',
+          valor: 200,
+          tipo: 'Entrada',
+          status: 'Pendente',
+          data: expect.any(String),
+          contaId: 2,
+          categoriaId: null,
+          parcelado: false,
+          totalParcelas: null,
+          modoValorParcelamento: null,
+          tornarRecorrente: false,
+          frequenciaRecorrencia: null,
+          dataFimRecorrencia: null,
+        });
+      });
+    });
+
+    it('deve permitir criar uma compra parcelada em 3x', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 5 } as any as any);
+      renderPage();
+
+      const btnParcelado = screen.getByRole('button', { name: /Parcelado/i });
+      fireEvent.click(btnParcelado as any);
+
+      const btn3x = screen.getByRole('button', { name: '3x' });
+      fireEvent.click(btn3x as any);
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+
+      fireEvent.change(inputValor as any, { target: { value: '300' } });
+      fireEvent.change(inputDesc as any, { target: { value: 'Monitor Ultrawide' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Gerar 3x Parcelas/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith({
+          descricao: 'Monitor Ultrawide',
+          valor: 300,
+          tipo: 'Entrada',
+          status: 'Pago',
+          data: expect.any(String),
+          contaId: 1,
+          categoriaId: null,
+          parcelado: true,
+          totalParcelas: 3,
+          modoValorParcelamento: 'Total',
+          tornarRecorrente: false,
+          frequenciaRecorrencia: null,
+          dataFimRecorrencia: null,
+        });
+      });
+    });
+
+    it('deve permitir criar um lançamento fixo/recorrente mensal', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 6 } as any as any);
+      renderPage();
+
+      const btnRecorrente = screen.getByRole('button', { name: /Fixo \/ Recorrente/i });
+      fireEvent.click(btnRecorrente as any);
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+
+      fireEvent.change(inputValor as any, { target: { value: '45,90' } });
+      fireEvent.change(inputDesc as any, { target: { value: 'Spotify Família' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Recorrência/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith({
+          descricao: 'Spotify Família',
+          valor: 45.9,
+          tipo: 'Entrada',
+          status: 'Pago',
+          data: expect.any(String),
+          contaId: 1,
+          categoriaId: null,
+          parcelado: false,
+          totalParcelas: null,
+          modoValorParcelamento: null,
+          tornarRecorrente: true,
+          frequenciaRecorrencia: 'Mensal',
+          dataFimRecorrencia: null,
+        });
+      });
+    });
+
+    it('deve exibir toast de erro quando a API createTransacao falhar', async () => {
+      vi.mocked(api.createTransacao).mockRejectedValue(new Error('Erro ao salvar no banco'));
+      renderPage();
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+
+      fireEvent.change(inputValor as any, { target: { value: '50' } });
+      fireEvent.change(inputDesc as any, { target: { value: 'Teste falha' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(screen.getByText('Erro ao salvar no banco')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Modo de Edição Inline e Cancelamento', () => {
+    it('deve abrir o mini-editor inline ao clicar em editar e fechar ao cancelar mantendo o formulário do topo limpo', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+      });
+
+      // Formulário do topo começa como Novo Lançamento
+      expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
+
+      const btnEditar = screen.getAllByTitle('Editar')[0];
+      fireEvent.click(btnEditar as any);
+
+      // Mini-editor inline deve estar visível com título "Editar Lançamento"
+      expect(screen.getByText('Editar Lançamento')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Venda de Pizza')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('85,5')).toBeInTheDocument();
+
+      // Formulário do topo continua como Novo Lançamento sem ser afetado
+      expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
+
+      const btnCancelar = screen.getByRole('button', { name: /Cancelar/i });
+      expect(btnCancelar).toBeInTheDocument();
+      fireEvent.click(btnCancelar as any);
+
+      // Mini-editor inline é fechado
+      expect(screen.queryByText('Editar Lançamento')).not.toBeInTheDocument();
+      expect(screen.getByText('Novo Lançamento')).toBeInTheDocument();
+    });
+
+    it('deve submeter a atualização com updateTransacao ao salvar alterações no mini-editor inline', async () => {
+      vi.mocked(api.updateTransacao).mockResolvedValue({ id: 1 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+      });
+
+      const btnEditar = screen.getAllByTitle('Editar')[0];
+      fireEvent.click(btnEditar as any);
+
+      const inputDesc = screen.getByDisplayValue('Venda de Pizza');
+      fireEvent.change(inputDesc as any, { target: { value: 'Venda de Pizza Especial' } });
+
+      const btnSalvar = screen.getByRole('button', { name: /Salvar Alterações/i });
+      fireEvent.click(btnSalvar as any);
+
+      await waitFor(() => {
+        expect(api.updateTransacao).toHaveBeenCalledWith(1, expect.objectContaining({
+          descricao: 'Venda de Pizza Especial',
+          valor: 85.5,
+          tipo: 'Entrada',
+          status: 'Pago',
+          data: '2026-08-26',
+          contaId: 1,
+          categoriaId: 10,
+        }));
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Lançamento atualizado!')).toBeInTheDocument();
+      });
+    });
+
+    it('deve alternar a abertura e fechamento ao clicar repetidamente no botão de editar', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+      });
+
+      const btnEditar = screen.getAllByTitle('Editar')[0];
+      fireEvent.click(btnEditar as any);
+      expect(screen.getByText('Editar Lançamento')).toBeInTheDocument();
+
+      const btnFechar = screen.getByTitle('Fechar edição');
+      fireEvent.click(btnFechar as any);
+      expect(screen.queryByText('Editar Lançamento')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Quick Status Toggle em Lançamentos', () => {
+    it('deve alternar status de Pendente para Pago e de Pago para Pendente com 1 clique', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Compra de Insumos')).toBeInTheDocument();
+      });
+
+      const btnMarcarPago = screen.getByTitle('Marcar como Pago');
+      fireEvent.click(btnMarcarPago as any);
+
+      await waitFor(() => {
+        expect(api.updateTransacaoStatus).toHaveBeenCalledWith(2, 'Pago');
+        expect(screen.getByText('Lançamento marcado como Pago!')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Exclusão de Transação', () => {
+    it('deve chamar deleteTransacao e recarregar a lista', async () => {
+      vi.mocked(api.deleteTransacao).mockResolvedValue({} as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+      });
+
+      const btnExcluir = screen.getAllByTitle('Excluir')[0];
+      fireEvent.click(btnExcluir as any);
+
+      await waitFor(() => {
+        expect(api.deleteTransacao).toHaveBeenCalledWith(1, {});
+        expect(screen.getByText('Lançamento excluído com sucesso.')).toBeInTheDocument();
+      });
+    });
+
+    it('deve exibir toast de erro quando deleteTransacao falhar', async () => {
+      vi.mocked(api.deleteTransacao).mockRejectedValue(new Error('Erro ao excluir'));
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Venda de Pizza')).toBeInTheDocument();
+      });
+
+      const btnExcluir = screen.getAllByTitle('Excluir')[0];
+      fireEvent.click(btnExcluir as any);
+
+      await waitFor(() => {
+        expect(screen.getByText('Erro ao excluir')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Formatação Automática de Milhar no Campo de Valor', () => {
+    it('deve formatar 1000 como 1.000 ao digitar e enviar valor numérico correto', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 99 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      fireEvent.change(inputValor as any, { target: { value: '1000' } });
+
+      expect(((inputValor as any) as any).value).toBe('1.000');
+
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+      fireEvent.change(inputDesc as any, { target: { value: 'Serviço Prestado' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith(
+          expect.objectContaining({
+            valor: 1000,
+            descricao: 'Serviço Prestado',
+          }),
+        );
+      });
+    });
+
+    it('deve formatar valores com centavos como 1.250,50 e enviar valor correto', async () => {
+      vi.mocked(api.createTransacao).mockResolvedValue({ id: 100 } as any as any);
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0,00')).toBeInTheDocument();
+      });
+
+      const inputValor = screen.getByPlaceholderText('0,00');
+      fireEvent.change(inputValor as any, { target: { value: '1250,50' } });
+
+      expect(((inputValor as any) as any).value).toBe('1.250,50');
+
+      const inputDesc = screen.getByPlaceholderText(
+        'Ex: Venda no balcão, Supermercado, Aluguel...',
+      );
+      fireEvent.change(inputDesc as any, { target: { value: 'Compra de Estoque' } });
+
+      const btnSubmit = screen.getByRole('button', { name: /Confirmar Lançamento/i });
+      fireEvent.click(btnSubmit as any);
+
+      await waitFor(() => {
+        expect(api.createTransacao).toHaveBeenCalledWith(
+          expect.objectContaining({
+            valor: 1250.5,
+          }),
+        );
+      });
+    });
+  });
+});
+
