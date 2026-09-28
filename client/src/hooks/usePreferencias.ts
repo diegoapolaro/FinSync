@@ -25,7 +25,7 @@ const PADRAO: Preferencias = {
   email: '',
 };
 
-let cacheRaw: string | undefined = undefined;
+let cacheRaw: string | null = '__FINSYNC_INITIAL__';
 let cacheState: Preferencias | null = null;
 
 function carregarState(): Preferencias {
@@ -34,7 +34,7 @@ function carregarState(): Preferencias {
     if (raw === cacheRaw && cacheState) {
       return cacheState;
     }
-    cacheRaw = raw || undefined;
+    cacheRaw = raw;
     cacheState = raw ? { ...PADRAO, ...JSON.parse(raw) } : { ...PADRAO };
   } catch {
     cacheState = { ...PADRAO };
@@ -43,7 +43,7 @@ function carregarState(): Preferencias {
 }
 
 export function resetPreferenciasCache(): void {
-  cacheRaw = undefined;
+  cacheRaw = '__FINSYNC_INITIAL__';
   cacheState = null;
 }
 
@@ -53,6 +53,7 @@ function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   const handleStorage = (e: StorageEvent) => {
     if (e.key === CHAVE) {
+      cacheRaw = '__FINSYNC_INITIAL__';
       cacheState = null;
       listener();
     }

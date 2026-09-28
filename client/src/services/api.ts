@@ -263,7 +263,7 @@ export async function createTransacao(transacao: CreateTransacaoDto): Promise<Tr
   });
 }
 
-export async function updateTransacao(id: string, transacao: UpdateTransacaoDto): Promise<TransacaoDto> {
+export async function updateTransacao(id: number | string, transacao: UpdateTransacaoDto): Promise<TransacaoDto> {
   return authFetch<TransacaoDto>(url(`/transacoes/${id}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -271,7 +271,7 @@ export async function updateTransacao(id: string, transacao: UpdateTransacaoDto)
   });
 }
 
-export async function updateTransacaoStatus(id: string, status: string): Promise<TransacaoDto> {
+export async function updateTransacaoStatus(id: number | string, status: string): Promise<TransacaoDto> {
   return authFetch<TransacaoDto>(url(`/transacoes/${id}/status`), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -285,7 +285,7 @@ export interface DeleteTransacaoParams {
 }
 
 export async function deleteTransacao(
-  id: string,
+  id: number | string,
   { excluirTodasParcelas = false, excluirFuturas = false }: DeleteTransacaoParams = {},
 ): Promise<void> {
   const params = new URLSearchParams();

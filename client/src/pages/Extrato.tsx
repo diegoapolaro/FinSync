@@ -93,8 +93,8 @@ export default function Extrato(): React.ReactElement {
             dataFim: periodoApi.dataFim,
             page: pageNum,
             pageSize: 20,
-            categoriaId: categoriaSelecionadaId || undefined,
-            status: statusSelecionado || undefined,
+            categoriaId: categoriaSelecionadaId ? Number(categoriaSelecionadaId) : null,
+            status: statusSelecionado || null,
           }),
           getResumoPeriodo(String(contaSelecionadaId), periodoApi.dataInicio, periodoApi.dataFim),
         ]);
@@ -187,7 +187,7 @@ export default function Extrato(): React.ReactElement {
         : STATUS_TRANSACAO.PENDENTE;
 
     try {
-      await updateTransacaoStatus(String(transacao.id), novoStatus);
+      await updateTransacaoStatus(transacao.id, novoStatus);
       setTransacoes((prev) =>
         prev.map((item) => (item.id === transacao.id ? { ...item, status: novoStatus } : item)),
       );

@@ -155,7 +155,7 @@ export default function LancamentosPage(): React.ReactElement {
     if (!editandoId || salvandoEdicao) return;
     setSalvandoEdicao(true);
     try {
-      await updateTransacao(String(editandoId), payload);
+      await updateTransacao(editandoId, payload);
       addToast('Lançamento atualizado!', 'success');
       setEditandoId(null);
       await carregarTransacoes();
@@ -247,7 +247,7 @@ export default function LancamentosPage(): React.ReactElement {
         : STATUS_TRANSACAO.PENDENTE;
 
     try {
-      await updateTransacaoStatus(String(transacao.id), novoStatus);
+      await updateTransacaoStatus(transacao.id, novoStatus);
       setTransacoes((prev) =>
         prev.map((item) => (item.id === transacao.id ? { ...item, status: novoStatus } : item)),
       );
@@ -275,7 +275,7 @@ export default function LancamentosPage(): React.ReactElement {
 
   async function executarDelete(id: number, opcoes = {}) {
     try {
-      await deleteTransacao(String(id), opcoes);
+      await deleteTransacao(id, opcoes);
       setDeleteModal(null);
       await carregarTransacoes();
       addToast('Lançamento excluído com sucesso.', 'success');

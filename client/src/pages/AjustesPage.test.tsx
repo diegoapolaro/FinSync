@@ -48,7 +48,7 @@ describe('AjustesPage.jsx and Settings Sections', () => {
     localStorage.setItem('finsync_preferencias', JSON.stringify({
       formatoData: 'dd/mm/aaaa',
       moeda: 'Real Brasileiro (BRL - R$)',
-      idioma: 'Portugu�s (Brasil)',
+      idioma: 'Português (Brasil)',
       tema: 'claro',
       lembreteDiario: true,
       alertaSaldoBaixo: false,

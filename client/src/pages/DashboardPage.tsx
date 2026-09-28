@@ -43,7 +43,7 @@ const donutColors = [
   '#64748b', // Slate
 ];
 
-// Componente para nÃºmeros animados (OdÃ´metro sutil)
+// Componente para números animados (Odômetro sutil)
 function AnimatedNumber({ value }: { value: number }) {
   const [displayValue, setDisplayValue] = useState(value);
 
@@ -180,13 +180,13 @@ export default function DashboardPage() {
     }
     if (taxaPoupanca >= 0) {
       return {
-        label: 'AtenÃ§Ã£o',
+        label: 'Atenção',
         badgeClass: 'bg-amber-500/15 text-amber-500 border-none',
         desc: 'Margem estreita.',
       };
     }
     return {
-      label: 'DÃ©ficit',
+      label: 'Déficit',
       badgeClass: 'bg-rose-500/15 text-rose-500 border-none',
       desc: 'Despesas > Ganhos.',
     };
@@ -265,7 +265,7 @@ export default function DashboardPage() {
   async function handleQuitarTransacao(transacao: TransacaoDto) {
     setAtualizandoStatusId(transacao.id);
     try {
-      await updateTransacaoStatus(String(transacao.id), STATUS_TRANSACAO.PAGO);
+      await updateTransacaoStatus(transacao.id, STATUS_TRANSACAO.PAGO);
       addToast(`"${transacao.descricao}" marcada como paga com sucesso!`, 'success');
       setTransacoes((prev) =>
         prev.map((t) => (t.id === transacao.id ? { ...t, status: STATUS_TRANSACAO.PAGO } : t)),
@@ -305,7 +305,7 @@ export default function DashboardPage() {
           transition={{ duration: 0.4 }}
         >
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">VisÃ£o Geral</h1>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Visão Geral</h1>
             {contaAtual && (
               <Badge className="hidden sm:inline-flex rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-none font-semibold">
                 {contaAtual.nome}
@@ -328,8 +328,8 @@ export default function DashboardPage() {
               variant="ghost"
               size="icon"
               onClick={() => navegarMes(-1)}
-              title="MÃªs anterior"
-              aria-label="MÃªs anterior"
+              title="Mês anterior"
+              aria-label="Mês anterior"
               className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary/60"
             >
               <ChevronLeft className="w-5 h-5 shrink-0" />
@@ -341,8 +341,8 @@ export default function DashboardPage() {
               variant="ghost"
               size="icon"
               onClick={() => navegarMes(1)}
-              title="PrÃ³ximo mÃªs"
-              aria-label="PrÃ³ximo mÃªs"
+              title="Próximo mês"
+              aria-label="Próximo mês"
               className="rounded-xl h-9 w-9 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary/60"
             >
               <ChevronRight className="w-5 h-5 shrink-0" />
@@ -376,7 +376,7 @@ export default function DashboardPage() {
               Bem-vindo ao FinSync
             </h2>
             <p className="text-base text-muted-foreground max-w-md mx-auto mb-8 leading-relaxed">
-              Crie sua primeira conta para comeÃ§ar a organizar sua vida financeira com clareza
+              Crie sua primeira conta para começar a organizar sua vida financeira com clareza
               absoluta.
             </p>
             <Button
@@ -462,7 +462,7 @@ export default function DashboardPage() {
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors" />
                 <div className="flex items-center justify-between z-10">
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                    PoupanÃ§a
+                    Poupança
                   </span>
                   <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
                     <PiggyBank className="w-5 h-5" />
@@ -491,7 +491,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
             <motion.div variants={itemVariants} className="lg:col-span-2">
               <ChartContainer
-                title="DistribuiÃ§Ã£o de Despesas"
+                title="Distribuição de Despesas"
                 subtitle="Seus gastos categorizados"
                 icon={<PieChart className="w-5 h-5" />}
               >
@@ -574,7 +574,7 @@ export default function DashboardPage() {
                   <div>
                     <h3 className="text-lg font-bold text-foreground">Agenda Financeira</h3>
                     <p className="text-sm text-muted-foreground font-medium">
-                      Contas prÃ³ximas do vencimento
+                      Contas próximas do vencimento
                     </p>
                   </div>
                   <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center">
