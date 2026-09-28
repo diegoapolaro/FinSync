@@ -163,4 +163,4 @@ Dados isolados por usuário: Contas, Categorias, Recorrências e Orçamentos tê
 
 ---
 
-*Última atualização: 14/09/2026*
+*Última atualização: 28/09/2026*

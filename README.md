@@ -160,10 +160,10 @@ npm run dev
 ## 🧪 Executando os Testes
 
 ```bash
-# Testes do Back-End (xUnit — 61 testes)
+# Testes do Back-End (xUnit — 78 testes)
 dotnet test
 
-# Testes do Front-End (Vitest — 83 testes)
+# Testes do Front-End (Vitest — 177 testes)
 cd client
 npm test -- --run
 ```
