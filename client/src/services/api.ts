@@ -51,6 +51,7 @@ function getAuthHeaders(): HeadersInit {
 async function authFetch<T = any>(url: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(url, {
     ...options,
+    credentials: 'include',
     headers: { ...options.headers, ...getAuthHeaders() },
   });
   if (res.status === 401 && onUnauthorized) {
@@ -106,6 +107,7 @@ function url(path: string): string {
 export async function login(email: string, senha: string): Promise<AuthResponse> {
   const res = await fetch(url('/auth/login'), {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, senha } as LoginRequest),
   });
@@ -115,6 +117,7 @@ export async function login(email: string, senha: string): Promise<AuthResponse>
 export async function registrar(nome: string, email: string, senha: string): Promise<AuthResponse> {
   const res = await fetch(url('/auth/registrar'), {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nome, email, senha } as RegistrarRequest),
   });
@@ -124,10 +127,26 @@ export async function registrar(nome: string, email: string, senha: string): Pro
 export async function loginGoogle(idToken: string): Promise<AuthResponse> {
   const res = await fetch(url('/auth/google'), {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ idToken } as GoogleLoginRequest),
   });
   return handleResponse<AuthResponse>(res);
+}
+
+export async function getMe(): Promise<AuthResponse> {
+  const res = await fetch(url('/auth/me'), {
+    credentials: 'include',
+    headers: { ...getAuthHeaders() },
+  });
+  return handleResponse<AuthResponse>(res);
+}
+
+export async function logout(): Promise<void> {
+  await fetch(url('/auth/logout'), {
+    method: 'POST',
+    credentials: 'include',
+  });
 }
 
 export async function alterarSenha(senhaAtual: string, novaSenha: string): Promise<void> {
@@ -387,6 +406,7 @@ export async function exportarTransacoes(contaId: string | null, periodo: string
   if (dataInicio) params.set('dataInicio', dataInicio);
   if (dataFim) params.set('dataFim', dataFim);
   const res = await fetch(url(`/transacoes/exportar?${params}`), {
+    credentials: 'include',
     headers: { ...getAuthHeaders() },
   });
   if (!res.ok) {
@@ -438,6 +458,7 @@ export async function importarArquivoCsv(file: File): Promise<any> {
   formData.append('arquivo', file);
   const res = await fetch(url('/transacoes/importar'), {
     method: 'POST',
+    credentials: 'include',
     headers: { ...getAuthHeaders() },
     body: formData,
   });

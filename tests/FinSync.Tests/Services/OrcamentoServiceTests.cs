@@ -160,4 +160,24 @@ public class OrcamentoServiceTests : ServiceTestBase
         Assert.Equal(400m, resumoLazer.ValorLimite);
         Assert.Equal(0m, resumoLazer.PercentualUso);
     }
+
+    [Fact]
+    public async Task CreateAsync_NaoDevePermitirCategoriaDeOutroUsuario()
+    {
+        var usuario1 = await CriarUsuarioAsync("u1@teste.com");
+        var usuario2 = await CriarUsuarioAsync("u2@teste.com");
+
+        var catUsuario2 = new Categoria { Nome = "Categoria U2", Cor = "#123456", Tipo = TipoTransacao.Saida, UsuarioId = usuario2.Id };
+        Context.Categorias.Add(catUsuario2);
+        await Context.SaveChangesAsync();
+
+        var service = new OrcamentoService(Context);
+        var dto = new CreateOrcamentoDto(catUsuario2.Id, 500m, 10, 2026);
+
+        var (criado, error) = await service.CreateAsync(dto, usuario1.Id);
+
+        Assert.Null(criado);
+        Assert.NotNull(error);
+        Assert.Contains("não existe", error);
+    }
 }

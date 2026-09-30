@@ -203,6 +203,26 @@ public class AuthService(FinSyncDbContext context, IConfiguration configuration)
         }, null);
     }
 
+    public async Task<(AuthResponse? Response, string? Error)> ObterUsuarioAsync(int usuarioId)
+    {
+        var usuario = await context.Usuarios.FindAsync(usuarioId);
+        if (usuario is null)
+        {
+            return (null, "Usuário não encontrado.");
+        }
+
+        var token = GerarToken(usuario);
+
+        return (new AuthResponse
+        {
+            Token = token,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            FotoUrl = usuario.FotoUrl,
+            TemSenha = !string.IsNullOrEmpty(usuario.SenhaHash)
+        }, null);
+    }
+
     private async Task ProvisionarDadosIniciaisAsync(int usuarioId)
     {
         var contaPadrao = new Conta

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using FinSync.Features.Auth;
 using FinSync.Tests.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -76,4 +76,73 @@ public class AuthControllerTests : ServiceTestBase
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
         Assert.NotNull(badRequestResult.Value);
     }
+
+    [Fact]
+    public async Task ObterUsuarioAtual_UsuarioAutenticado_DeveRetornarOkEAdicionarCookie()
+    {
+        var usuario = await CriarUsuarioAsync("me@finsync.com");
+        var (controller, _) = CriarController(usuario.Id);
+
+        var result = await controller.ObterUsuarioAtual();
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var authResponse = Assert.IsType<AuthResponse>(okResult.Value);
+        Assert.Equal(usuario.Nome, authResponse.Nome);
+        Assert.Equal(usuario.Email, authResponse.Email);
+        Assert.False(string.IsNullOrWhiteSpace(authResponse.Token));
+
+        var setCookieHeader = controller.Response.Headers.SetCookie.ToString();
+        Assert.Contains("finsync_token=", setCookieHeader);
+        Assert.Contains("httponly", setCookieHeader, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ObterUsuarioAtual_UsuarioNaoEncontrado_DeveRetornarUnauthorized()
+    {
+        var (controller, _) = CriarController(99999);
+
+        var result = await controller.ObterUsuarioAtual();
+
+        Assert.IsType<UnauthorizedObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public void Logout_DeveRetornarNoContentEExpirarCookie()
+    {
+        var (controller, _) = CriarController(1);
+
+        var result = controller.Logout();
+
+        Assert.IsType<NoContentResult>(result);
+        var setCookieHeader = controller.Response.Headers.SetCookie.ToString();
+        Assert.Contains("finsync_token=", setCookieHeader);
+    }
+
+    [Fact]
+    public async Task Login_ComCredenciaisValidas_DeveAdicionarCookieHttpOnly()
+    {
+        var senha = "SenhaForte123!";
+        var usuario = await CriarUsuarioAsync("login-cookie@finsync.com");
+        usuario.SenhaHash = BCrypt.Net.BCrypt.HashPassword(senha);
+        await Context.SaveChangesAsync();
+
+        var (controller, _) = CriarController(usuario.Id);
+
+        var request = new LoginRequest
+        {
+            Email = usuario.Email,
+            Senha = senha
+        };
+
+        var result = await controller.Login(request);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var authResponse = Assert.IsType<AuthResponse>(okResult.Value);
+        Assert.Equal(usuario.Email, authResponse.Email);
+
+        var setCookieHeader = controller.Response.Headers.SetCookie.ToString();
+        Assert.Contains("finsync_token=", setCookieHeader);
+        Assert.Contains("httponly", setCookieHeader, StringComparison.OrdinalIgnoreCase);
+    }
 }
+

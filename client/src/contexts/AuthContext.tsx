@@ -7,6 +7,8 @@ import {
   registrar as apiRegistrar,
   loginGoogle as apiLoginGoogle,
   atualizarPerfil as apiAtualizarPerfil,
+  getMe as apiGetMe,
+  logout as apiLogout,
 } from '../services/api';
 
 import { LoginRequest, RegistrarRequest, AtualizarPerfilRequest, AuthResponse } from '@/types';
@@ -24,7 +26,7 @@ export interface AuthContextType {
   login: (email: string, senha?: string) => Promise<AuthResponse>;
   registrar: (nome: string, email: string, senha?: string) => Promise<AuthResponse>;
   loginGoogle: (idToken: string) => Promise<AuthResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
   atualizarPerfil: (dados: AtualizarPerfilRequest) => Promise<AuthResponse>;
 }
 
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: Props) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
     const savedToken = localStorage.getItem('finsync_token') || sessionStorage.getItem('finsync_token');
     if (savedToken) {
       setAuthToken(savedToken);
@@ -50,6 +53,40 @@ export function AuthProvider({ children }: Props) {
         localStorage.setItem('finsync_token', savedToken);
       }
     }
+
+    // Valida a sessão no servidor via Cookie HttpOnly / Bearer
+    apiGetMe()
+      .then((data) => {
+        if (!isMounted) return;
+        const u: AuthUser = {
+          nome: data.nome,
+          email: data.email,
+          fotoUrl: data.fotoUrl || undefined,
+          temSenha: data.temSenha,
+        };
+        setUser(u);
+        localStorage.setItem('finsync_user', JSON.stringify(u));
+        if (data.token) {
+          setAuthToken(data.token);
+          localStorage.setItem('finsync_token', data.token);
+        }
+      })
+      .catch(() => {
+        // Se a chamada falhar e o usuário tinha sessão gravada mas o token foi invalidado
+        if (!isMounted) return;
+        if (savedToken) {
+          localStorage.removeItem('finsync_token');
+          localStorage.removeItem('finsync_user');
+          sessionStorage.removeItem('finsync_token');
+          sessionStorage.removeItem('finsync_user');
+          setAuthToken(null);
+          setUser(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -135,7 +172,12 @@ export function AuthProvider({ children }: Props) {
     return data;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Ignora falhas de rede no logout
+    }
     localStorage.removeItem('finsync_token');
     localStorage.removeItem('finsync_user');
     sessionStorage.removeItem('finsync_token');

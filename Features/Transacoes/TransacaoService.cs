@@ -535,9 +535,9 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
 
         await foreach (var t in query.AsAsyncEnumerable())
         {
-            var descricao = t.Descricao.Replace("\"", "\"\"");
-            var categoria = (t.Categoria?.Nome ?? "Sem Categoria").Replace("\"", "\"\"");
-            var contaNome = (t.Conta?.Nome ?? "-").Replace("\"", "\"\"");
+            var descricao = SanitizarCampoCsv(t.Descricao);
+            var categoria = SanitizarCampoCsv(t.Categoria?.Nome ?? "Sem Categoria");
+            var contaNome = SanitizarCampoCsv(t.Conta?.Nome ?? "-");
             var tipo = t.Tipo == TipoTransacao.Entrada ? "Entrada" : "Saida";
             var status = t.Status.ToString();
             var valor = t.Valor.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
@@ -549,6 +549,17 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
         }
 
         await writer.FlushAsync();
+    }
+
+    private static string SanitizarCampoCsv(string? valor)
+    {
+        if (string.IsNullOrEmpty(valor)) return string.Empty;
+        var texto = valor.Trim();
+        if (texto.StartsWith('=') || texto.StartsWith('+') || texto.StartsWith('-') || texto.StartsWith('@') || texto.StartsWith('\t') || texto.StartsWith('\r') || texto.StartsWith('|'))
+        {
+            texto = "'" + texto;
+        }
+        return texto.Replace("\"", "\"\"");
     }
 
     public async Task<List<SugestaoDescricaoDto>> GetSugestoesDescricaoAsync(

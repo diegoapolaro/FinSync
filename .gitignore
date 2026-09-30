@@ -58,6 +58,11 @@ finsync.db
 finsync.db-shm
 finsync.db-wal
 *.db
+
+# Azure CLI local cache
+.azure/
+config.json
+
 *.sqlite
 *.sqlite3
 

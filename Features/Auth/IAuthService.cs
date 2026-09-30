@@ -8,4 +8,5 @@ public interface IAuthService
     Task<(bool Success, string? Error)> DefinirSenhaAsync(int usuarioId, DefinirSenhaRequest request);
     Task<(bool Success, string? Error)> AlterarSenhaAsync(int usuarioId, AlterarSenhaRequest request);
     Task<(AuthResponse? Response, string? Error)> AtualizarPerfilAsync(int usuarioId, AtualizarPerfilRequest request);
+    Task<(AuthResponse? Response, string? Error)> ObterUsuarioAsync(int usuarioId);
 }

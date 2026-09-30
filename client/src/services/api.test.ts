@@ -6,6 +6,8 @@ import {
   getTransacoesRange,
   getSugestoesDescricao,
   updateTransacaoStatus,
+  getMe,
+  logout,
   setAuthToken,
 } from './api';
 
@@ -31,6 +33,7 @@ describe('api.js', () => {
         expect.stringMatching(/\/auth\/alterar-senha$/),
         {
           method: 'PUT',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer mock-jwt-token',
@@ -79,6 +82,7 @@ describe('api.js', () => {
           /\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/,
         ),
         {
+          credentials: 'include',
           headers: {
             Authorization: 'Bearer mock-jwt-token',
           },
@@ -110,6 +114,7 @@ describe('api.js', () => {
           /\/transacoes\?contaId=2&data=2026-08-15&categoriaId=5&status=Pendente&page=2&pageSize=10$/,
         ),
         {
+          credentials: 'include',
           headers: {
             Authorization: 'Bearer mock-jwt-token',
           },
@@ -134,6 +139,7 @@ describe('api.js', () => {
         expect.stringMatching(/\/transacoes\/42\/status$/),
         {
           method: 'PATCH',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer mock-jwt-token',
@@ -169,6 +175,7 @@ describe('api.js', () => {
           /\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&categoriaId=3&status=Pago&page=1&pageSize=20$/,
         ),
         {
+          credentials: 'include',
           headers: {
             Authorization: 'Bearer mock-jwt-token',
           },
@@ -198,6 +205,7 @@ describe('api.js', () => {
           /\/transacoes\?contaId=1&dataInicio=2026-08-01&dataFim=2026-08-31&page=1&pageSize=20$/,
         ),
         {
+          credentials: 'include',
           headers: {
             Authorization: 'Bearer mock-jwt-token',
           },
@@ -229,9 +237,49 @@ describe('api.js', () => {
           /\/transacoes\/sugestoes-descricao\?contaId=2&tipo=Saida&termo=mer&limite=10$/,
         ),
         {
+          credentials: 'include',
           headers: {
             Authorization: 'Bearer mock-jwt-token',
           },
+        },
+      );
+    });
+  });
+
+  describe('getMe', () => {
+    it('deve chamar /auth/me com credentials include', async () => {
+      setAuthToken('token-teste');
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue(JSON.stringify({ nome: 'Diego', email: 'diego@test.com' })),
+      });
+
+      const res = await getMe();
+      expect(res).toEqual({ nome: 'Diego', email: 'diego@test.com' });
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringMatching(/\/auth\/me$/),
+        {
+          credentials: 'include',
+          headers: { Authorization: 'Bearer token-teste' },
+        },
+      );
+    });
+  });
+
+  describe('logout', () => {
+    it('deve chamar POST /auth/logout com credentials include', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+      });
+
+      await logout();
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringMatching(/\/auth\/logout$/),
+        {
+          method: 'POST',
+          credentials: 'include',
         },
       );
     });

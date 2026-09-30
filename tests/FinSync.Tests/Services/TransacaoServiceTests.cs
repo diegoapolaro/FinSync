@@ -719,4 +719,39 @@ public class TransacaoServiceTests : ServiceTestBase
         var noBanco = await Context.Transacoes.Where(t => t.ContaId == conta.Id).ToListAsync();
         Assert.Equal(2, noBanco.Count);
     }
+
+    [Fact]
+    public async Task ExportarCsvAsync_DeveSanitizarCaracteresDeFormula()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta { Nome = "=ContaMaliciosa", Tipo = TipoConta.Pessoal, UsuarioId = usuario.Id };
+        Context.Contas.Add(conta);
+
+        var categoria = new Categoria { Nome = "+CategoriaFormula", Cor = "#000", Tipo = TipoTransacao.Saida, UsuarioId = usuario.Id };
+        Context.Categorias.Add(categoria);
+        await Context.SaveChangesAsync();
+
+        Context.Transacoes.Add(new Transacao
+        {
+            Descricao = "@cmd|' /C calc'!A0",
+            Valor = 100m,
+            Tipo = TipoTransacao.Saida,
+            Status = StatusTransacao.Pago,
+            Data = DateOnly.FromDateTime(DateTime.Today),
+            ContaId = conta.Id,
+            CategoriaId = categoria.Id
+        });
+        await Context.SaveChangesAsync();
+
+        var service = new TransacaoService(Context);
+        using var ms = new MemoryStream();
+        await service.ExportarCsvAsync(conta.Id, "mes_atual", usuario.Id, ms);
+
+        var csvContent = System.Text.Encoding.UTF8.GetString(ms.ToArray());
+
+        // Deve conter os prefixos de escape com apóstrofo
+        Assert.Contains("\"'@cmd|' /C calc'!A0\"", csvContent);
+        Assert.Contains("\"'+CategoriaFormula\"", csvContent);
+        Assert.Contains("\"'=ContaMaliciosa\"", csvContent);
+    }
 }

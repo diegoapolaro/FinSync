@@ -384,4 +384,32 @@ public class AuthServiceTests : ServiceTestBase
         Assert.Null(response);
         Assert.Equal("Usuário não encontrado.", error);
     }
+
+    [Fact]
+    public async Task ObterUsuarioAsync_UsuarioExistente_DeveRetornarAuthResponse()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+        var usuario = await CriarUsuarioAsync("obter-usuario@finsync.com");
+
+        var (response, error) = await service.ObterUsuarioAsync(usuario.Id);
+
+        Assert.Null(error);
+        Assert.NotNull(response);
+        Assert.Equal(usuario.Nome, response!.Nome);
+        Assert.Equal(usuario.Email, response.Email);
+        Assert.False(string.IsNullOrWhiteSpace(response.Token));
+    }
+
+    [Fact]
+    public async Task ObterUsuarioAsync_UsuarioInexistente_DeveRetornarErro()
+    {
+        var configuration = CreateConfiguration();
+        var service = CreateService(configuration);
+
+        var (response, error) = await service.ObterUsuarioAsync(99999);
+
+        Assert.Null(response);
+        Assert.Equal("Usuário não encontrado.", error);
+    }
 }

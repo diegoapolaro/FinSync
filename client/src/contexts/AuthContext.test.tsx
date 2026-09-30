@@ -17,6 +17,8 @@ vi.mock('../services/api', () => ({
   registrar: vi.fn(),
   loginGoogle: vi.fn(),
   atualizarPerfil: vi.fn(),
+  getMe: vi.fn(),
+  logout: vi.fn(),
 }));
 
 function ConsumerComponent() {
@@ -49,6 +51,14 @@ describe('AuthContext - Persistência e Ciclo de Sessão', () => {
     api.setOnUnauthorized.mockImplementation((cb) => {
       unauthorizedHandler = cb;
     });
+
+    vi.mocked(api.getMe).mockResolvedValue({
+      token: 'jwt-token-valido',
+      nome: 'Diego',
+      email: 'diego@finsync.app',
+      temSenha: true,
+    });
+    vi.mocked(api.logout).mockResolvedValue(undefined);
   });
 
   it('deve restaurar a sessão do localStorage se existirem token e usuário salvos', () => {
@@ -166,15 +176,34 @@ describe('AuthContext - Persistência e Ciclo de Sessão', () => {
 
     expect(screen.getByTestId('auth-status')).toHaveTextContent('autenticado');
 
-    act(() => {
+    await act(async () => {
       screen.getByText('Sair').click();
     });
 
+    expect(api.logout).toHaveBeenCalled();
     expect(localStorage.getItem('finsync_token')).toBeNull();
     expect(localStorage.getItem('finsync_user')).toBeNull();
     expect(api.setAuthToken).toHaveBeenCalledWith(null);
     expect(screen.getByTestId('auth-status')).toHaveTextContent('deslogado');
     expect(mockNavigate).toHaveBeenCalledWith('/login');
+  });
+
+  it('deve limpar a sessão se api.getMe falhar e o token estiver inválido no backend', async () => {
+    localStorage.setItem('finsync_token', 'jwt-expirado');
+    localStorage.setItem('finsync_user', JSON.stringify({ nome: 'Diego' }));
+    vi.mocked(api.getMe).mockRejectedValue(new Error('Sessão expirada'));
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-status')).toHaveTextContent('deslogado');
+      expect(localStorage.getItem('finsync_token')).toBeNull();
+      expect(localStorage.getItem('finsync_user')).toBeNull();
+    });
   });
 
   it('deve limpar localStorage e redirecionar para /login quando a API retornar 401 Unauthorized', async () => {

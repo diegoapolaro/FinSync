@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace FinSync.Handlers;
 
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IHostEnvironment environment) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
@@ -18,7 +19,9 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             DbUpdateException dbEx => (
                 400,
                 "Erro ao salvar",
-                $"Nao foi possivel salvar os dados: {dbEx.InnerException?.Message ?? dbEx.Message}"
+                environment.IsDevelopment()
+                    ? $"Nao foi possivel salvar os dados: {dbEx.InnerException?.Message ?? dbEx.Message}"
+                    : "Nao foi possivel salvar os dados informados devido a uma restricao de integridade. Verifique as informacoes e tente novamente."
             ),
             _ => (
                 500,

@@ -40,6 +40,11 @@ public class OrcamentoService(FinSyncDbContext context) : IOrcamentoService
 
     public async Task<(OrcamentoDto? Dto, string? Error)> CreateAsync(CreateOrcamentoDto dto, int usuarioId)
     {
+        var categoriaExiste = await context.Categorias
+            .AnyAsync(c => c.Id == dto.CategoriaId && c.UsuarioId == usuarioId);
+        if (!categoriaExiste)
+            return (null, $"A categoria com id {dto.CategoriaId} não existe.");
+
         var existing = await context.Orcamentos
             .AnyAsync(o => o.UsuarioId == usuarioId && o.CategoriaId == dto.CategoriaId && o.Mes == dto.Mes && o.Ano == dto.Ano);
         
