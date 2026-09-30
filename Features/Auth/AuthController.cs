@@ -9,11 +9,9 @@ namespace FinSync.Features.Auth;
 [Route("api/[controller]")]
 public class AuthController(
     IAuthService authService,
-    IConfiguration? configuration = null,
+    IConfiguration configuration,
     IWebHostEnvironment? environment = null) : ControllerBase
 {
-    public AuthController(IAuthService authService) : this(authService, null, null) { }
-
     [EnableRateLimiting("AuthLimiter")]
     [HttpPost("registrar")]
     public async Task<ActionResult<AuthResponse>> Registrar(RegistrarRequest request)

@@ -23,7 +23,7 @@ public class AuthControllerTests : ServiceTestBase
             .Build();
 
         var service = new AuthService(Context, configuration);
-        var controller = new AuthController(service);
+        var controller = new AuthController(service, configuration);
 
         var user = new ClaimsPrincipal(new ClaimsIdentity(
         [

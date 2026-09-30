@@ -35,11 +35,18 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("AuthLimiter", opt =>
+    options.AddPolicy("AuthLimiter", httpContext =>
     {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueLimit = 0;
+        var clientIp = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim()
+                       ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                       ?? "anonymous";
+
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 15,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
     });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
