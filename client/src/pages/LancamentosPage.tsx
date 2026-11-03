@@ -30,6 +30,7 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import LancamentosDateHeader from '../components/lancamentos/LancamentosDateHeader';
 import LancamentoForm from '../components/lancamentos/LancamentoForm';
+import LancamentosVelocitySidebar from '../components/lancamentos/LancamentosVelocitySidebar';
 import DailyRecordsList from '../components/lancamentos/DailyRecordsList';
 import DeleteLancamentoModal from '../components/lancamentos/DeleteLancamentoModal';
 import type { ContaDto, CategoriaDto, TransacaoDto } from '@/types';
@@ -56,7 +57,8 @@ const formInicial: any = {
 };
 
 export default function LancamentosPage(): React.ReactElement {
-  const { contas = [], contaSelecionadaId, abrirModalNovaConta } = useOutletContext<OutletContextType>() || {};
+  const { contas = [], contaSelecionadaId, abrirModalNovaConta } =
+    useOutletContext<OutletContextType>() || {};
   const [searchParams] = useSearchParams();
   const tipoParam = searchParams.get('tipo');
   const { addToast } = useToast();
@@ -173,7 +175,7 @@ export default function LancamentosPage(): React.ReactElement {
     const n = Math.max(2, Math.min(72, Number(form.totalParcelas) || 2));
     const isModoParcela = form.modoValorParcelamento === MODO_PARCELAMENTO.PARCELA;
 
-    const valorParcela = isModoParcela ? numVal : (numVal > 0 ? numVal / n : 0);
+    const valorParcela = isModoParcela ? numVal : numVal > 0 ? numVal / n : 0;
     const valorTotal = isModoParcela ? numVal * n : numVal;
 
     const dInicio = new Date(dataSelecionada + 'T12:00:00');
@@ -284,29 +286,66 @@ export default function LancamentosPage(): React.ReactElement {
     }
   }
 
+  // Métricas para a barra lateral de velocidade financeira
+  const contaAtiva = useMemo(() => {
+    return (
+      contas.find((c) => String(c.id) === String(form.contaId || contaSelecionadaId)) ||
+      contas[0]
+    );
+  }, [contas, form.contaId, contaSelecionadaId]);
+
+  const totalEntradasDia = useMemo(() => {
+    return transacoes
+      .filter((t) => t.tipo === TIPO_TRANSACAO.ENTRADA)
+      .reduce((acc, t) => acc + (Number(t.valor) || 0), 0);
+  }, [transacoes]);
+
+  const totalSaidasDia = useMemo(() => {
+    return transacoes
+      .filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA)
+      .reduce((acc, t) => acc + (Number(t.valor) || 0), 0);
+  }, [transacoes]);
+
+  const saldoProjetado = useMemo(() => {
+    return totalEntradasDia - totalSaidasDia;
+  }, [totalEntradasDia, totalSaidasDia]);
+
+  function handleAplicarSugestao(descricao: string, valor: string, tipo: string) {
+    setForm((prev: any) => ({
+      ...prev,
+      descricao,
+      valor: formatCurrencyInput(valor),
+      tipo,
+    }));
+    addToast('Sugestão aplicada no formulário!', 'success');
+  }
+
   return (
-    <div className="px-4 md:px-8 max-w-3xl mx-auto pt-6 pb-32">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 custom-scrollbar max-w-7xl w-full mx-auto space-y-7">
       {contas.length === 0 && (
-        <Card className="p-8 text-center border-dashed border-border/80 bg-card mb-6 shadow-sm">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
+        <Card className="p-8 text-center border-dashed border-pebble/30 bg-paper dark:bg-card mb-6 shadow-sm rounded-[20px]">
+          <div className="w-12 h-12 rounded-full bg-linen-mist text-forest-ink dark:bg-spruce dark:text-lime-voltage flex items-center justify-center mx-auto mb-3">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-foreground mb-1">
+          <h3 className="text-base font-bold text-forest-ink dark:text-paper mb-1">
             Nenhuma conta ou livro de caixa cadastrado
           </h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
+          <p className="text-xs text-charcoal dark:text-pebble max-w-sm mx-auto mb-4">
             Para registrar suas receitas e despesas, crie sua primeira conta.
           </p>
           {abrirModalNovaConta && (
-            <Button onClick={abrirModalNovaConta} className="rounded-xl font-semibold gap-1.5 shadow-sm">
-              <PlusCircle className="w-4 h-4" />
+            <Button
+              onClick={abrirModalNovaConta}
+              className="rounded-full bg-lime-voltage text-forest-ink font-bold gap-1.5 shadow-sm hover:bg-lime-voltage/90"
+            >
+              <PlusCircle className="w-4 h-4 stroke-[2.5]" />
               <span>Criar Primeira Conta</span>
             </Button>
           )}
         </Card>
       )}
 
-      {/* Date Navigation Header */}
+      {/* 1. Date Navigation & Context Header */}
       <LancamentosDateHeader
         dataSelecionada={dataSelecionada}
         setDataSelecionada={setDataSelecionada}
@@ -315,38 +354,55 @@ export default function LancamentosPage(): React.ReactElement {
         colorScheme={colorScheme}
       />
 
-      {/* Main Interactive Form Card */}
-      <LancamentoForm
-        form={form}
-        setForm={setForm as any}
-        onSubmit={handleSubmit}
-        enviando={enviando}
-        dataSelecionada={dataSelecionada}
-        setDataSelecionada={setDataSelecionada}
-        hojeStr={hojeStr}
-        ontemStr={ontemStr}
-        colorScheme={colorScheme}
-        contas={contas}
-        contaSelecionadaId={contaSelecionadaId}
-        categoriasFiltradas={categoriasFiltradas}
-        previewParcelamento={previewParcelamento}
-      />
+      {/* 2. Main Entry Workspace Grid (12 Columns) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+        {/* Primary Form Column (8 cols) */}
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          <LancamentoForm
+            form={form}
+            setForm={setForm as any}
+            onSubmit={handleSubmit}
+            enviando={enviando}
+            dataSelecionada={dataSelecionada}
+            setDataSelecionada={setDataSelecionada}
+            hojeStr={hojeStr}
+            ontemStr={ontemStr}
+            colorScheme={colorScheme}
+            contas={contas}
+            contaSelecionadaId={contaSelecionadaId}
+            categoriasFiltradas={categoriasFiltradas}
+            previewParcelamento={previewParcelamento}
+            onLimpar={resetForm}
+          />
 
-      {/* Daily Records List */}
-      <DailyRecordsList
-        dataSelecionada={dataSelecionada}
-        transacoes={transacoes}
-        carregando={carregando}
-        editandoId={editandoId}
-        onToggleStatus={handleToggleStatus as any}
-        onEditar={editar as any}
-        onConfirmarExclusao={confirmarExclusao as any}
-        categoriasPorTipo={categoriasPorTipo}
-        contas={contas}
-        onSalvarEdicao={handleSalvarEdicao}
-        onCancelarEdicao={() => setEditandoId(null)}
-        salvandoEdicao={salvandoEdicao}
-      />
+          {/* Daily Records List */}
+          <DailyRecordsList
+            dataSelecionada={dataSelecionada}
+            transacoes={transacoes}
+            carregando={carregando}
+            editandoId={editandoId}
+            onToggleStatus={handleToggleStatus as any}
+            onEditar={editar as any}
+            onConfirmarExclusao={confirmarExclusao as any}
+            categoriasPorTipo={categoriasPorTipo}
+            contas={contas}
+            onSalvarEdicao={handleSalvarEdicao}
+            onCancelarEdicao={() => setEditandoId(null)}
+            salvandoEdicao={salvandoEdicao}
+          />
+        </div>
+
+        {/* Side Helper Column: Financial Velocity & Insights (4 cols) */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          <LancamentosVelocitySidebar
+            saldoProjetado={saldoProjetado}
+            totalEntradasDia={totalEntradasDia}
+            totalSaidasDia={totalSaidasDia}
+            contaAtiva={contaAtiva}
+            onAplicarSugestao={handleAplicarSugestao}
+          />
+        </div>
+      </div>
 
       {/* Delete Modal para Parcelamento e Recorrência */}
       <DeleteLancamentoModal

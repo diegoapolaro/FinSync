@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Calendar } from '../ui/calendar';
 import { formatDateOnly } from '../../utils/filterTransacoes';
@@ -11,7 +11,7 @@ interface Props {
   setDataSelecionada: (data: string) => void;
   navegar: (dias: number) => void;
   hojeStr: string;
-  colorScheme?: "light" | "dark";
+  colorScheme?: 'light' | 'dark';
 }
 
 export default function LancamentosDateHeader({
@@ -20,7 +20,7 @@ export default function LancamentosDateHeader({
   navegar,
   hojeStr,
   colorScheme,
-}: Props) {
+}: Props): React.ReactElement {
   const [aberto, setAberto] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -57,116 +57,149 @@ export default function LancamentosDateHeader({
   }, [dataSelecionada]);
 
   const dataFormatada = formatDisplayDate(dataSelecionada);
+  const isHoje = dataSelecionada === hojeStr;
 
   return (
-    <div className="flex items-center justify-between gap-2 mb-6 bg-card px-4 md:px-5 py-2.5 rounded-2xl md:rounded-full border border-border/80 shadow-sm flex-wrap sm:flex-nowrap">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => navegar(-1)}
-        className="text-xs font-semibold rounded-full hover:bg-muted"
-      >
-        <ArrowLeft className="w-4 h-4 mr-1.5" />
-        Ontem
-      </Button>
-
-      <div className="flex items-center gap-2 relative" ref={containerRef}>
-        {/* Gatilho interativo do calendário Shadcn */}
-        <button
-          type="button"
-          onClick={() => setAberto(!aberto)}
-          className={cn(
-            'flex items-center gap-2 px-3.5 py-1.5 rounded-xl border transition-all duration-200 select-none shadow-sm',
-            'bg-secondary/80 hover:bg-secondary text-foreground',
-            aberto
-              ? 'border-primary ring-2 ring-primary/20 shadow-sm'
-              : 'border-border hover:border-primary/50',
-          )}
-          title="Escolha uma data no calendário"
-        >
-          <CalendarIcon className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-mono font-bold tracking-tight">
+    <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 pb-2">
+      {/* 1. Contexto & Título Wise */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-lime-voltage animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-forest-ink dark:text-lime-voltage">
+            Fluxo Operacional Diário
+          </span>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-linen-mist text-forest-ink dark:bg-spruce dark:text-lime-voltage border border-forest-ink/10">
             {dataFormatada}
           </span>
-          <ChevronDown
-            className={cn(
-              'w-3.5 h-3.5 text-muted-foreground transition-transform duration-200',
-              aberto && 'rotate-180 text-primary',
-            )}
-          />
-        </button>
-
-        {/* Input oculto acessível para compatibilidade com testes e automação */}
-        <input
-          id="data-navegacao-header"
-          type="date"
-          value={dataSelecionada}
-          onChange={(e) => e.target.value && setDataSelecionada(e.target.value)}
-          className="sr-only"
-          style={{ colorScheme } as React.CSSProperties}
-          aria-label="Selecionar data do lançamento"
-        />
-
-        {dataSelecionada !== hojeStr && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setDataSelecionada(hojeStr)}
-            className="h-7 px-2.5 text-[11px] font-semibold rounded-full border-primary/40 text-primary hover:bg-primary/10 transition-colors"
-            title="Voltar para Hoje"
-          >
-            Hoje
-          </Button>
-        )}
-
-        {/* Popover flutuante do Calendário Shadcn */}
-        {aberto && (
-          <>
-            <div
-              className="sm:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-150"
-              onClick={() => setAberto(false)}
-              aria-hidden="true"
-            />
-
-            <div
-              ref={popoverRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Calendário de navegação"
-              className={cn(
-                'z-50 rounded-3xl border border-border/80 bg-card/95 backdrop-blur-xl p-3 shadow-2xl text-card-foreground',
-                'animate-in fade-in-0 zoom-in-95 duration-150',
-                'fixed bottom-4 left-4 right-4 max-w-xs mx-auto sm:static sm:absolute sm:left-1/2 sm:-translate-x-1/2 sm:top-full sm:mt-2 sm:max-w-none sm:w-[300px]',
-              )}
-            >
-              <Calendar
-                mode="single"
-                selected={dateObj}
-                onSelect={(d) => {
-                  if (d) {
-                    setDataSelecionada(formatDateOnly(d));
-                    setAberto(false);
-                  }
-                }}
-                className="w-full p-1"
-              />
-            </div>
-          </>
-        )}
+        </div>
+        <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-forest-ink dark:text-paper font-sans">
+          Novo Registro Financeiro
+        </h1>
+        <p className="text-sm text-charcoal dark:text-pebble max-w-xl">
+          Cadastre entradas e saídas com categorização ágil, conciliação e comprovantes.
+        </p>
       </div>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => navegar(1)}
-        className="text-xs font-semibold rounded-full hover:bg-muted"
-      >
-        Amanhã
-        <ArrowRight className="w-4 h-4 ml-1.5" />
-      </Button>
+      {/* 2. Barra Pílula de Navegação Rápida (Wise Pill Switcher) */}
+      <div className="flex items-center gap-1 p-1 bg-fog dark:bg-card border border-pebble/20 rounded-full self-start md:self-auto shadow-xs">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => navegar(-1)}
+          className="h-9 px-4 rounded-full text-xs font-bold text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper hover:bg-paper dark:hover:bg-spruce transition-all"
+        >
+          <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+          Ontem
+        </Button>
+
+        <button
+          type="button"
+          onClick={() => setDataSelecionada(hojeStr)}
+          className={cn(
+            'h-9 px-4 rounded-full text-xs font-bold transition-all flex items-center gap-1.5',
+            isHoje
+              ? 'bg-forest-ink text-lime-voltage dark:bg-lime-voltage dark:text-forest-ink shadow-sm'
+              : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper hover:bg-paper dark:hover:bg-spruce',
+          )}
+        >
+          <CalendarIcon className="w-3.5 h-3.5" />
+          <span>Hoje</span>
+        </button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => navegar(1)}
+          className="h-9 px-4 rounded-full text-xs font-bold text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper hover:bg-paper dark:hover:bg-spruce transition-all"
+        >
+          Amanhã
+          <ChevronRight className="w-3.5 h-3.5 ml-1" />
+        </Button>
+
+        <div className="h-4 w-px bg-pebble/30 mx-0.5" />
+
+        {/* Gatilho interativo do calendário */}
+        <div className="relative" ref={containerRef}>
+          <button
+            type="button"
+            onClick={() => setAberto(!aberto)}
+            className={cn(
+              'h-9 px-3 rounded-full text-xs font-bold transition-all flex items-center gap-1.5',
+              aberto
+                ? 'bg-forest-ink text-lime-voltage dark:bg-lime-voltage dark:text-forest-ink shadow-xs'
+                : 'text-charcoal dark:text-pebble hover:bg-paper dark:hover:bg-spruce hover:text-forest-ink dark:hover:text-paper',
+            )}
+            title="Escolher data customizada"
+          >
+            <CalendarIcon className="w-3.5 h-3.5" />
+            <ChevronDown
+              className={cn(
+                'w-3.5 h-3.5 transition-transform duration-200',
+                aberto && 'rotate-180',
+              )}
+            />
+          </button>
+
+          {/* Input oculto acessível para compatibilidade com testes e automação */}
+          <input
+            id="data-navegacao-header"
+            type="date"
+            value={dataSelecionada}
+            onChange={(e) => e.target.value && setDataSelecionada(e.target.value)}
+            className="sr-only"
+            style={{ colorScheme } as React.CSSProperties}
+            aria-label="Selecionar data do lançamento"
+          />
+
+          {!isHoje && (
+            <button
+              type="button"
+              onClick={() => setDataSelecionada(hojeStr)}
+              className="sr-only"
+              title="Voltar para Hoje"
+            >
+              Voltar para Hoje
+            </button>
+          )}
+
+          {/* Popover flutuante do Calendário Shadcn */}
+          {aberto && (
+            <>
+              <div
+                className="sm:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs animate-in fade-in-0 duration-150"
+                onClick={() => setAberto(false)}
+                aria-hidden="true"
+              />
+
+              <div
+                ref={popoverRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Calendário de navegação"
+                className={cn(
+                  'z-50 rounded-[24px] border border-pebble/30 bg-paper dark:bg-spruce p-3 shadow-2xl text-forest-ink dark:text-paper',
+                  'animate-in fade-in-0 zoom-in-95 duration-150',
+                  'fixed bottom-4 left-4 right-4 max-w-xs mx-auto sm:static sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:max-w-none sm:w-[300px]',
+                )}
+              >
+                <Calendar
+                  mode="single"
+                  selected={dateObj}
+                  onSelect={(d) => {
+                    if (d) {
+                      setDataSelecionada(formatDateOnly(d));
+                      setAberto(false);
+                    }
+                  }}
+                  className="w-full p-1"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

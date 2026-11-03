@@ -9,7 +9,6 @@ import {
   Layers,
   Repeat,
 } from 'lucide-react';
-import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import InlineTransactionEditor from '../transactions/InlineTransactionEditor';
 import { formatCurrency } from '../../utils/formatters';
@@ -41,7 +40,7 @@ export default function LancamentoItemCard({
   onSalvarEdicao,
   onCancelarEdicao,
   salvandoEdicao,
-}: Props) {
+}: Props): React.ReactElement {
   const t = transacao;
   const tEntrada = t.tipo === TIPO_TRANSACAO.ENTRADA;
   const Icon = tEntrada ? ArrowUpRight : ArrowDownRight;
@@ -50,70 +49,82 @@ export default function LancamentoItemCard({
   const isRecorrente = Boolean(t.recorrenciaId);
 
   return (
-    <div className="space-y-1">
-      <Card
+    <div className="space-y-2">
+      <div
         className={cn(
-          'p-3.5 flex items-center justify-between hover:shadow-card-hover transition-all duration-200 group border-border',
-          isEditingThis && 'border-primary/50 ring-1 ring-primary/20 bg-secondary/30',
+          'p-4 rounded-[16px] border border-pebble/20 bg-paper dark:bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs hover:border-pebble/40 transition-all',
+          isEditingThis && 'border-forest-ink/50 dark:border-lime-voltage ring-1 ring-lime-voltage/30 bg-fog dark:bg-spruce/30',
         )}
       >
-        <div className="flex items-center gap-3 min-w-0">
+        {/* Lado Esquerdo: Ícone + Descrição + Badges */}
+        <div className="flex items-center gap-3.5 min-w-0">
           <div
             className={cn(
-              'w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 border border-border bg-secondary',
-              tEntrada ? 'text-entrada' : 'text-saida',
+              'w-10 h-10 rounded-full flex items-center justify-center shrink-0 border transition-transform shadow-xs',
+              tEntrada
+                ? 'bg-linen-mist text-forest-ink border-forest-ink/15 dark:bg-spruce dark:text-lime-voltage'
+                : 'bg-alarm-red/10 text-alarm-red border-alarm-red/20',
             )}
           >
             <Icon className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-foreground truncate text-sm tracking-tight">
+
+          <div className="min-w-0 flex flex-col gap-1">
+            <span className="font-bold text-forest-ink dark:text-paper truncate text-sm tracking-tight">
               {t.descricao}
-            </p>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            </span>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
               {t.categoriaNome && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fog dark:bg-spruce/60 text-charcoal dark:text-pebble border border-pebble/20">
                   {t.categoriaNome}
                 </span>
               )}
+
               {isParcelado && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/20">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-linen-mist text-forest-ink dark:bg-spruce dark:text-lime-voltage border border-forest-ink/10">
                   <Layers className="w-2.5 h-2.5" />
                   {t.numeroParcela}/{t.totalParcelas}
                 </span>
               )}
+
               {isRecorrente && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-fog dark:bg-spruce text-forest-ink dark:text-lime-voltage border border-pebble/30">
                   <Repeat className="w-2.5 h-2.5" />
                   {t.frequenciaRecorrencia || 'Fixo'}
                 </span>
               )}
+
+              {/* Status Badge Pílula */}
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border',
+                  'inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border',
                   isPendente
-                    ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                    : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                    ? 'bg-alarm-red/10 text-alarm-red border-alarm-red/20'
+                    : 'bg-linen-mist text-forest-ink border-forest-ink/15 dark:bg-spruce dark:text-lime-voltage',
                 )}
               >
-                {isPendente && <Clock className="w-2.5 h-2.5" />}
-                {t.status || STATUS_TRANSACAO.PAGO}
+                {isPendente ? <Clock className="w-2.5 h-2.5" /> : <CheckCircle2 className="w-2.5 h-2.5" />}
+                <span>{t.status || STATUS_TRANSACAO.PAGO}</span>
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {/* Lado Direito: Valor Monetário + Ações 100% Visíveis (Anti-Vibecode) */}
+        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-pebble/10">
           <span
             className={cn(
-              'numeric-mono text-sm font-bold tracking-tight',
-              tEntrada ? 'text-entrada' : 'text-saida',
+              'numeric-mono text-sm md:text-base font-extrabold tracking-tight',
+              tEntrada ? 'text-forest-ink dark:text-lime-voltage' : 'text-alarm-red',
             )}
           >
             {tEntrada ? '+ ' : '- '}
             {formatCurrency(t.valor)}
           </span>
+
           <div className="flex items-center gap-1">
+            {/* Toggle Status Icon */}
             <Button
               type="button"
               variant="ghost"
@@ -121,18 +132,20 @@ export default function LancamentoItemCard({
               onClick={() => onToggleStatus(t)}
               title={isPendente ? 'Marcar como Pago' : 'Marcar como Pendente'}
               className={cn(
-                'rounded-xl transition-colors',
+                'rounded-full h-8 w-8 transition-colors border border-transparent hover:border-pebble/30',
                 isPendente
-                  ? 'hover:bg-emerald-500/15 text-amber-500 hover:text-emerald-500'
-                  : 'hover:bg-amber-500/15 text-muted-foreground hover:text-amber-500',
+                  ? 'text-alarm-red hover:bg-alarm-red/10'
+                  : 'text-charcoal dark:text-pebble hover:text-forest-ink hover:bg-fog',
               )}
             >
               {isPendente ? (
-                <CheckCircle2 className="w-4 h-4" />
+                <Clock className="w-4 h-4 text-alarm-red" />
               ) : (
-                <Clock className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
               )}
             </Button>
+
+            {/* Editar (Sempre Visível) */}
             <Button
               type="button"
               variant={isEditingThis ? 'secondary' : 'ghost'}
@@ -140,37 +153,39 @@ export default function LancamentoItemCard({
               onClick={() => onEditar(t)}
               title={isEditingThis ? 'Fechar edição' : 'Editar'}
               className={cn(
-                'rounded-xl transition-all',
-                isEditingThis
-                  ? 'bg-primary/10 text-primary opacity-100'
-                  : 'hover:bg-muted opacity-0 group-hover:opacity-100',
+                'rounded-full h-8 w-8 transition-all border border-transparent hover:border-pebble/30 text-charcoal dark:text-pebble hover:text-forest-ink hover:bg-fog',
+                isEditingThis && 'bg-forest-ink text-paper dark:bg-lime-voltage dark:text-forest-ink shadow-xs',
               )}
             >
-              <Edit2 className="w-4 h-4" />
+              <Edit2 className="w-3.5 h-3.5" />
             </Button>
+
+            {/* Excluir (Sempre Visível) */}
             <Button
               type="button"
               variant="ghost"
               size="iconSm"
               onClick={() => onConfirmarExclusao(t)}
               title="Excluir"
-              className="rounded-xl hover:text-destructive hover:bg-destructive/15 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="rounded-full h-8 w-8 text-pebble hover:text-alarm-red hover:bg-alarm-red/10 hover:border-alarm-red/20 border border-transparent transition-colors"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
 
       {isEditingThis && (
-        <InlineTransactionEditor
-          transacao={t}
-          categoriasPorTipo={categoriasPorTipo}
-          contas={contas}
-          onSalvar={onSalvarEdicao}
-          onCancelar={onCancelarEdicao}
-          salvando={salvandoEdicao}
-        />
+        <div className="p-4 bg-fog dark:bg-spruce/30 rounded-[16px] border border-pebble/30">
+          <InlineTransactionEditor
+            transacao={t}
+            categoriasPorTipo={categoriasPorTipo}
+            contas={contas}
+            onSalvar={onSalvarEdicao}
+            onCancelar={onCancelarEdicao}
+            salvando={salvandoEdicao}
+          />
+        </div>
       )}
     </div>
   );
