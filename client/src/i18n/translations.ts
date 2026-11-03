@@ -74,10 +74,14 @@ export const translations: Record<string, Record<string, string>> = {
 
     // Tabela de Transações
     tab_descricao: 'Descrição',
+    tab_descricao_operacao: 'Descrição da Operação',
     tab_categoria: 'Categoria',
+    tab_conta_origem: 'Conta / Origem',
     tab_status: 'Status',
     tab_data: 'Data',
+    tab_data_hora: 'Data / Hora',
     tab_valor: 'Valor',
+    tab_valor_liquido: 'Valor Líquido',
     tab_acoes: 'Ações',
     tab_sem_transacoes: 'Nenhuma movimentação neste período.',
 
@@ -156,10 +160,14 @@ export const translations: Record<string, Record<string, string>> = {
 
     // Tabela de Transações
     tab_descricao: 'Description',
+    tab_descricao_operacao: 'Operation Description',
     tab_categoria: 'Category',
+    tab_conta_origem: 'Account / Source',
     tab_status: 'Status',
     tab_data: 'Date',
+    tab_data_hora: 'Date / Time',
     tab_valor: 'Amount',
+    tab_valor_liquido: 'Net Amount',
     tab_acoes: 'Actions',
     tab_sem_transacoes: 'No transactions in this period.',
 
@@ -238,10 +246,14 @@ export const translations: Record<string, Record<string, string>> = {
 
     // Tabela de Transações
     tab_descricao: 'Descripción',
+    tab_descricao_operacao: 'Descripción de la Operación',
     tab_categoria: 'Categoría',
+    tab_conta_origem: 'Cuenta / Origen',
     tab_status: 'Estado',
     tab_data: 'Fecha',
+    tab_data_hora: 'Fecha / Hora',
     tab_valor: 'Monto',
+    tab_valor_liquido: 'Monto Neto',
     tab_acoes: 'Acciones',
     tab_sem_transacoes: 'Sin movimientos en este período.',
 

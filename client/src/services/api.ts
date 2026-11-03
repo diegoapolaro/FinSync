@@ -210,7 +210,7 @@ export interface GetTransacoesParams {
   dataFim?: string | null;
   page?: number;
   pageSize?: number;
-  categoriaId?: string | null;
+  categoriaId?: string | number | null;
   status?: string | null;
 }
 
@@ -229,7 +229,9 @@ export async function getTransacoes({
   if (data) params.set('data', data);
   if (dataInicio) params.set('dataInicio', dataInicio);
   if (dataFim) params.set('dataFim', dataFim);
-  if (categoriaId) params.set('categoriaId', categoriaId);
+  if (categoriaId !== null && categoriaId !== undefined && categoriaId !== '') {
+    params.set('categoriaId', String(categoriaId));
+  }
   if (status) params.set('status', status);
   params.set('page', page.toString());
   params.set('pageSize', pageSize.toString());

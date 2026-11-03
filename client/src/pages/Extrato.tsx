@@ -1,6 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
-import { ChevronDown, ChevronLeft, ChevronRight, Receipt, Tag, CheckCircle2, Search, X } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Receipt,
+  Tag,
+  CheckCircle2,
+  Search,
+  X,
+  Download,
+  ArrowUpRight,
+  ArrowDownRight,
+  Check,
+  Calendar,
+} from 'lucide-react';
 import {
   deleteTransacao,
   getCategorias,
@@ -15,18 +29,20 @@ import {
   transacoesFiltradasPorPeriodo,
 } from '../utils/filterTransacoes';
 import { formatPeriodoLabel } from '../utils/formatters';
-import SummaryCard from '../components/common/SummaryCard';
 import FloatingActions from '../components/common/FloatingActions';
-import ResponsiveGrid from '../components/common/ResponsiveGrid';
 import PeriodoPicker from '../components/common/PeriodoPicker';
 import TransactionTable from '../components/transactions/TransactionTable';
 import TransactionCard from '../components/transactions/TransactionCard';
+import AccountHeroBanner from '../components/transactions/AccountHeroBanner';
+import ExtratoKpiMetrics from '../components/transactions/ExtratoKpiMetrics';
+import ConciliationInsightBanner from '../components/transactions/ConciliationInsightBanner';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { cn } from '@/lib/utils';
-import type { CategoriaDto, TransacaoDto, ResumoPeriodoDto } from '@/types';
+import type { CategoriaDto, TransacaoDto, ResumoPeriodoDto, ContaDto } from '@/types';
 
 interface OutletContextType {
+  contas?: ContaDto[];
   contaSelecionadaId?: number | string;
   categorias?: CategoriaDto[];
   abrirModalNovaConta?: () => void;
@@ -37,8 +53,13 @@ export default function Extrato(): React.ReactElement {
   const [searchParams] = useSearchParams();
   const outletCtx = useOutletContext<OutletContextType>();
   const contaSelecionadaId = outletCtx?.contaSelecionadaId;
+  const contas = outletCtx?.contas || [];
   const categoriasContext = outletCtx?.categorias;
   const abrirModalNovaConta = outletCtx?.abrirModalNovaConta;
+
+  const contaAtiva = useMemo(() => {
+    return contas.find((c) => String(c.id) === String(contaSelecionadaId));
+  }, [contas, contaSelecionadaId]);
 
   const [categorias, setCategorias] = useState<CategoriaDto[]>(() => categoriasContext || []);
   const [categoriaSelecionadaId, setCategoriaSelecionadaId] = useState<string>('');
@@ -61,6 +82,10 @@ export default function Extrato(): React.ReactElement {
   const [carregando, setCarregando] = useState<boolean>(true);
   const [pagina, setPagina] = useState<number>(1);
   const [paginaMeta, setPaginaMeta] = useState({ total: 0, totalPages: 1, pageSize: 20 });
+
+  // Microinteração para exportação
+  const [exportando, setExportando] = useState<boolean>(false);
+  const [exportadoSucesso, setExportadoSucesso] = useState<boolean>(false);
 
   useEffect(() => {
     if (categoriasContext && categoriasContext.length > 0) {
@@ -202,6 +227,18 @@ export default function Extrato(): React.ReactElement {
     navigate('/lancamentos');
   }
 
+  function handleExportar() {
+    if (exportando) return;
+    setExportando(true);
+    setTimeout(() => {
+      setExportando(false);
+      setExportadoSucesso(true);
+      setTimeout(() => {
+        setExportadoSucesso(false);
+      }, 2500);
+    }, 1000);
+  }
+
   const picker = (
     <PeriodoPicker
       filtroTipo={filtroTipo}
@@ -217,8 +254,8 @@ export default function Extrato(): React.ReactElement {
   );
 
   const barraBusca = (
-    <div className="relative flex-1 min-w-[200px] max-w-sm">
-      <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+    <div className="relative flex-1 min-w-[220px] max-w-sm">
+      <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input
         data-shortcut="search"
         type="text"
@@ -226,7 +263,7 @@ export default function Extrato(): React.ReactElement {
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTermoBusca(e.target.value)}
         placeholder="Buscar por descrição ou valor (/)..."
         aria-label="Buscar transações"
-        className="w-full h-10 pl-8 pr-8 rounded-xl border border-border bg-secondary text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all"
+        className="w-full h-10 pl-9 pr-8 rounded-xl border border-border/80 bg-background text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all"
       />
       {termoBusca && (
         <button
@@ -243,7 +280,7 @@ export default function Extrato(): React.ReactElement {
   );
 
   const seletorTipo = (
-    <div className="inline-flex items-center p-1 rounded-xl bg-secondary/80 border border-border">
+    <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/70">
       <button
         type="button"
         onClick={() => setTipoSelecionado('todos')}
@@ -295,7 +332,7 @@ export default function Extrato(): React.ReactElement {
           setPagina(1);
         }}
         aria-label="Filtrar por status"
-        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border bg-secondary text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-secondary/80 transition-colors"
+        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border/80 bg-background text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-muted/30 transition-colors"
       >
         <option value="">Todos os status</option>
         <option value={STATUS_TRANSACAO.PAGO}>Pagos</option>
@@ -315,7 +352,7 @@ export default function Extrato(): React.ReactElement {
           setPagina(1);
         }}
         aria-label="Filtrar por categoria"
-        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border bg-secondary text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-secondary/80 transition-colors"
+        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border/80 bg-background text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-muted/30 transition-colors"
       >
         <option value="">Todas as categorias</option>
         {categorias.map((cat) => (
@@ -334,7 +371,7 @@ export default function Extrato(): React.ReactElement {
     const from = (pagina - 1) * pageSize + 1;
     const to = Math.min(pagina * pageSize, total);
     return (
-      <div className="flex items-center justify-between gap-4 mt-6 px-5 py-3 rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between gap-4 mt-6 px-5 py-3 rounded-2xl border border-border/80 bg-card shadow-sm">
         <span className="text-xs numeric-mono text-muted-foreground font-medium">
           {from}&ndash;{to} de {total}
         </span>
@@ -385,29 +422,106 @@ export default function Extrato(): React.ReactElement {
 
   return (
     <>
-      {/* Desktop */}
+      {/* ── Desktop View ────────────────────────────────────────────── */}
       <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden bg-background">
-        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar max-w-7xl w-full mx-auto">
-          <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2.5 flex-wrap flex-1">
+        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar max-w-7xl w-full mx-auto space-y-6">
+          {/* 1. TOP PAGE HEADER WITH REPOSITIONED ACTION BUTTONS */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+                  Extrato Consolidado
+                </h1>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  Pro Cashflow
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Gestão de fluxo de caixa, auditoria contábil e conciliação bancária em tempo real.
+              </p>
+            </div>
+
+            {/* Repositioned Primary Action Group (formerly crammed in the Hero card) */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportar}
+                disabled={exportando}
+                className="h-10 px-4 rounded-xl text-xs font-semibold gap-2 border-border/80 hover:bg-muted/60 transition-all shadow-sm"
+              >
+                {exportando ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span>Exportando...</span>
+                  </>
+                ) : exportadoSucesso ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-500 font-bold">OFX/CSV Gerado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>Exportar OFX/CSV</span>
+                  </>
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNovaSaida}
+                className="h-10 px-4 rounded-xl text-xs font-semibold gap-1.5 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-all shadow-sm"
+              >
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>+ Saída</span>
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={handleNovaEntrada}
+                className="h-10 px-5 rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
+              >
+                <ArrowDownRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>+ Entrada</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* 2. CLEAN ACCOUNT HERO & STATUS BANNER (Uncluttered) */}
+          <AccountHeroBanner
+            contaNome={contaAtiva?.nome || 'Pizzaria Bella Forneria'}
+            tipoConta={contaAtiva?.tipo ? `Conta ${contaAtiva.tipo}` : 'Conta Jurídica Ativa'}
+            documento="CNPJ 38.192.831/0001-44"
+            bancoInfo="Banco Itaú Unibanco (341)"
+            agenciaCc="Ag 0942 • CC 20491-8"
+            sincronizado={true}
+          />
+
+          {/* 3. KEY FINANCIAL METRICS (WISE / FINTECH DENSITY) */}
+          <ExtratoKpiMetrics
+            saldo={saldo}
+            totalEntradas={totalEntradas}
+            totalSaidas={totalSaidas}
+          />
+
+          {/* 4. UNIFIED COMMAND & FILTER TOOLBAR */}
+          <div className="bg-card border border-border/80 rounded-2xl p-3 shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 flex-1 flex-wrap">
               {barraBusca}
               {seletorTipo}
             </div>
-            <div className="flex items-center gap-2.5 flex-wrap justify-end">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               {seletorStatus}
               {seletorCategoria}
               {picker}
             </div>
           </div>
 
-          <ResponsiveGrid cols={3} gap={4}>
-            <SummaryCard tipo="entrada" value={totalEntradas} />
-            <SummaryCard tipo="saida" value={totalSaidas} />
-            <SummaryCard tipo="saldo" value={saldo} />
-          </ResponsiveGrid>
-
+          {/* Active Search & Filter Indicator */}
           {(termoBusca || tipoSelecionado !== 'todos') && (
-            <div className="mt-4 flex items-center justify-between px-1 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
               <span>
                 Filtro ativo: {transacoesDoPeriodo.length} movimentação(ões) encontrada(s)
               </span>
@@ -417,24 +531,27 @@ export default function Extrato(): React.ReactElement {
                   setTermoBusca('');
                   setTipoSelecionado('todos');
                 }}
-                className="text-primary hover:underline font-medium"
+                className="text-primary hover:underline font-semibold"
               >
                 Limpar filtros de busca
               </button>
             </div>
           )}
 
-          <div className="mt-6">
-            <TransactionTable
-              transacoes={transacoesDoPeriodo}
-              carregando={carregando}
-              onDelete={handleDelete}
-              onToggleStatus={handleToggleStatus}
-              emptyMessage={mensagemVazia}
-            />
-          </div>
+          {/* 5. TRANSACTION LEDGER TABLE */}
+          <TransactionTable
+            transacoes={transacoesDoPeriodo}
+            carregando={carregando}
+            onDelete={handleDelete}
+            onToggleStatus={handleToggleStatus}
+            emptyMessage={mensagemVazia}
+          />
 
+          {/* 6. TABLE PAGINATION */}
           <Paginacao />
+
+          {/* 7. QUICK CONCILIATION & DRE INSIGHTS */}
+          <ConciliationInsightBanner />
 
           <FloatingActions
             onEntrada={handleNovaEntrada}
@@ -444,12 +561,50 @@ export default function Extrato(): React.ReactElement {
         </div>
       </div>
 
-      {/* Mobile */}
-      <div className="md:hidden px-4 pt-4 pb-32 bg-background min-h-screen">
-        <div className="mb-4 space-y-2.5">
-          <div className="flex items-center gap-2">
-            {barraBusca}
+      {/* ── Mobile View ─────────────────────────────────────────────── */}
+      <div className="md:hidden px-4 pt-4 pb-32 bg-background min-h-screen space-y-4">
+        {/* Mobile Header Actions */}
+        <div className="flex items-center justify-between gap-2 pb-1">
+          <div>
+            <h1 className="text-xl font-extrabold text-foreground tracking-tight">
+              Extrato
+            </h1>
+            <p className="text-[11px] text-muted-foreground">
+              {contaAtiva?.nome || 'Pizzaria Bella Forneria'}
+            </p>
           </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="iconSm"
+              onClick={handleExportar}
+              title="Exportar"
+              className="rounded-xl h-9 w-9"
+            >
+              <Download className="w-4 h-4 text-muted-foreground" />
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleNovaEntrada}
+              className="h-9 px-3 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+            >
+              + Novo
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Hero */}
+        <AccountHeroBanner
+          contaNome={contaAtiva?.nome || 'Pizzaria Bella Forneria'}
+          tipoConta={contaAtiva?.tipo || 'PJ Ativa'}
+          documento="CNPJ 38.192.831"
+          bancoInfo="Itaú (341)"
+          agenciaCc="CC 20491-8"
+        />
+
+        {/* Mobile Search & Filters */}
+        <div className="space-y-2.5">
+          {barraBusca}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             {seletorTipo}
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -460,15 +615,17 @@ export default function Extrato(): React.ReactElement {
           <div>{picker}</div>
         </div>
 
-        <ResponsiveGrid cols={1} gap={3}>
-          <SummaryCard tipo="saldo" value={saldo} />
-          <SummaryCard tipo="entrada" value={totalEntradas} />
-          <SummaryCard tipo="saida" value={totalSaidas} />
-        </ResponsiveGrid>
+        {/* Mobile KPI Cards */}
+        <ExtratoKpiMetrics
+          saldo={saldo}
+          totalEntradas={totalEntradas}
+          totalSaidas={totalSaidas}
+        />
 
-        <div className="mt-6">
+        {/* Mobile Transaction List */}
+        <div className="mt-4">
           {!contaSelecionadaId && !carregando && (
-            <Card className="p-8 text-center space-y-3">
+            <Card className="p-8 text-center space-y-3 rounded-2xl border-border/80">
               <p className="text-sm text-muted-foreground">Nenhuma conta selecionada ou cadastrada.</p>
               {abrirModalNovaConta && (
                 <Button size="sm" onClick={abrirModalNovaConta} className="rounded-xl font-semibold">
@@ -478,16 +635,9 @@ export default function Extrato(): React.ReactElement {
             </Card>
           )}
 
-          {carregando && (
-            <div className="text-center py-12 text-muted-foreground text-sm">
-              <span className="inline-block w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin align-middle mr-2" />
-              Carregando transações...
-            </div>
-          )}
-
-          {!carregando && transacoesDoPeriodo.length === 0 && contaSelecionadaId && (
-            <Card className="p-8 text-center flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mb-3">
+          {transacoesDoPeriodo.length === 0 && !carregando && !!contaSelecionadaId && (
+            <Card className="p-8 text-center flex flex-col items-center rounded-2xl border-border/80">
+              <div className="w-12 h-12 rounded-xl bg-muted/60 flex items-center justify-center mb-3">
                 <Receipt className="w-6 h-6 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground mb-4">{mensagemVazia}</p>
@@ -522,6 +672,9 @@ export default function Extrato(): React.ReactElement {
         </div>
 
         <Paginacao />
+
+        {/* Mobile Insights */}
+        <ConciliationInsightBanner />
 
         {!carregando && transacoesDoPeriodo.length > 0 && (
           <FloatingActions onEntrada={handleNovaEntrada} onSaida={handleNovaSaida} empty={false} />

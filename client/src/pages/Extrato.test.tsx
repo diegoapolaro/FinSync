@@ -181,11 +181,14 @@ describe('Extrato.jsx category and status filter', () => {
         tipo: 'Saida',
         status: 'Pago',
         data: '2026-06-15',
+        contaId: 1,
+        contaNome: 'Conta Principal',
         categoriaId: 10,
         categoriaNome: 'Alimentação',
       })),
       total: 35,
       totalPages: 2,
+      page: 1,
       pageSize: 20,
     });
 
