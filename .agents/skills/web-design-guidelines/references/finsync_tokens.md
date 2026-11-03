@@ -1,37 +1,28 @@
-# FinSync Design Tokens (Copilot Money Aesthetic)
+# FinSync Design Tokens (Wise Style Reference)
 
 ## Palette Overview
 
-| Token Name | Light Value | Dark Value | Purpose |
+| Token Name | Light Value | Inverted Dark Value | Role |
 | :--- | :--- | :--- | :--- |
-| `primary` | `#1C6CFF` / `#597CAA` | `#1C6CFF` / `#597CAA` | Brand CTA, Active Glow Highlight |
-| `background` | `#F8FAFC` | `#000814` | Main App Canvas (Deep Navy in Dark Mode) |
-| `card` | `#FFFFFF` | `#09182F` | Surfaces, Containers, Modals |
-| `foreground` | `#0F172A` | `#F8FAFC` | Primary Text |
-| `muted-foreground` | `#64748B` | `#94A3B8` | Subtitles, Captions, Labels |
-| `border` | `#E2E8F0` | `rgba(91, 150, 252, 0.14)` | Dividers, Borders |
-| `success` / `entrada` | `#00CC4B` | `#00CC4B` | Receitas / Entradas / Positivo |
-| `destructive` / `saida` | `#FF4433` | `#FF4433` | Despesas / Saídas / Negativo |
-| `warning` | `#FF9900` | `#FF9900` | Alertas, Pendências |
-| `accent-muted` | `#7F8BA4` | `#7F8BA4` | Acentos secundários e tags |
+| `forest-ink` | `#163300` | `#163300` | Dominant brand dark — text, nav, dark backgrounds |
+| `lime-voltage` | `#9fe870` | `#9fe870` | Signature active accent — primary CTA fill, active tabs |
+| `spruce` | `#054d28` | `#054d28` | Secondary dark green — elevated card surfaces |
+| `linen-mist` | `#e2f6d5` | `rgba(159, 232, 112, 0.15)` | Soft green wash for badges and subtle tags |
+| `fog` | `#e8ebe6` | `#163300` | Soft panel background, card surfaces, table headers |
+| `paper` | `#ffffff` | `#091a00` | Clean light page canvas |
+| `charcoal` | `#454745` | `#e8ebe6` | Body text, dense UI |
+| `obsidian` | `#0e0f0c` | `#ffffff` | Display headlines |
+| `pebble` | `#868685` | `#868685` | Muted secondary text, borders |
+| `alarm-red` | `#cb272f` | `#cb272f` | Despesas / Saídas / Alertas |
 
 ## Geometry & Radii
 
-- `rounded-sm` / `6px`: Badges compactos, tags internas
-- `rounded-md` / `14px`: Inputs, botões de ação padrão, filtros
-- `rounded-lg` / `20px`: Cards de resumo, cartões de transação
-- `rounded-xl` / `40px`: Modais amplos, painéis expansivos
-- `rounded-full` / `9999px`: Floating action buttons, avatar badges, pill toggles
+- `rounded-full` / `9999px`: Buttons, badges, tags, nav segments
+- `rounded-[10px]`: Standard cards, table containers, inputs
+- `rounded-[28px]`: Large dark feature cards (Saldo Líquido Hero)
 
-## Spacing Grid
+## Typography
 
-- `p-3` (12px) / `p-4` (16px) / `p-6` (24px): Standard card and section padding
-- `gap-2` (8px) / `gap-3` (12px) / `gap-4` (16px) / `gap-6` (24px): Grid and flex item spacing
-
-## Shadows & Elevation
-
-- `shadow-card`: `0px 0.362px 0.652px -1.5px rgba(0, 0, 0, 0.07), 0px 3px 5.4px -3px rgba(0, 0, 0, 0.05)`
-- `shadow-elevated`: Inset glass lighting shadows
-- `shadow-glow-blue`: `0 0 20px rgba(28, 108, 255, 0.35)`
-- `shadow-glow-green`: `0 0 20px rgba(0, 204, 75, 0.30)`
-- `shadow-glow-red`: `0 0 20px rgba(255, 68, 51, 0.30)`
+- Display: `Wise Sans` / `Inter` 900 (`tracking-tight`)
+- Body: `Inter` 400, 500
+- Tabular Numbers: `IBM Plex Mono` / monospace (`numeric-mono`)

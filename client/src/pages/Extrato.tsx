@@ -13,7 +13,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Check,
-  Calendar,
 } from 'lucide-react';
 import {
   deleteTransacao,
@@ -255,7 +254,7 @@ export default function Extrato(): React.ReactElement {
 
   const barraBusca = (
     <div className="relative flex-1 min-w-[220px] max-w-sm">
-      <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <Search className="w-4 h-4 text-pebble absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input
         data-shortcut="search"
         type="text"
@@ -263,14 +262,14 @@ export default function Extrato(): React.ReactElement {
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTermoBusca(e.target.value)}
         placeholder="Buscar por descrição ou valor (/)..."
         aria-label="Buscar transações"
-        className="w-full h-10 pl-9 pr-8 rounded-xl border border-border/80 bg-background text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all"
+        className="w-full h-11 pl-10 pr-8 rounded-full border border-pebble/30 bg-paper dark:bg-spruce/60 text-xs text-forest-ink dark:text-paper placeholder:text-pebble focus:outline-none focus:ring-2 focus:ring-lime-voltage transition-all"
       />
       {termoBusca && (
         <button
           type="button"
           onClick={() => setTermoBusca('')}
           aria-label="Limpar busca"
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-md"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-pebble hover:text-forest-ink p-0.5 rounded-full"
           title="Limpar busca"
         >
           <X className="w-3.5 h-3.5" />
@@ -280,15 +279,15 @@ export default function Extrato(): React.ReactElement {
   );
 
   const seletorTipo = (
-    <div className="inline-flex items-center p-1 rounded-xl bg-muted/60 border border-border/70">
+    <div className="inline-flex items-center p-1 rounded-full bg-paper dark:bg-spruce/80 border border-pebble/20">
       <button
         type="button"
         onClick={() => setTipoSelecionado('todos')}
         className={cn(
-          'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+          'px-4 py-2 rounded-full text-xs font-bold transition-all',
           tipoSelecionado === 'todos'
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-lime-voltage text-forest-ink shadow-sm'
+            : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
         )}
       >
         Todas
@@ -297,26 +296,26 @@ export default function Extrato(): React.ReactElement {
         type="button"
         onClick={() => setTipoSelecionado('Entrada')}
         className={cn(
-          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+          'flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all',
           tipoSelecionado === 'Entrada'
-            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shadow-sm'
-            : 'text-muted-foreground hover:text-emerald-500',
+            ? 'bg-lime-voltage text-forest-ink shadow-sm'
+            : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
         )}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        <span className="w-2 h-2 rounded-full bg-forest-ink" />
         Entradas
       </button>
       <button
         type="button"
         onClick={() => setTipoSelecionado('Saida')}
         className={cn(
-          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+          'flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all',
           tipoSelecionado === 'Saida'
-            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 shadow-sm'
-            : 'text-muted-foreground hover:text-rose-500',
+            ? 'bg-alarm-red/15 text-alarm-red shadow-sm'
+            : 'text-charcoal dark:text-pebble hover:text-alarm-red',
         )}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+        <span className="w-2 h-2 rounded-full bg-alarm-red" />
         Saídas
       </button>
     </div>
@@ -324,7 +323,7 @@ export default function Extrato(): React.ReactElement {
 
   const seletorStatus = (
     <div className="relative inline-flex items-center">
-      <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground absolute left-3 pointer-events-none" />
+      <CheckCircle2 className="w-4 h-4 text-pebble absolute left-3.5 pointer-events-none" />
       <select
         value={statusSelecionado}
         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -332,19 +331,19 @@ export default function Extrato(): React.ReactElement {
           setPagina(1);
         }}
         aria-label="Filtrar por status"
-        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border/80 bg-background text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-muted/30 transition-colors"
+        className="h-11 pl-9 pr-8 py-2 rounded-full border border-pebble/30 bg-paper dark:bg-spruce/60 text-xs font-semibold text-forest-ink dark:text-paper focus:outline-none focus:ring-2 focus:ring-lime-voltage appearance-none cursor-pointer hover:bg-fog transition-colors"
       >
         <option value="">Todos os status</option>
         <option value={STATUS_TRANSACAO.PAGO}>Pagos</option>
         <option value={STATUS_TRANSACAO.PENDENTE}>Pendentes</option>
       </select>
-      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 pointer-events-none" />
+      <ChevronDown className="w-3.5 h-3.5 text-pebble absolute right-3 pointer-events-none" />
     </div>
   );
 
   const seletorCategoria = (
     <div className="relative inline-flex items-center">
-      <Tag className="w-3.5 h-3.5 text-muted-foreground absolute left-3 pointer-events-none" />
+      <Tag className="w-4 h-4 text-pebble absolute left-3.5 pointer-events-none" />
       <select
         value={categoriaSelecionadaId}
         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -352,7 +351,7 @@ export default function Extrato(): React.ReactElement {
           setPagina(1);
         }}
         aria-label="Filtrar por categoria"
-        className="h-10 pl-8 pr-8 py-1.5 rounded-xl border border-border/80 bg-background text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer hover:bg-muted/30 transition-colors"
+        className="h-11 pl-9 pr-8 py-2 rounded-full border border-pebble/30 bg-paper dark:bg-spruce/60 text-xs font-semibold text-forest-ink dark:text-paper focus:outline-none focus:ring-2 focus:ring-lime-voltage appearance-none cursor-pointer hover:bg-fog transition-colors"
       >
         <option value="">Todas as categorias</option>
         {categorias.map((cat) => (
@@ -361,7 +360,7 @@ export default function Extrato(): React.ReactElement {
           </option>
         ))}
       </select>
-      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 pointer-events-none" />
+      <ChevronDown className="w-3.5 h-3.5 text-pebble absolute right-3 pointer-events-none" />
     </div>
   );
 
@@ -371,18 +370,18 @@ export default function Extrato(): React.ReactElement {
     const from = (pagina - 1) * pageSize + 1;
     const to = Math.min(pagina * pageSize, total);
     return (
-      <div className="flex items-center justify-between gap-4 mt-6 px-5 py-3 rounded-2xl border border-border/80 bg-card shadow-sm">
-        <span className="text-xs numeric-mono text-muted-foreground font-medium">
+      <div className="flex items-center justify-between gap-4 mt-6 px-6 py-4 rounded-[20px] bg-fog dark:bg-card border border-transparent dark:border-spruce shadow-sm">
+        <span className="text-xs numeric-mono text-charcoal dark:text-pebble font-bold">
           {from}&ndash;{to} de {total}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="iconSm"
             onClick={() => irParaPagina(pagina - 1)}
             disabled={pagina <= 1}
             title="Página anterior"
-            className="rounded-xl h-8 w-8"
+            className="rounded-full h-9 w-9 bg-paper dark:bg-spruce border-pebble/30"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -397,8 +396,10 @@ export default function Extrato(): React.ReactElement {
                 size="iconSm"
                 onClick={() => irParaPagina(pageNum)}
                 className={cn(
-                  'numeric-mono text-xs font-semibold rounded-xl h-8 w-8',
-                  pageNum === pagina ? 'bg-primary text-primary-foreground' : '',
+                  'numeric-mono text-xs font-bold rounded-full h-9 w-9 transition-all',
+                  pageNum === pagina
+                    ? 'bg-forest-ink text-lime-voltage dark:bg-lime-voltage dark:text-forest-ink shadow-sm'
+                    : 'bg-paper dark:bg-spruce border-pebble/30 text-charcoal dark:text-paper hover:bg-fog',
                 )}
               >
                 {pageNum}
@@ -411,7 +412,7 @@ export default function Extrato(): React.ReactElement {
             onClick={() => irParaPagina(pagina + 1)}
             disabled={pagina >= paginaMeta.totalPages}
             title="Próxima página"
-            className="rounded-xl h-8 w-8"
+            className="rounded-full h-9 w-9 bg-paper dark:bg-spruce border-pebble/30"
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -422,47 +423,47 @@ export default function Extrato(): React.ReactElement {
 
   return (
     <>
-      {/* ── Desktop View ────────────────────────────────────────────── */}
+      {/* ── Desktop View (Wise Design System) ───────────────────────── */}
       <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden bg-background">
-        <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar max-w-7xl w-full mx-auto space-y-6">
-          {/* 1. TOP PAGE HEADER WITH REPOSITIONED ACTION BUTTONS */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar max-w-7xl w-full mx-auto space-y-7">
+          {/* 1. TOP PAGE HEADER WITH WISE SIGNATURE ACTION BUTTONS */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-forest-ink dark:text-paper font-sans">
                   Extrato Consolidado
                 </h1>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-linen-mist text-forest-ink dark:bg-spruce dark:text-lime-voltage border border-forest-ink/10">
                   Pro Cashflow
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-charcoal dark:text-pebble mt-1">
                 Gestão de fluxo de caixa, auditoria contábil e conciliação bancária em tempo real.
               </p>
             </div>
 
-            {/* Repositioned Primary Action Group (formerly crammed in the Hero card) */}
-            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            {/* Repositioned Wise Signature Action Pills */}
+            <div className="flex items-center gap-3 shrink-0 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportar}
                 disabled={exportando}
-                className="h-10 px-4 rounded-xl text-xs font-semibold gap-2 border-border/80 hover:bg-muted/60 transition-all shadow-sm"
+                className="h-11 px-5 rounded-full text-xs font-bold gap-2 border-forest-ink/30 dark:border-spruce text-forest-ink dark:text-paper hover:bg-fog dark:hover:bg-spruce transition-all shadow-sm"
               >
                 {exportando ? (
                   <>
-                    <span className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="w-3.5 h-3.5 border-2 border-forest-ink border-t-lime-voltage rounded-full animate-spin" />
                     <span>Exportando...</span>
                   </>
                 ) : exportadoSucesso ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-500 font-bold">OFX/CSV Gerado!</span>
+                    <Check className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
+                    <span className="text-forest-ink dark:text-lime-voltage font-bold">OFX/CSV Gerado!</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                    <Download className="w-4 h-4 text-pebble" />
                     <span>Exportar OFX/CSV</span>
                   </>
                 )}
@@ -472,24 +473,25 @@ export default function Extrato(): React.ReactElement {
                 variant="outline"
                 size="sm"
                 onClick={handleNovaSaida}
-                className="h-10 px-4 rounded-xl text-xs font-semibold gap-1.5 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-all shadow-sm"
+                className="h-11 px-5 rounded-full text-xs font-bold gap-1.5 border-alarm-red/40 text-alarm-red hover:bg-alarm-red/10 transition-all shadow-sm"
               >
-                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                 <span>+ Saída</span>
               </Button>
 
+              {/* Wise Signature Primary CTA: Lime Voltage Fill (#9fe870) with Forest Ink text (#163300) */}
               <Button
                 size="sm"
                 onClick={handleNovaEntrada}
-                className="h-10 px-5 rounded-xl text-xs font-bold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-sm"
+                className="h-11 px-7 rounded-full text-xs font-black gap-2 bg-lime-voltage text-forest-ink hover:bg-lime-voltage/90 transition-all shadow-sm border-0"
               >
-                <ArrowDownRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <ArrowDownRight className="w-4 h-4 stroke-[2.5]" />
                 <span>+ Entrada</span>
               </Button>
             </div>
           </div>
 
-          {/* 2. CLEAN ACCOUNT HERO & STATUS BANNER (Uncluttered) */}
+          {/* 2. ACCOUNT HERO & STATUS BANNER (Wise Linen Mist & Forest Ink) */}
           <AccountHeroBanner
             contaNome={contaAtiva?.nome || 'Pizzaria Bella Forneria'}
             tipoConta={contaAtiva?.tipo ? `Conta ${contaAtiva.tipo}` : 'Conta Jurídica Ativa'}
@@ -499,20 +501,20 @@ export default function Extrato(): React.ReactElement {
             sincronizado={true}
           />
 
-          {/* 3. KEY FINANCIAL METRICS (WISE / FINTECH DENSITY) */}
+          {/* 3. KEY FINANCIAL METRICS (WISE INVERTED DARK SECTION + FOG PANELS) */}
           <ExtratoKpiMetrics
             saldo={saldo}
             totalEntradas={totalEntradas}
             totalSaidas={totalSaidas}
           />
 
-          {/* 4. UNIFIED COMMAND & FILTER TOOLBAR */}
-          <div className="bg-card border border-border/80 rounded-2xl p-3 shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 flex-1 flex-wrap">
+          {/* 4. UNIFIED COMMAND & FILTER TOOLBAR (Fog Surface Container) */}
+          <div className="bg-fog dark:bg-card border border-transparent dark:border-spruce rounded-[20px] p-3.5 shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 flex-wrap">
               {barraBusca}
               {seletorTipo}
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-end">
+            <div className="flex items-center gap-2.5 flex-wrap justify-end">
               {seletorStatus}
               {seletorCategoria}
               {picker}
@@ -521,7 +523,7 @@ export default function Extrato(): React.ReactElement {
 
           {/* Active Search & Filter Indicator */}
           {(termoBusca || tipoSelecionado !== 'todos') && (
-            <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between px-2 text-xs text-charcoal dark:text-pebble">
               <span>
                 Filtro ativo: {transacoesDoPeriodo.length} movimentação(ões) encontrada(s)
               </span>
@@ -531,14 +533,14 @@ export default function Extrato(): React.ReactElement {
                   setTermoBusca('');
                   setTipoSelecionado('todos');
                 }}
-                className="text-primary hover:underline font-semibold"
+                className="text-forest-ink dark:text-lime-voltage hover:underline font-bold"
               >
                 Limpar filtros de busca
               </button>
             </div>
           )}
 
-          {/* 5. TRANSACTION LEDGER TABLE */}
+          {/* 5. TRANSACTION LEDGER TABLE (Wise High-Density Table) */}
           <TransactionTable
             transacoes={transacoesDoPeriodo}
             carregando={carregando}
@@ -566,10 +568,10 @@ export default function Extrato(): React.ReactElement {
         {/* Mobile Header Actions */}
         <div className="flex items-center justify-between gap-2 pb-1">
           <div>
-            <h1 className="text-xl font-extrabold text-foreground tracking-tight">
+            <h1 className="text-2xl font-black text-forest-ink dark:text-paper tracking-tight font-sans">
               Extrato
             </h1>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-charcoal dark:text-pebble font-medium">
               {contaAtiva?.nome || 'Pizzaria Bella Forneria'}
             </p>
           </div>
@@ -579,14 +581,14 @@ export default function Extrato(): React.ReactElement {
               size="iconSm"
               onClick={handleExportar}
               title="Exportar"
-              className="rounded-xl h-9 w-9"
+              className="rounded-full h-10 w-10 border-pebble/30"
             >
-              <Download className="w-4 h-4 text-muted-foreground" />
+              <Download className="w-4 h-4 text-charcoal dark:text-pebble" />
             </Button>
             <Button
               size="sm"
               onClick={handleNovaEntrada}
-              className="h-9 px-3 rounded-xl text-xs font-bold bg-primary text-primary-foreground"
+              className="h-10 px-4 rounded-full text-xs font-black bg-lime-voltage text-forest-ink border-0"
             >
               + Novo
             </Button>
@@ -625,10 +627,10 @@ export default function Extrato(): React.ReactElement {
         {/* Mobile Transaction List */}
         <div className="mt-4">
           {!contaSelecionadaId && !carregando && (
-            <Card className="p-8 text-center space-y-3 rounded-2xl border-border/80">
-              <p className="text-sm text-muted-foreground">Nenhuma conta selecionada ou cadastrada.</p>
+            <Card className="p-8 text-center space-y-3 rounded-[20px] bg-fog dark:bg-card border-transparent dark:border-spruce">
+              <p className="text-sm text-charcoal dark:text-pebble">Nenhuma conta selecionada ou cadastrada.</p>
               {abrirModalNovaConta && (
-                <Button size="sm" onClick={abrirModalNovaConta} className="rounded-xl font-semibold">
+                <Button size="sm" onClick={abrirModalNovaConta} className="rounded-full bg-forest-ink text-lime-voltage font-bold">
                   Criar Conta
                 </Button>
               )}
@@ -636,11 +638,11 @@ export default function Extrato(): React.ReactElement {
           )}
 
           {transacoesDoPeriodo.length === 0 && !carregando && !!contaSelecionadaId && (
-            <Card className="p-8 text-center flex flex-col items-center rounded-2xl border-border/80">
-              <div className="w-12 h-12 rounded-xl bg-muted/60 flex items-center justify-center mb-3">
-                <Receipt className="w-6 h-6 text-muted-foreground" />
+            <Card className="p-8 text-center flex flex-col items-center rounded-[20px] bg-fog dark:bg-card border-transparent dark:border-spruce">
+              <div className="w-12 h-12 rounded-full bg-linen-mist dark:bg-spruce flex items-center justify-center mb-3">
+                <Receipt className="w-6 h-6 text-forest-ink dark:text-lime-voltage" />
               </div>
-              <p className="text-sm text-muted-foreground mb-4">{mensagemVazia}</p>
+              <p className="text-sm text-charcoal dark:text-pebble mb-4">{mensagemVazia}</p>
               <FloatingActions
                 onEntrada={handleNovaEntrada}
                 onSaida={handleNovaSaida}
@@ -652,10 +654,10 @@ export default function Extrato(): React.ReactElement {
           {!carregando && transacoesDoPeriodo.length > 0 && (
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-xs font-bold uppercase tracking-wider text-charcoal dark:text-pebble">
                   Movimentações
                 </span>
-                <span className="text-xs font-mono text-muted-foreground">
+                <span className="text-xs font-mono font-bold text-forest-ink dark:text-lime-voltage">
                   {transacoesDoPeriodo.length} registro(s)
                 </span>
               </div>

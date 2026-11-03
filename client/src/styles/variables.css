@@ -1,121 +1,143 @@
 :root {
-  /* Coinbase Design System Tokens */
-  --color-primary: #0052ff;
-  --color-primary-active: #003ecc;
-  --color-primary-disabled: #a8b8cc;
+  /* Wise Design System Tokens */
+  --color-forest-ink: #163300;
+  --color-lime-voltage: #9fe870;
+  --color-spruce: #054d28;
+  --color-linen-mist: #e2f6d5;
+  --color-signal-blue: #0b4c72;
+  --color-alarm-red: #cb272f;
+  --color-charcoal: #454745;
+  --color-obsidian: #0e0f0c;
+  --color-pebble: #868685;
+  --color-slate: #6a6c6a;
+  --color-fog: #e8ebe6;
+  --color-paper: #ffffff;
 
-  --color-ink: #0a0b0d;
-  --color-body: #5b616e;
-  --color-muted: #7c828a;
-  --color-muted-soft: #a8acb3;
+  --color-primary: #163300;
+  --color-primary-active: #054d28;
+  --color-primary-disabled: #868685;
+
+  --color-ink: #163300;
+  --color-body: #454745;
+  --color-muted: #868685;
+  --color-muted-soft: #6a6c6a;
 
   --color-canvas: #ffffff;
-  --color-surface-soft: #f7f7f7;
+  --color-surface-soft: #e8ebe6;
   --color-surface-card: #ffffff;
-  --color-surface-strong: #eef0f3;
+  --color-surface-strong: #e2f6d5;
 
-  --color-hairline: #dee1e6;
-  --color-hairline-soft: #eef0f3;
+  --color-hairline: #e8ebe6;
+  --color-hairline-soft: #f2f4f0;
 
-  --color-semantic-up: #05b169;
-  --color-semantic-down: #cf202f;
-  --color-accent-yellow: #f4b000;
+  --color-semantic-up: #163300;
+  --color-semantic-down: #cb272f;
+  --color-accent-yellow: #9fe870;
 
   /* Legacy semantic mappings for compatibility */
-  --color-entrada: #05b169;
-  --color-saida: #cf202f;
-  --color-primaria: #0052ff;
-  --color-laranja: #f4b000;
-  --color-azul: #0052ff;
+  --color-entrada: #163300;
+  --color-saida: #cb272f;
+  --color-primaria: #163300;
+  --color-laranja: #9fe870;
+  --color-azul: #0b4c72;
 
   /* Shadcn CSS Variables (Light) */
-  --background: 0 0% 100%; /* #ffffff */
-  --foreground: 222 47% 4%; /* #0a0b0d */
-  --card: 0 0% 100%; /* #ffffff */
-  --card-foreground: 222 47% 4%;
+  --background: 0 0% 100%; /* #ffffff Paper */
+  --foreground: 95 100% 10%; /* #163300 Forest Ink */
+  --card: 0 0% 100%; /* Pure white with Fog borders */
+  --card-foreground: 95 100% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 4%;
-  --primary: 221 100% 50%; /* #0052ff */
-  --primary-foreground: 0 0% 100%; /* #ffffff */
-  --secondary: 216 20% 95%; /* #eef0f3 */
-  --secondary-foreground: 222 47% 4%; /* #0a0b0d */
-  --muted: 216 20% 95%; /* #eef0f3 */
-  --muted-foreground: 215 16% 47%; /* #7c828a */
-  --accent: 216 20% 95%; /* #eef0f3 */
-  --accent-foreground: 221 100% 50%; /* #0052ff */
-  --destructive: 353 74% 50%; /* #cf202f */
-  --destructive-foreground: 0 0% 100%; /* #ffffff */
-  --border: 216 20% 90%; /* #dee1e6 */
-  --input: 216 20% 90%; /* #dee1e6 */
-  --ring: 221 100% 50%; /* #0052ff */
-  --radius: 0.75rem; /* 12px for inputs */
+  --popover-foreground: 95 100% 10%;
+  --primary: 95 100% 10%; /* #163300 Forest Ink */
+  --primary-foreground: 97 73% 67%; /* #9fe870 Lime Voltage */
+  --secondary: 96 11% 91%; /* #e8ebe6 Fog */
+  --secondary-foreground: 95 100% 10%; /* Forest Ink */
+  --muted: 96 11% 91%; /* #e8ebe6 Fog */
+  --muted-foreground: 120 1% 37%; /* #454745 Charcoal */
+  --accent: 97 73% 67%; /* #9fe870 Lime Voltage */
+  --accent-foreground: 95 100% 10%; /* #163300 Forest Ink */
+  --destructive: 357 68% 47%; /* #cb272f Alarm Red */
+  --destructive-foreground: 0 0% 100%;
+  --border: 96 11% 86%; /* subtle Fog border */
+  --input: 96 11% 86%;
+  --ring: 97 73% 67%; /* Lime Voltage ring */
+  --radius: 0.625rem; /* 10px */
 
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 16px rgba(22, 51, 0, 0.06);
 }
 
 :root.dark {
-  /* Coinbase Design System Tokens - Dark Mode */
-  --color-primary: #0052ff;
-  --color-primary-active: #003ecc;
+  /* Wise Design System Tokens - Inverted Dark Mode */
+  --color-forest-ink: #163300;
+  --color-lime-voltage: #9fe870;
+  --color-spruce: #054d28;
+  --color-linen-mist: #e2f6d5;
+  --color-signal-blue: #0b4c72;
+  --color-alarm-red: #cb272f;
+  --color-charcoal: #e8ebe6;
+  --color-obsidian: #ffffff;
+  --color-pebble: #868685;
+  --color-slate: #a8acb3;
+  --color-fog: #163300;
+  --color-paper: #091a00;
+
+  --color-primary: #9fe870;
+  --color-primary-active: #b5f58c;
   --color-primary-disabled: #384252;
 
   --color-ink: #ffffff;
-  --color-body: #c9cdd4;
-  --color-muted: #8a919e;
-  --color-muted-soft: #5b616e;
+  --color-body: #e8ebe6;
+  --color-muted: #868685;
+  --color-muted-soft: #6a6c6a;
 
-  --color-canvas: #0a0b0d;
-  --color-surface-soft: #0e1013;
-  --color-surface-card: #14161a;
-  --color-surface-strong: #1e2229;
-  --color-surface-subtle: #252a33;
+  --color-canvas: #0e2000;
+  --color-surface-soft: #163300;
+  --color-surface-card: #163300;
+  --color-surface-strong: #054d28;
+  --color-surface-subtle: #091a00;
 
-  --color-hairline: rgba(255, 255, 255, 0.1);
-  --color-hairline-soft: rgba(255, 255, 255, 0.06);
+  --color-hairline: rgba(159, 232, 112, 0.15);
+  --color-hairline-soft: rgba(159, 232, 112, 0.08);
 
-  --color-semantic-up: #05b169;
-  --color-semantic-down: #cf202f;
-  --color-accent-yellow: #f4b000;
+  --color-semantic-up: #9fe870;
+  --color-semantic-down: #cb272f;
+  --color-accent-yellow: #9fe870;
 
-  --color-entrada: #05b169;
-  --color-saida: #cf202f;
-  --color-primaria: #0052ff;
-  --color-laranja: #f4b000;
-  --color-azul: #0052ff;
+  --color-entrada: #9fe870;
+  --color-saida: #cb272f;
+  --color-primaria: #9fe870;
+  --color-laranja: #9fe870;
+  --color-azul: #0b4c72;
 
-  /* Shadcn CSS Variables (Dark) - 3-tier Elevation Hierarchy */
-  --background: 222 100% 4%; /* #000814 - Deep Space Navy (Floor Canvas) */
-  --foreground: 0 0% 100%; /* #ffffff - Pure White Text */
+  /* Shadcn CSS Variables (Dark) - Wise Inverted */
+  --background: 95 100% 7%; /* Deep forest floor */
+  --foreground: 0 0% 100%; /* Pure white text */
 
-  --card: 217 68% 11%; /* #09182F - Cards Navy (Tier 1) */
+  --card: 95 100% 10%; /* #163300 Forest Ink */
   --card-foreground: 0 0% 100%;
 
-  --popover: 220 15% 11%; /* #181b21 - Popover / Dropdown */
+  --popover: 95 100% 10%;
   --popover-foreground: 0 0% 100%;
 
-  --primary: 221 100% 50%; /* #0052ff - Coinbase Brand Blue */
-  --primary-foreground: 0 0% 100%;
+  --primary: 97 73% 67%; /* #9fe870 Lime Voltage */
+  --primary-foreground: 95 100% 10%; /* #163300 Forest Ink text */
 
-  --secondary: 218 15% 14%; /* #1e2229 - Secondary Controls / Inputs Tier 2 */
+  --secondary: 150 88% 16%; /* #054d28 Spruce */
   --secondary-foreground: 0 0% 100%;
 
-  --muted: 218 16% 17%; /* #252a33 - Subtle Surfaces / Chips Tier 3 */
-  --muted-foreground: 218 10% 58%; /* #8a919e - Muted readable text */
+  --muted: 150 88% 16%;
+  --muted-foreground: 96 11% 85%;
 
-  --accent: 218 15% 14%; /* #1e2229 - Hover / Focus */
-  --accent-foreground: 221 100% 50%;
+  --accent: 97 73% 67%; /* Lime Voltage */
+  --accent-foreground: 95 100% 10%;
 
-  --destructive: 353 74% 50%; /* #cf202f */
+  --destructive: 357 68% 47%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 0 0% 100% / 0.1;
-  --input: 0 0% 100% / 0.12;
-  --ring: 221 100% 50%;
+  --border: 95 100% 16%;
+  --input: 95 100% 16%;
 
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
+  --ring: 97 73% 67%;
 
-.dark {
-  --border: 0 0% 100% / 0.1;
-  --input: 0 0% 100% / 0.12;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }

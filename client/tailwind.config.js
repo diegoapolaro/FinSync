@@ -45,6 +45,20 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
 
+        /* Wise Design System Specific Colors */
+        'forest-ink': '#163300',
+        'lime-voltage': '#9fe870',
+        spruce: '#054d28',
+        'linen-mist': '#e2f6d5',
+        'signal-blue': '#0b4c72',
+        'alarm-red': '#cb272f',
+        charcoal: '#454745',
+        obsidian: '#0e0f0c',
+        pebble: '#868685',
+        slate: '#6a6c6a',
+        fog: '#e8ebe6',
+        paper: '#ffffff',
+
         /* Legacy mapping compatibility */
         entrada: 'var(--color-entrada)',
         saida: 'var(--color-saida)',
@@ -68,7 +82,7 @@ export default {
         none: '0px',
         sm: '4px',
         md: '8px',
-        lg: '12px',
+        lg: '10px',
         xl: '16px',
         '2xl': '24px',
         '3xl': '28px',
@@ -77,14 +91,16 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Inter', 'system-ui', 'sans-serif'],
+        'wise-sans': ['Wise Sans', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Wise Sans', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['IBM Plex Mono', 'SF Mono', 'Consolas', 'monospace'],
       },
       boxShadow: {
         card: 'var(--shadow)',
-        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.04)',
+        'card-hover': '0 4px 16px rgba(22, 51, 0, 0.08)',
         elevated: 'var(--shadow)',
         elevation: 'var(--shadow)',
+        subtle: 'rgba(14, 15, 12, 0.12) 0px 0px 0px 1px',
       },
     },
   },

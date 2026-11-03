@@ -169,13 +169,13 @@ export default function DesktopSidebar({
               type="button"
               onClick={() => navigate(`/${link.id}`)}
               className={cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all relative font-medium',
+                'flex items-center gap-3 px-4 py-2.5 rounded-full text-sm transition-all relative font-medium',
                 isActive
-                  ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/70',
+                  ? 'bg-lime-voltage text-forest-ink font-bold shadow-sm'
+                  : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper hover:bg-fog dark:hover:bg-spruce/60',
               )}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className={cn('w-4 h-4', isActive ? 'text-forest-ink stroke-[2.5]' : 'text-pebble')} />
               <span>{link.label}</span>
             </button>
           );

@@ -2,59 +2,53 @@
 name: web-design-guidelines
 description: >-
   Visual design system, UI/UX heuristics, typography hierarchy, color tokens, and accessibility (WCAG AA)
-  guidelines inspired by the Copilot Money fintech aesthetic. Use this skill whenever styling
+  guidelines inspired by the Wise design aesthetic (Deep Moss with Lime Voltage). Use this skill whenever styling
   interfaces, choosing colors, structuring visual hierarchy, applying border radius, adjusting contrast,
   or aligning components to FinSync's DESIGN.md specifications.
 ---
 
-# Web Design Guidelines (Copilot Money Fintech Aesthetic)
+# Web Design Guidelines (Wise Aesthetic — Deep Moss with Lime Voltage)
 
-This skill governs the visual and ergonomic design rules for FinSync, drawing inspiration from **Copilot Money** (*Apple Design Award style*) and modern cinematic data-dense fintech product aesthetics.
+This skill governs the visual and ergonomic design rules for FinSync, based on the **Wise Design System** (*Deep Moss with Lime Voltage*).
 
 ---
 
 ## 1. Visual Identity & Brand Philosophy
 
-1. **Cinematic, High Data-Density & Functional**: Content-first interfaces with deep contrast, glass elevation, and crisp typographic hierarchy.
-2. **Curved & Pill Geometries**:
-   - Small Badges & Inner Tags: `rounded-[6px]` (`rounded-sm`).
-   - Inputs, Buttons & Controls: `rounded-[14px]` (`rounded-md`).
-   - Cards & Section Containers: `rounded-[20px]` (`rounded-lg`) to `rounded-2xl` (`24px`).
-   - Expanded Panels & Sheets: `rounded-[40px]` (`rounded-xl`).
-   - Toggles, FABs & Badges: `rounded-full`.
+1. **Confident, High-Impact & Data-Dense**: Content-first interface with deep forest green authority, crisp off-white canvas, and electric lime functional punctuation.
+2. **Pill & Card Geometries**:
+   - Buttons, Tags, Badges & Nav Segments: `rounded-full` (9999px pill shapes).
+   - Standard Cards & Inputs: `rounded-[10px]` (`rounded-lg`).
+   - Large Feature Cards & Hero Panels: `rounded-[28px]`.
 3. **Color Palette & Accents**:
-   - **Primary Brand Accent**: Electric Blue / Slate (`#1C6CFF` / `#597CAA`) — Used for primary CTAs, active highlights, and glows.
-   - **Canvas / Background**:
-     - Dark Mode: Deep Space Navy (`#000814`) with Navy Cards (`#09182F`).
-     - Light Mode: Clean Light (`#F8FAFC`) with Pure White Cards (`#FFFFFF`).
-   - **Text & Foreground**: Crisp White (`#F8FAFC`) / Deep Slate (`#0F172A`).
-   - **Financial Indicators**:
-     - Entradas / Positivo: Green (`#00CC4B`)
-     - Saídas / Negativo: Red (`#FF4433`)
-     - Avisos / Alertas: Amber (`#FF9900`)
-     - Accent Muted: (`#7F8BA4`)
+   - **Dominant Brand Dark (Forest Ink)**: `#163300` — Used for text, nav text, dark section backgrounds, primary icons, and authority.
+   - **Signature Accent (Lime Voltage)**: `#9fe870` — Used for primary CTA button fills, active tabs, selected states, and highlights.
+   - **Secondary Dark (Spruce)**: `#054d28` — Secondary dark green for elevated cards and depth.
+   - **Soft Green Wash (Linen Mist)**: `#e2f6d5` — Pale green wash for tags, soft containers, and hover states.
+   - **Background Canvas (Paper)**: `#ffffff` — Default light canvas.
+   - **Soft Panels & Cards (Fog)**: `#e8ebe6` — Green-tinted off-white for cards, dividers, and subtle sections.
+   - **Body & Secondary Copy**: `#454745` (Charcoal) / `#868685` (Pebble).
+   - **Despesas / Saídas (Alarm Red)**: `#cb272f`.
 
 ---
 
 ## 2. Typography Hierarchy
 
-- **Display & Headings**: `Inter` / `Jokker Medium`, font-weight 500 to 700 with tight tracking (`tracking-tight`) and line-height 1.2.
-- **Body & Captions**: `Inter`, font-weight 400 and 500 with comfortable line height (`leading-relaxed` / 1.4).
-- **Financial Values & Dates**: `IBM Plex Mono` for tabular alignment and crisp digit readability (`font-feature-settings: 'tnum' 1`).
+- **Display & Headings**: `Wise Sans` / `Inter` weight 900 / 700 with tight tracking (`tracking-tight` / `-0.03em`) and line-height 0.85 to 1.1.
+- **Body & Labels**: `Inter`, font-weight 400 and 500.
+- **Financial Values & Tabular Numbers**: `IBM Plex Mono` / mono (`font-feature-settings: 'tnum' 1`).
 
 ---
 
 ## 3. Ergonomics & Accessibility (WCAG AA)
 
-- **Contrast Ratios**: Minimum 4.5:1 for normal text and 3:1 for large text / UI controls.
-- **Dark Mode Support**: Ensure semantic CSS variables for background, foreground, border, and muted colors. Always use tokenized theme classes.
-- **Touch Targets**: Minimum `44px x 44px` on interactive mobile elements.
-- **Focus Rings**: High-contrast, visible focus rings on keyboard navigation (`focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`).
+- **Contrast Ratios**: Minimum 4.5:1 for normal text and 3:1 for large text. Never use Lime Voltage (`#9fe870`) as text on white backgrounds; use it as a fill with Forest Ink (`#163300`) text, or as text on dark green surfaces.
+- **Pill Primary CTA**: Always pair a solid Lime Voltage pill with Forest Ink text for primary actions.
 
 ---
 
-## 4. Design Tokens Reference
+## 4. References & Tokens
 
-For the complete list of CSS variables, hex codes, and utility classes, consult:
+Consult:
 - [FinSync Design Tokens](./references/finsync_tokens.md)
 - [Project DESIGN.md](../../../DESIGN.md)

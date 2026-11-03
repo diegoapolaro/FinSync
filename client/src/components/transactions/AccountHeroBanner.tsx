@@ -20,37 +20,37 @@ export default function AccountHeroBanner({
   sincronizado = true,
 }: AccountHeroBannerProps): React.ReactElement {
   return (
-    <section className="w-full bg-card border border-border/70 rounded-2xl p-5 shadow-sm transition-all hover:border-border">
+    <section className="w-full bg-card border border-fog dark:border-spruce rounded-[20px] p-5 shadow-sm transition-all">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Left: Account Identity */}
         <div className="flex items-center gap-4 min-w-0">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-inner">
-            <Store className="w-6 h-6 stroke-[2]" />
+          <div className="w-12 h-12 rounded-full bg-forest-ink text-lime-voltage flex items-center justify-center shrink-0 shadow-sm">
+            <Store className="w-6 h-6 stroke-[2.25]" />
           </div>
 
           <div className="flex flex-col min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg md:text-xl font-bold text-foreground tracking-tight truncate">
+              <h2 className="text-lg md:text-xl font-bold text-forest-ink dark:text-paper tracking-tight truncate font-sans">
                 {contaNome}
               </h2>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 text-[11px] font-semibold">
+              <span className="bg-linen-mist text-forest-ink dark:bg-spruce dark:text-lime-voltage px-3 py-0.5 rounded-full text-xs font-bold">
                 {tipoConta}
-              </Badge>
+              </span>
               {documento && (
-                <span className="text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md border border-border/40">
+                <span className="text-xs font-medium text-charcoal dark:text-pebble bg-fog dark:bg-spruce/50 px-2.5 py-0.5 rounded-full border border-border/40">
                   {documento}
                 </span>
               )}
             </div>
 
-            <div className="text-xs text-muted-foreground mt-1 flex flex-wrap items-center gap-2">
+            <div className="text-xs text-charcoal dark:text-pebble mt-1 flex flex-wrap items-center gap-2">
               <span>{bancoInfo}</span>
-              <span className="inline-block w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <span className="inline-block w-1 h-1 rounded-full bg-pebble" />
               <span>{agenciaCc}</span>
               {sincronizado && (
                 <>
-                  <span className="inline-block w-1 h-1 rounded-full bg-muted-foreground/40" />
-                  <span className="text-emerald-600 dark:text-emerald-400 font-medium inline-flex items-center gap-1">
+                  <span className="inline-block w-1 h-1 rounded-full bg-pebble" />
+                  <span className="text-forest-ink dark:text-lime-voltage font-semibold inline-flex items-center gap-1">
                     <Lock className="w-3 h-3" /> Conexão Criptografada BACEN
                   </span>
                 </>
@@ -61,10 +61,10 @@ export default function AccountHeroBanner({
 
         {/* Right: Security & Sync Status Indicator */}
         <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/50 text-xs font-medium text-muted-foreground">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-linen-mist dark:bg-spruce text-xs font-bold text-forest-ink dark:text-lime-voltage border border-lime-voltage/30">
+            <ShieldCheck className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
             <span>Open Finance Ativo</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-forest-ink dark:bg-lime-voltage animate-pulse" />
           </div>
         </div>
       </div>
