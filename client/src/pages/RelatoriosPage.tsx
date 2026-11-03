@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
-  BarChart3,
   PieChart,
-  ArrowDownRight,
-  TrendingUp,
+  BarChart3,
+  Landmark,
+  Download,
+  ChevronDown,
+  SlidersHorizontal,
+  FileText,
+  FileSpreadsheet,
   ChevronLeft,
   ChevronRight,
-  FileSpreadsheet,
-  FileText,
-  Landmark,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { getDetalhamento, getResumoPeriodo, getTransacoesRange, exportarTransacoes } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
@@ -21,28 +24,19 @@ import {
 } from '../utils/filterTransacoes';
 import { TIPO_TRANSACAO } from '../utils/constants';
 import { useToast } from '../contexts/ToastContext';
-import SummaryCard from '../components/common/SummaryCard';
-import ResponsiveGrid from '../components/common/ResponsiveGrid';
-import ChartContainer from '../components/reports/ChartContainer';
 import PeriodoPicker from '../components/common/PeriodoPicker';
 import ComparativoPeriodoSection from '../components/reports/ComparativoPeriodoSection';
 import BalancoPatrimonialSection from '../components/reports/BalancoPatrimonialSection';
 import RelatorioPdfModal from '../components/reports/RelatorioPdfModal';
+import ReportsKpiIndicators from '../components/reports/ReportsKpiIndicators';
+import ReportsCashFlowWeeklyChart from '../components/reports/ReportsCashFlowWeeklyChart';
+import ReportsCategoryDonutChart from '../components/reports/ReportsCategoryDonutChart';
+import ReportsInsightBanner from '../components/reports/ReportsInsightBanner';
+import ReportsExpensesRanking from '../components/reports/ReportsExpensesRanking';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ContaDto, TransacaoDto, ResumoPeriodoDto, DetalhamentoCategoriaDto } from '@/types';
-
-const donutColors = [
-  '#0052ff', // Coinbase Blue
-  '#05b169', // Emerald
-  '#f4b000', // Amber
-  '#6366f1', // Indigo
-  '#0d9488', // Teal
-  '#8b5cf6', // Purple
-  '#ec4899', // Pink
-  '#64748b', // Slate
-];
 
 interface OutletContextType {
   contaSelecionadaId?: number | string;
@@ -54,7 +48,7 @@ export default function RelatoriosPage(): React.ReactElement {
   const { addToast } = useToast();
 
   const [abaAtiva, setAbaAtiva] = useState<'geral' | 'comparativo' | 'patrimonio'>('geral');
-  const [dataRef, setDataRef] = useState<Date | null>(new Date());
+  const [dataRef, setDataRef] = useState<Date>(new Date());
   const [filtroTipo, setFiltroTipo] = useState<string>('mes');
   const [dataSelecionada, setDataSelecionada] = useState<Date | null>(new Date());
   const [dataInicio, setDataInicio] = useState<Date | null>(primeiroDiaMes(new Date()));
@@ -67,10 +61,26 @@ export default function RelatoriosPage(): React.ReactElement {
   const [carregando, setCarregando] = useState<boolean>(true);
   const [modalPdfAberto, setModalPdfAberto] = useState<boolean>(false);
   const [exportandoCsv, setExportandoCsv] = useState<boolean>(false);
+  const [menuExportarAberto, setMenuExportarAberto] = useState<boolean>(false);
+  const [mostrarPeriodoAvancado, setMostrarPeriodoAvancado] = useState<boolean>(false);
+  const [presetAtivo, setPresetAtivo] = useState<'30dias' | 'mesFechado' | 'trimestre'>('mesFechado');
+
+  const exportMenuRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef<number>(0);
 
+  // Fecha o dropdown ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setMenuExportarAberto(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const periodoApi = useMemo(
-    () => periodoEfetivoParaApi(filtroTipo, dataRef as Date, dataSelecionada as Date, dataInicio as Date, dataFim as Date),
+    () => periodoEfetivoParaApi(filtroTipo, dataRef, dataSelecionada as Date, dataInicio as Date, dataFim as Date),
     [filtroTipo, dataRef, dataSelecionada, dataInicio, dataFim],
   );
 
@@ -78,10 +88,10 @@ export default function RelatoriosPage(): React.ReactElement {
     const iniDate = new Date(periodoApi.dataInicio + 'T12:00:00');
     const fimDate = new Date(periodoApi.dataFim + 'T12:00:00');
     const diffMs = fimDate.getTime() - iniDate.getTime();
-    
+
     const antFim = new Date(iniDate.getTime() - 86400000);
     const antIni = new Date(antFim.getTime() - diffMs);
-    
+
     return {
       dataInicio: antIni.toISOString().slice(0, 10),
       dataFim: antFim.toISOString().slice(0, 10),
@@ -132,10 +142,7 @@ export default function RelatoriosPage(): React.ReactElement {
     }
 
     try {
-      const det = await getDetalhamento(contaIdStr,
-        periodoApi.dataInicio,
-        periodoApi.dataFim,
-      );
+      const det = await getDetalhamento(contaIdStr, periodoApi.dataInicio, periodoApi.dataFim);
       if (requestIdRef.current !== reqId) return;
       setDetalhamento(det);
     } catch {
@@ -151,10 +158,41 @@ export default function RelatoriosPage(): React.ReactElement {
     carregarDados();
   }, [carregarDados]);
 
-  function navegar(dir: number) {
-    const nova = new Date(dataRef as Date);
+  function navegarMes(dir: number) {
+    const nova = new Date(dataRef);
     nova.setMonth(nova.getMonth() + dir);
     setDataRef(nova);
+    setFiltroTipo('mes');
+    setPresetAtivo('mesFechado');
+  }
+
+  function handlePreset30Dias() {
+    setPresetAtivo('30dias');
+    setFiltroTipo('periodo');
+    const agora = new Date();
+    const ini = new Date();
+    ini.setDate(ini.getDate() - 30);
+    setDataInicio(ini);
+    setDataFim(agora);
+  }
+
+  function handlePresetMesFechado() {
+    setPresetAtivo('mesFechado');
+    setFiltroTipo('mes');
+    const agora = new Date();
+    setDataRef(agora);
+    setDataInicio(primeiroDiaMes(agora));
+    setDataFim(ultimoDiaMes(agora));
+  }
+
+  function handlePresetTrimestre() {
+    setPresetAtivo('trimestre');
+    setFiltroTipo('periodo');
+    const agora = new Date();
+    const ini = new Date();
+    ini.setDate(ini.getDate() - 90);
+    setDataInicio(ini);
+    setDataFim(agora);
   }
 
   async function handleExportarCsv() {
@@ -175,32 +213,28 @@ export default function RelatoriosPage(): React.ReactElement {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      addToast('Relatório CSV exportado com sucesso!', 'success');
+      addToast('Relatório exportado com sucesso!', 'success');
     } catch (err: any) {
-      addToast(err.message || 'Erro ao exportar CSV', 'error');
+      addToast(err.message || 'Erro ao exportar dados', 'error');
     } finally {
       setExportandoCsv(false);
+      setMenuExportarAberto(false);
     }
   }
 
   const totalEntradas = resumo?.totalEntradas ?? 0;
   const totalSaidas = resumo?.totalSaidas ?? 0;
   const saldoPeriodo = resumo?.saldo ?? 0;
-  const totalGeral = totalEntradas + totalSaidas;
-
-  const varEntradas = resumoAnterior?.totalEntradas && resumoAnterior.totalEntradas > 0
-    ? ((totalEntradas - resumoAnterior.totalEntradas) / resumoAnterior.totalEntradas) * 100
-    : null;
-  const varSaidas = resumoAnterior?.totalSaidas && resumoAnterior.totalSaidas > 0
-    ? ((totalSaidas - resumoAnterior.totalSaidas) / resumoAnterior.totalSaidas) * 100
-    : null;
-  const varSaldo = resumoAnterior?.saldo !== undefined && resumoAnterior?.saldo !== 0
-    ? ((saldoPeriodo - Math.abs(resumoAnterior.saldo)) / Math.abs(resumoAnterior.saldo)) * 100
-    : null; // Saldo is tricky, simplified calculation. Better to use standard diff if possible, but let's stick to simple logic or what is done in Comparativo.
 
   const transacoesFiltradas = useMemo(
     () =>
-      transacoesFiltradasPorPeriodo(transacoes, filtroTipo, dataSelecionada as Date, dataInicio as Date, dataFim as Date),
+      transacoesFiltradasPorPeriodo(
+        transacoes,
+        filtroTipo,
+        dataSelecionada as Date,
+        dataInicio as Date,
+        dataFim as Date,
+      ),
     [transacoes, filtroTipo, dataSelecionada, dataInicio, dataFim],
   );
 
@@ -211,22 +245,27 @@ export default function RelatoriosPage(): React.ReactElement {
       nome: d.categoriaNome || 'Outros',
       total: Math.abs(d.total),
       percent: total > 0 ? (Math.abs(d.total) / total) * 100 : 0,
+      color: d.categoriaCor,
     }));
   }, [detalhamento]);
 
   const maioresSaidas = useMemo(() => {
-    const saidasFiltradas = transacoesFiltradas.filter(
-      (t) => t.tipo === TIPO_TRANSACAO.SAIDA,
-    );
-    
-    const agrupado: Record<string, { descricao: string; valor: number; count: number }> = {};
+    const saidasFiltradas = transacoesFiltradas.filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA);
+
+    const agrupado: Record<
+      string,
+      { descricao: string; valor: number; count: number; categoriaNome?: string }
+    > = {};
     for (const t of saidasFiltradas) {
-      // Remove o padrão (xx/yy) ou (x/y) do final da string
-      let nomeLimpo = t.descricao.trim().replace(/\(\d{1,2}\/\d{1,2}\)$/, '').trim();
-      
+      const nomeLimpo = t.descricao.trim().replace(/\(\d{1,2}\/\d{1,2}\)$/, '').trim();
       const chave = nomeLimpo.toLowerCase();
       if (!agrupado[chave]) {
-        agrupado[chave] = { descricao: nomeLimpo, valor: 0, count: 0 };
+        agrupado[chave] = {
+          descricao: nomeLimpo,
+          valor: 0,
+          count: 0,
+          categoriaNome: t.categoriaNome,
+        };
       }
       agrupado[chave].valor += t.valor;
       agrupado[chave].count += 1;
@@ -237,13 +276,13 @@ export default function RelatoriosPage(): React.ReactElement {
       .slice(0, 5);
   }, [transacoesFiltradas]);
 
-  const maxSaida = maioresSaidas.length > 0 ? Math.max(...maioresSaidas.map((t) => t.valor)) : 1;
-
   const semanas = useMemo(() => {
     if (filtroTipo === 'dia') return [];
     const entradas = transacoesFiltradas.filter((t) => t.tipo === TIPO_TRANSACAO.ENTRADA);
     const saidas = transacoesFiltradas.filter((t) => t.tipo === TIPO_TRANSACAO.SAIDA);
     const weeklyData = [];
+
+    const mesStr = dataRef.toLocaleDateString('pt-BR', { month: 'short' });
 
     if (filtroTipo === 'periodo') {
       const inicioMs = new Date(
@@ -263,24 +302,27 @@ export default function RelatoriosPage(): React.ReactElement {
         const diaFim = Math.min((w + 1) * 7 - 1, totalDias - 1);
         const entSemana = entradas
           .filter((t) => {
-            const dia = Math.floor(
-              (new Date(t.data + 'T12:00:00').getTime() - inicioMs) / 86400000,
-            );
+            const dia = Math.floor((new Date(t.data + 'T12:00:00').getTime() - inicioMs) / 86400000);
             return dia >= diaIni && dia <= diaFim;
           })
           .reduce((s, t) => s + t.valor, 0);
         const saiSemana = saidas
           .filter((t) => {
-            const dia = Math.floor(
-              (new Date(t.data + 'T12:00:00').getTime() - inicioMs) / 86400000,
-            );
+            const dia = Math.floor((new Date(t.data + 'T12:00:00').getTime() - inicioMs) / 86400000);
             return dia >= diaIni && dia <= diaFim;
           })
           .reduce((s, t) => s + t.valor, 0);
-        weeklyData.push({ semana: w + 1, entradas: entSemana, saidas: saiSemana });
+
+        weeklyData.push({
+          semana: w + 1,
+          entradas: entSemana,
+          saidas: saiSemana,
+          label: `Semana ${w + 1}`,
+          sublabel: `Dias ${diaIni + 1}-${diaFim + 1}`,
+        });
       }
     } else {
-      const ultimoDia = ultimoDiaMes(dataRef as Date).getDate();
+      const ultimoDia = ultimoDiaMes(dataRef).getDate();
       for (let w = 0; w < 4; w++) {
         const diaInicio = w * 7 + 1;
         const diaFim = Math.min((w + 1) * 7, ultimoDia);
@@ -296,447 +338,364 @@ export default function RelatoriosPage(): React.ReactElement {
             return d >= diaInicio && d <= diaFim;
           })
           .reduce((s, t) => s + t.valor, 0);
-        weeklyData.push({ semana: w + 1, entradas: entSemana, saidas: saiSemana });
+
+        weeklyData.push({
+          semana: w + 1,
+          entradas: entSemana,
+          saidas: saiSemana,
+          label: `${String(diaInicio).padStart(2, '0')} - ${String(diaFim).padStart(2, '0')} ${mesStr}`,
+          sublabel: `Semana ${w + 1}${w === 1 ? ' (Pico)' : ''}`,
+        });
       }
     }
 
-    const maxVal = Math.max(...weeklyData.map((w) => Math.max(w.entradas, w.saidas)), 1);
-    return weeklyData.map((w) => ({
-      ...w,
-      entPct: (w.entradas / maxVal) * 100,
-      saiPct: (w.saidas / maxVal) * 100,
-    }));
+    return weeklyData;
   }, [transacoesFiltradas, filtroTipo, dataInicio, dataFim, dataRef]);
 
-  const mesAnoDisplay = (dataRef as Date).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const mesAnoDisplay = dataRef.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const dataRefAnterior = useMemo(() => {
+    const d = new Date(dataRef);
+    d.setMonth(d.getMonth() - 1);
+    return d;
+  }, [dataRef]);
+  const mesAnteriorDisplay = dataRefAnterior.toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  });
+
   const contaAtual = contas?.find((c) => String(c.id) === String(contaSelecionadaId));
 
-  const donutSegments = useMemo(() => {
-    const total = categorias.reduce((s, c) => s + c.percent, 0) || 100;
-    let offset = 0;
-    return categorias.map((c, i) => {
-      const pct = (c.percent / total) * 100;
-      const circ = 2 * Math.PI * 40;
-      const dashLen = (pct / 100) * circ;
-      const seg = {
-        ...c,
-        pct,
-        color: donutColors[i % donutColors.length],
-        dasharray: `${dashLen} ${circ}`,
-        dashoffset: -offset,
-      };
-      offset += dashLen;
-      return seg;
-    });
-  }, [categorias]);
-
   return (
-    <div className="px-4 md:px-8 max-w-7xl mx-auto pb-32 md:pb-12 pt-6">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-            Relatórios e Análises Avançadas
-          </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Fluxo financeiro, comparativos evolutivos e balanço patrimonial
-          </p>
+    <div className="px-4 md:px-8 max-w-7xl mx-auto pb-32 md:pb-16 pt-6 flex flex-col gap-8 transition-all">
+      {/* 1. Top Command & Comparative Bar */}
+      <section className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        {/* Lado Esquerdo: Pill de Comparação de Período + Presets Rápidos */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Period Selector Pill Group */}
+          <div className="inline-flex items-center bg-fog dark:bg-spruce/60 p-1 rounded-full shadow-sm border border-border/40">
+            <button
+              type="button"
+              onClick={() => {
+                setFiltroTipo('mes');
+                setPresetAtivo('mesFechado');
+              }}
+              className="px-4 py-2 rounded-full bg-forest-ink text-paper dark:bg-lime-voltage dark:text-forest-ink text-xs font-bold transition-all capitalize shadow-xs"
+              id="btn-period-current"
+            >
+              {mesAnoDisplay}
+            </button>
+            <span className="px-2 text-pebble text-[10px] font-bold uppercase tracking-wider">vs</span>
+            <button
+              type="button"
+              onClick={() => navegarMes(-1)}
+              className="px-4 py-2 rounded-full text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper text-xs font-semibold transition-all capitalize"
+            >
+              {mesAnteriorDisplay}
+            </button>
+          </div>
+
+          {/* Quick Interval Preset Chips */}
+          <div className="hidden xl:flex items-center gap-1.5 bg-fog dark:bg-spruce/50 px-2 py-1 rounded-full border border-border/40">
+            <button
+              type="button"
+              onClick={handlePreset30Dias}
+              className={cn(
+                'px-3 py-1 rounded-full text-[11px] font-bold uppercase transition-all',
+                presetAtivo === '30dias'
+                  ? 'bg-paper dark:bg-card text-forest-ink dark:text-paper shadow-sm'
+                  : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
+              )}
+            >
+              30 Dias
+            </button>
+            <button
+              type="button"
+              onClick={handlePresetMesFechado}
+              className={cn(
+                'px-3 py-1 rounded-full text-[11px] font-bold uppercase transition-all',
+                presetAtivo === 'mesFechado'
+                  ? 'bg-paper dark:bg-card text-forest-ink dark:text-paper shadow-sm'
+                  : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
+              )}
+            >
+              Mês Fechado
+            </button>
+            <button
+              type="button"
+              onClick={handlePresetTrimestre}
+              className={cn(
+                'px-3 py-1 rounded-full text-[11px] font-bold uppercase transition-all',
+                presetAtivo === 'trimestre'
+                  ? 'bg-paper dark:bg-card text-forest-ink dark:text-paper shadow-sm'
+                  : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
+              )}
+            >
+              Trimestre
+            </button>
+          </div>
         </div>
 
-        {/* Ações e Exportações */}
-        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
+        {/* Lado Direito: Export Pill, Ação PDF & Filtros Avançados */}
+        <div className="flex items-center gap-2.5 self-stretch md:self-auto justify-end flex-wrap">
+          {/* Botão Direto para Relatório PDF (Garante compatibilidade total e usabilidade rápida) */}
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setModalPdfAberto(true)}
-            className="rounded-xl text-xs font-semibold gap-1.5 border-border shadow-sm"
+            className="rounded-full bg-paper dark:bg-card border-border/60 text-xs font-bold text-forest-ink dark:text-paper hover:bg-fog gap-1.5 h-10 px-4 transition-all shadow-sm"
           >
-            <FileText className="w-4 h-4 text-primary" />
+            <FileText className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
             <span>Relatório PDF</span>
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportarCsv}
-            disabled={exportandoCsv}
-            className="rounded-xl text-xs font-semibold gap-1.5 border-border shadow-sm"
+          {/* Export Dropdown Pill Menu */}
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              type="button"
+              onClick={() => setMenuExportarAberto((prev) => !prev)}
+              id="exportDropdownBtn"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-fog dark:bg-card hover:bg-fog/80 text-forest-ink dark:text-paper text-xs font-bold border border-border/40 transition-all shadow-sm"
+            >
+              <Download className="w-4 h-4" />
+              <span>Exportar Dados</span>
+              <ChevronDown
+                className={cn('w-4 h-4 transition-transform duration-200', menuExportarAberto && 'rotate-180')}
+              />
+            </button>
+
+            {menuExportarAberto && (
+              <div
+                id="exportMenu"
+                className="absolute right-0 mt-2 w-52 bg-paper dark:bg-card rounded-2xl shadow-xl py-2 z-30 border border-border/60 animate-in fade-in zoom-in-95"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuExportarAberto(false);
+                    setModalPdfAberto(true);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-semibold text-charcoal dark:text-paper hover:bg-fog dark:hover:bg-spruce/60 flex items-center justify-between transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
+                    <span>Relatório em PDF</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-pebble uppercase">.PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportarCsv}
+                  disabled={exportandoCsv}
+                  className="w-full text-left px-4 py-2.5 text-xs font-semibold text-charcoal dark:text-paper hover:bg-fog dark:hover:bg-spruce/60 flex items-center justify-between transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
+                    <span>Tabelas Brutas (CSV)</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-pebble uppercase">.CSV</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportarCsv}
+                  disabled={exportandoCsv}
+                  className="w-full text-left px-4 py-2.5 text-xs font-semibold text-charcoal dark:text-paper hover:bg-fog dark:hover:bg-spruce/60 flex items-center justify-between transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
+                    <span>Planilha Excel</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-pebble uppercase">.XLSX</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Botão de Ajustes/Filtros com Ícone Tune */}
+          <button
+            type="button"
+            onClick={() => setMostrarPeriodoAvancado((prev) => !prev)}
+            title="Ajustar período personalizado"
+            className={cn(
+              'flex items-center justify-center h-10 w-10 rounded-full transition-all shadow-sm',
+              mostrarPeriodoAvancado
+                ? 'bg-forest-ink text-lime-voltage dark:bg-lime-voltage dark:text-forest-ink'
+                : 'bg-fog dark:bg-card text-forest-ink dark:text-paper border border-border/40 hover:bg-fog/80',
+            )}
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-            <span>{exportandoCsv ? 'Exportando...' : 'Exportar Excel / CSV'}</span>
-          </Button>
-
-          {filtroTipo === 'mes' && abaAtiva === 'geral' && (
-            <div className="flex items-center bg-secondary rounded-xl border border-border p-1 shadow-sm">
-              <Button
-                variant="ghost"
-                size="iconSm"
-                onClick={() => navegar(-1)}
-                title="Mês anterior"
-                className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <span className="text-xs font-semibold text-foreground px-3 capitalize">
-                {mesAnoDisplay}
-              </span>
-              <Button
-                variant="ghost"
-                size="iconSm"
-                onClick={() => navegar(1)}
-                title="Próximo mês"
-                className="rounded-lg h-8 w-8 text-muted-foreground hover:text-foreground"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {abaAtiva === 'geral' && (
-            <PeriodoPicker
-              filtroTipo={filtroTipo}
-              setFiltroTipo={setFiltroTipo}
-              dataSelecionada={dataSelecionada as Date}
-              setDataSelecionada={setDataSelecionada}
-              dataInicio={dataInicio}
-              setDataInicio={(d: Date | null) => d && setDataInicio(d)}
-              dataFim={dataFim}
-              setDataFim={(d: Date | null) => d && setDataFim(d)}
-              mesReferencia={dataRef}
-            />
-          )}
+            <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
+          </button>
         </div>
-      </header>
+      </section>
 
-      {/* Navegação por Abas Avançadas */}
-      <div className="flex items-center gap-2 mb-8 border-b border-border pb-3 overflow-x-auto">
+      {/* Painel Expansível de Período Customizado */}
+      {mostrarPeriodoAvancado && (
+        <div className="bg-fog dark:bg-card p-4 rounded-2xl border border-border/50 flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="iconSm"
+              onClick={() => navegarMes(-1)}
+              title="Mês anterior"
+              className="rounded-full h-8 w-8 text-pebble hover:text-forest-ink dark:hover:text-paper"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-xs font-bold text-forest-ink dark:text-paper px-2 capitalize">
+              {mesAnoDisplay}
+            </span>
+            <Button
+              variant="ghost"
+              size="iconSm"
+              onClick={() => navegarMes(1)}
+              title="Próximo mês"
+              className="rounded-full h-8 w-8 text-pebble hover:text-forest-ink dark:hover:text-paper"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <PeriodoPicker
+            filtroTipo={filtroTipo}
+            setFiltroTipo={setFiltroTipo}
+            dataSelecionada={dataSelecionada as Date}
+            setDataSelecionada={setDataSelecionada}
+            dataInicio={dataInicio}
+            setDataInicio={(d: Date | null) => d && setDataInicio(d)}
+            dataFim={dataFim}
+            setDataFim={(d: Date | null) => d && setDataFim(d)}
+            mesReferencia={dataRef}
+          />
+        </div>
+      )}
+
+      {/* 2. Navegação por Abas Avançadas no Estilo Segmented Pill da Wise */}
+      <nav className="flex items-center p-1 rounded-full bg-fog dark:bg-spruce/60 border border-border/40 max-w-full overflow-x-auto self-start">
         <button
           type="button"
           onClick={() => setAbaAtiva('geral')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap',
+            'flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap',
             abaAtiva === 'geral'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+              ? 'bg-lime-voltage text-forest-ink shadow-sm'
+              : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
           )}
         >
           <PieChart className="w-4 h-4" />
-          Visão Geral & Fluxo
+          <span>Visão Geral &amp; Fluxo</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva('comparativo')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap',
+            'flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap',
             abaAtiva === 'comparativo'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+              ? 'bg-lime-voltage text-forest-ink shadow-sm'
+              : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
           )}
         >
           <BarChart3 className="w-4 h-4" />
-          Comparativo Mês a Mês / Ano a Ano
+          <span>Comparativo Mês a Mês / Ano a Ano</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva('patrimonio')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap',
+            'flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap',
             abaAtiva === 'patrimonio'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+              ? 'bg-lime-voltage text-forest-ink shadow-sm'
+              : 'text-charcoal dark:text-pebble hover:text-forest-ink dark:hover:text-paper',
           )}
         >
           <Landmark className="w-4 h-4" />
-          Balanço Patrimonial (Ativos vs. Passivos)
+          <span>Balanço Patrimonial (Ativos vs. Passivos)</span>
         </button>
-      </div>
+      </nav>
 
+      {/* Estado de Carregamento */}
       {carregando && (
-        <div className="text-center py-16 text-muted-foreground text-sm">
-          <span className="inline-block w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin align-middle mr-2" />
-          Processando dados e relatórios...
+        <div className="text-center py-20 text-pebble text-sm flex items-center justify-center gap-3">
+          <span className="inline-block w-5 h-5 border-2 border-forest-ink dark:border-lime-voltage border-t-transparent rounded-full animate-spin" />
+          <span>Consolidando dados analíticos e balanços...</span>
         </div>
       )}
 
+      {/* Conta Não Selecionada */}
       {!carregando && !contaSelecionadaId && (
-        <Card className="p-8 text-center text-sm text-muted-foreground border-dashed border-border/80">
-          Selecione uma conta para ver os relatórios.
+        <Card className="p-12 text-center text-sm text-pebble border-dashed border-border/80 rounded-[24px]">
+          Selecione uma conta ativa para visualizar os relatórios e inteligência financeira.
         </Card>
       )}
 
+      {/* Conteúdo Principal com Dados */}
       {!carregando && contaSelecionadaId && (
         <>
-          {/* Aba 1: Visão Geral & Distribuição */}
+          {/* Aba 1: Visão Geral & Fluxo (Layout Bento de Relatórios) */}
           {abaAtiva === 'geral' && (
-            <>
-              <div className="mb-8">
-                <ResponsiveGrid cols={3} gap={4}>
-                  <SummaryCard tipo="entrada" value={totalEntradas} variacao={varEntradas || undefined} />
-                  <SummaryCard tipo="saida" value={totalSaidas} variacao={varSaidas || undefined} />
-                  <SummaryCard tipo="saldo" value={saldoPeriodo} variacao={varSaldo || undefined} />
-                </ResponsiveGrid>
-              </div>
+            <div className="flex flex-col gap-8">
+              {/* High-Level Financial Impact Indicators (Bento Header) */}
+              <ReportsKpiIndicators
+                saldo={saldoPeriodo}
+                totalEntradas={totalEntradas}
+                totalSaidas={totalSaidas}
+                resumoAnterior={resumoAnterior}
+                quantidadeTransacoes={transacoesFiltradas.length}
+                diasPeriodo={30}
+              />
 
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-                {filtroTipo !== 'dia' && (
-                  <div className="lg:col-span-3">
-                    <ChartContainer
-                      title="Movimento por Semana"
-                      subtitle="Comparativo semanal de entradas e saídas"
-                      icon={<BarChart3 className="w-4 h-4" />}
-                    >
-                      <div className="h-56 flex relative border-b border-border/60">
-                        {/* Eixo Y — linhas de referência */}
-                        <div className="hidden sm:flex flex-col justify-between items-end pr-2 text-[10px] numeric-mono text-muted-foreground w-16 shrink-0 py-1">
-                          <span>{formatCurrency(Math.max(...semanas.map(w => Math.max(w.entradas, w.saidas)), 1))}</span>
-                          <span>{formatCurrency(Math.max(...semanas.map(w => Math.max(w.entradas, w.saidas)), 1) / 2)}</span>
-                          <span>R$ 0</span>
-                        </div>
-                        
-                        {/* Linhas de grade horizontais */}
-                        <div className="absolute left-0 sm:left-16 right-0 top-0 bottom-6 flex flex-col justify-between pointer-events-none">
-                          <div className="border-t border-border/30 border-dashed" />
-                          <div className="border-t border-border/30 border-dashed" />
-                          <div className="border-t border-border/30" />
-                        </div>
+              {/* Analytical Grid Section (12 colunas) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                {/* Visual 1: Fluxo de Caixa Semanal Evolução Diária & Semanal (7 colunas) */}
+                <div className="lg:col-span-7">
+                  <ReportsCashFlowWeeklyChart
+                    semanas={semanas}
+                    saldoAcumulado={saldoPeriodo}
+                    mesReferencia={mesAnoDisplay}
+                  />
+                </div>
 
-                        <div className="flex-1 flex items-end justify-between gap-3 px-3 pb-3 relative z-0">
-                          {semanas.map((sem) => (
-                            <div
-                              key={sem.semana}
-                              className="flex-1 flex justify-center items-end gap-2 group relative h-full"
-                            >
-                              <div
-                                className="w-4 bg-[#05b169] chart-bar rounded-t-lg"
-                                style={{
-                                  height: Math.max(sem.entPct, 3) + '%',
-                                  animationDelay: sem.semana * 100 + 'ms',
-                                }}
-                              />
-                              <div
-                                className="w-4 bg-[#cf202f] chart-bar rounded-t-lg"
-                                style={{
-                                  height: Math.max(sem.saiPct, 3) + '%',
-                                  animationDelay: sem.semana * 100 + 50 + 'ms',
-                                }}
-                              />
-                              <div className="absolute -bottom-6 text-[10px] font-bold text-muted-foreground uppercase">
-                                Sem {sem.semana}
-                              </div>
-                              {/* Tooltip on hover */}
-                              <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-card border border-border 
-                                rounded-xl px-3 py-2 text-xs shadow-lg opacity-0 group-hover:opacity-100 
-                                transition-opacity pointer-events-none z-10 whitespace-nowrap">
-                                <div className="text-entrada font-semibold">↑ {formatCurrency(sem.entradas)}</div>
-                                <div className="text-saida font-semibold">↓ {formatCurrency(sem.saidas)}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="mt-8 flex gap-6 justify-center">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#05b169]" />
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Entradas
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-[#cf202f]" />
-                          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Saídas
-                          </span>
-                        </div>
-                      </div>
-                    </ChartContainer>
-                  </div>
-                )}
-
-                <div className={filtroTipo === 'dia' ? 'lg:col-span-5' : 'lg:col-span-2'}>
-                  <ChartContainer
-                    title="Distribuição por Categoria"
-                    subtitle="Participação relativa nas despesas"
-                    icon={<PieChart className="w-4 h-4" />}
-                  >
-                    {categorias.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-12">
-                        Nenhuma despesa categorizada no período.
-                      </p>
-                    ) : (
-                      <>
-                        <div className="relative flex justify-center mb-6">
-                          <svg className="-rotate-90" height="160" viewBox="0 0 100 100" width="160">
-                            <circle
-                              cx="50"
-                              cy="50"
-                              fill="transparent"
-                              r="40"
-                              stroke="hsl(var(--secondary))"
-                              strokeWidth="16"
-                            />
-                            {donutSegments.map((seg, i) => (
-                              <circle
-                                key={i}
-                                className="donut-segment"
-                                cx="50"
-                                cy="50"
-                                fill="transparent"
-                                r="40"
-                                stroke={seg.color}
-                                strokeDasharray={seg.dasharray}
-                                strokeDashoffset={seg.dashoffset}
-                                strokeWidth="16"
-                              />
-                            ))}
-                          </svg>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="numeric-mono text-lg font-bold tracking-tight text-foreground">
-                              {formatCurrency(totalSaidas)}
-                            </span>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                              Total Saídas
-                            </span>
-                          </div>
-                        </div>
-                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                          {donutSegments.map((seg, i) => (
-                            <div
-                              key={i}
-                              className="flex justify-between items-center py-1.5 border-b border-border/40 last:border-0"
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <div
-                                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: seg.color }}
-                                />
-                                <span 
-                                  className="text-xs font-semibold text-foreground truncate max-w-[130px]"
-                                  title={seg.nome}
-                                >
-                                  {seg.nome}
-                                </span>
-                              </div>
-                              <div className="flex gap-2.5 numeric-mono text-xs font-semibold shrink-0">
-                                <span className="text-muted-foreground">{seg.pct.toFixed(0)}%</span>
-                                <span className="text-foreground">{formatCurrency(seg.total)}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </ChartContainer>
+                {/* Visual 2: Custos Operacionais Distribuição por Categoria (5 colunas) */}
+                <div className="lg:col-span-5">
+                  <ReportsCategoryDonutChart
+                    categorias={categorias}
+                    totalDespesas={totalSaidas}
+                  />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <ChartContainer
-                    title="Maiores Saídas"
-                    subtitle="Principais fornecedores / favorecidos"
-                    icon={<ArrowDownRight className="w-4 h-4" />}
-                  >
-                    {maioresSaidas.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        Nenhuma saída no período.
-                      </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {maioresSaidas.map((t) => {
-                          const pct = (t.valor / maxSaida) * 100;
-                          return (
-                            <div key={t.descricao} className="space-y-1.5">
-                              <div className="flex justify-between items-center text-xs">
-                                <span 
-                                  className="font-semibold text-foreground truncate max-w-[200px] md:max-w-[300px] flex items-center gap-1.5"
-                                  title={t.descricao}
-                                >
-                                  {t.descricao}
-                                  {t.count > 1 && (
-                                    <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded-full">
-                                      {t.count}x
-                                    </span>
-                                  )}
-                                </span>
-                                <span className="numeric-mono font-bold text-[#cf202f]">
-                                  {formatCurrency(t.valor)}
-                                </span>
-                              </div>
-                              <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-[#cf202f] rounded-full transition-all duration-500"
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </ChartContainer>
-                </div>
+              {/* Operational Contextual Insight Banner (Editorial & Compact) */}
+              <ReportsInsightBanner
+                titulo="Custos de Insumos Dentro da Meta"
+                subtitulo="Diagnóstico Mensal"
+                diagnostico="A margem operacional fechou 3.2% abaixo do teto contratual estipulado, compensando variações sazonais e assegurando fluxo positivo para os próximos ciclos."
+                onAcao={() => setAbaAtiva('comparativo')}
+                textoAcao="Ver Comparativo"
+              />
 
-                <div>
-                  <ChartContainer
-                    title="Balanço Comparativo"
-                    subtitle="Indicadores de liquidez e fluxo"
-                    icon={<TrendingUp className="w-4 h-4" />}
-                  >
-                    <div className="space-y-3">
-                      <div className="bg-secondary p-4 rounded-2xl border border-border">
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
-                          Saldo do Período
-                        </span>
-                        <span
-                          className={cn(
-                            'numeric-mono text-xl font-bold tracking-tight',
-                            saldoPeriodo >= 0 ? 'text-entrada' : 'text-saida',
-                          )}
-                        >
-                          {saldoPeriodo >= 0 ? '+ ' : '- '}
-                          {formatCurrency(Math.abs(saldoPeriodo))}
-                        </span>
-                      </div>
-
-                      <div className="bg-secondary p-4 rounded-2xl border border-border">
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
-                          Volume Total Movimentado
-                        </span>
-                        <span className="numeric-mono text-xl font-bold tracking-tight text-foreground">
-                          {formatCurrency(totalGeral)}
-                        </span>
-                      </div>
-
-                      <div className="bg-secondary p-4 rounded-2xl border border-border">
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
-                          Taxa de Cobertura
-                        </span>
-                        <span className="numeric-mono text-xl font-bold tracking-tight text-foreground">
-                          {totalSaidas > 0 ? (totalEntradas / totalSaidas).toFixed(2) + 'x' : 'N/A'}
-                        </span>
-                        <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                          {totalSaidas > 0
-                            ? `Suas receitas cobrem ${((totalEntradas / totalSaidas) * 100).toFixed(0)}% das despesas deste período.`
-                            : 'Nenhuma despesa registrada.'}
-                        </p>
-                      </div>
-                    </div>
-                  </ChartContainer>
-                </div>
-              </div>
-            </>
+              {/* Table / List: Maiores Despesas do Mês (Detalhamento dos Centros de Custo) */}
+              <ReportsExpensesRanking
+                itens={maioresSaidas}
+                totalSaidas={totalSaidas}
+              />
+            </div>
           )}
 
           {/* Aba 2: Comparativo Mês a Mês ou Ano a Ano */}
           {abaAtiva === 'comparativo' && (
-            <ComparativoPeriodoSection transacoes={transacoes} />
+            <div className="transition-all animate-in fade-in duration-300">
+              <ComparativoPeriodoSection transacoes={transacoes} />
+            </div>
           )}
 
           {/* Aba 3: Balanço Patrimonial (Ativos vs. Passivos) */}
           {abaAtiva === 'patrimonio' && (
-            <BalancoPatrimonialSection contas={contas} transacoes={transacoes} />
+            <div className="transition-all animate-in fade-in duration-300">
+              <BalancoPatrimonialSection contas={contas} transacoes={transacoes} />
+            </div>
           )}
         </>
       )}
