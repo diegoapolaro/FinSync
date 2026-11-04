@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Sliders, Moon, Sparkles, RefreshCw, TrendingUp } from 'lucide-react';
+import {
+  Sliders,
+  Moon,
+  Sparkles,
+  RefreshCw,
+  TrendingUp,
+  AlertTriangle,
+  MessageSquare,
+  Wand2,
+} from 'lucide-react';
 import usePreferencias from '../../hooks/usePreferencias';
 import useI18n from '../../hooks/useI18n';
 import { useTema } from '../../contexts/ThemeContext';
@@ -56,83 +65,159 @@ export default function PreferenciasSection() {
     <SettingsSection
       id="preferencias"
       title={t('pref_titulo', 'Preferências do Sistema')}
+      superLabel="Localização & Interface"
+      description="Personalize parâmetros de exibição, moeda de cálculo e gatilhos de automação financeira."
       icon={Sliders}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Idioma */}
-        <Card className="p-5 space-y-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {t('pref_idioma', 'Idioma')}
-          </label>
-          <select
-            className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            value={idiomaAtivo}
-            onChange={(e) => atualizar('idioma', e.target.value)}
-          >
-            <option value="Português (Brasil)">Português (Brasil)</option>
-            <option value="English (US)">English (US)</option>
-            <option value="Español">Español</option>
-          </select>
-        </Card>
-
-        {/* Moeda */}
-        <Card className="p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              {t('pref_moeda', 'Moeda Padrão')}
+      <div className="flex flex-col gap-5">
+        {/* Grid de 3 Seletores: Idioma, Moeda, Formato de Data */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Idioma */}
+          <Card className="p-4 space-y-2 border-border/80 bg-card">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              {t('pref_idioma', 'Idioma da Interface')}
             </label>
-            {isEstrangeira && (
-              <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
-                1 {moedaAtiva.includes('USD') ? 'USD' : 'EUR'} = R$ {taxaAtiva.toFixed(2)}
-              </span>
-            )}
-          </div>
-          <select
-            className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            value={moedaAtiva}
-            onChange={(e) => atualizar('moeda', e.target.value)}
-          >
-            <option value="Real Brasileiro (BRL - R$)">Real Brasileiro (BRL - R$)</option>
-            <option value="US Dollar (USD - $)">US Dollar (USD - $)</option>
-            <option value="Euro (EUR - €)">Euro (EUR - €)</option>
-          </select>
-        </Card>
+            <select
+              className="flex h-11 w-full rounded-xl border border-input bg-secondary/40 px-3 text-xs md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              value={idiomaAtivo}
+              onChange={(e) => atualizar('idioma', e.target.value)}
+            >
+              <option value="Português (Brasil)">Português (Brasil)</option>
+              <option value="English (US)">English (US)</option>
+              <option value="Español">Español</option>
+            </select>
+          </Card>
 
-        {/* Formato de Data */}
-        <Card className="p-5 space-y-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {t('pref_formato_data', 'Formato de Data')}
-          </label>
-          <select
-            className="flex h-11 w-full rounded-xl border border-border bg-secondary px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            value={formatoDataAtivo}
-            onChange={(e) => atualizar('formatoData', e.target.value)}
-          >
-            <option value="dd/mm/aaaa">DD/MM/AAAA (ex: 23/08/2026)</option>
-            <option value="aaaa-mm-dd">AAAA-MM-DD (ex: 2026-08-23)</option>
-            <option value="mm/dd/aaaa">MM/DD/AAAA (ex: 08/23/2026)</option>
-          </select>
-        </Card>
-
-        {/* Tema */}
-        <Card className="p-5 flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Moon className="w-4 h-4 text-muted-foreground" />
-              <label className="block text-xs font-bold uppercase tracking-wider text-foreground">
-                {t('pref_modo_escuro', 'Modo Escuro')}
+          {/* Moeda */}
+          <Card className="p-4 space-y-2 border-border/80 bg-card">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+                {t('pref_moeda', 'Moeda Base')}
               </label>
+              {isEstrangeira && (
+                <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                  1 = R$ {taxaAtiva.toFixed(2)}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t('pref_modo_escuro_desc', 'Alternar entre o tema claro e escuro')}
-            </p>
-          </div>
-          <Switch
-            aria-label="Modo Escuro Preferências"
-            checked={tema === 'escuro'}
-            onCheckedChange={alternarTema}
-          />
-        </Card>
+            <select
+              className="flex h-11 w-full rounded-xl border border-input bg-secondary/40 px-3 text-xs md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              value={moedaAtiva}
+              onChange={(e) => atualizar('moeda', e.target.value)}
+            >
+              <option value="Real Brasileiro (BRL - R$)">Real Brasileiro (BRL - R$)</option>
+              <option value="US Dollar (USD - $)">US Dollar (USD - $)</option>
+              <option value="Euro (EUR - €)">Euro (EUR - €)</option>
+            </select>
+          </Card>
+
+          {/* Formato de Data */}
+          <Card className="p-4 space-y-2 border-border/80 bg-card">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+              {t('pref_formato_data', 'Formato Calendário')}
+            </label>
+            <select
+              className="flex h-11 w-full rounded-xl border border-input bg-secondary/40 px-3 text-xs md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              value={formatoDataAtivo}
+              onChange={(e) => atualizar('formatoData', e.target.value)}
+            >
+              <option value="dd/mm/aaaa">DD/MM/AAAA (ex: 23/08/2026)</option>
+              <option value="aaaa-mm-dd">AAAA-MM-DD (ex: 2026-08-23)</option>
+              <option value="mm/dd/aaaa">MM/DD/AAAA (ex: 08/23/2026)</option>
+            </select>
+          </Card>
+        </div>
+
+        {/* Toggles Container de Automações Inteligentes (Wise Mockup) */}
+        <div className="flex flex-col gap-3">
+          {/* Toggle 1: Alerta de Liquidez Crítica */}
+          <Card className="p-4 flex items-center justify-between border-border/80 bg-card">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <h4 className="font-bold text-xs md:text-sm text-foreground">
+                  Alerta de Liquidez Crítica
+                </h4>
+                <p className="text-[11px] md:text-xs text-muted-foreground">
+                  Notificar quando o saldo bancário consolidado estiver abaixo de R$ 5.000,00
+                </p>
+              </div>
+            </div>
+            <Switch
+              aria-label="Alerta de Liquidez Crítica"
+              checked={Boolean(prefs.alertaLiquidezCritica ?? true)}
+              onCheckedChange={(checked) => atualizar('alertaLiquidezCritica', checked)}
+            />
+          </Card>
+
+          {/* Toggle 2: DRE via WhatsApp */}
+          <Card className="p-4 flex items-center justify-between border-border/80 bg-card">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <h4 className="font-bold text-xs md:text-sm text-foreground">
+                  DRE Semanal Resumido via WhatsApp
+                </h4>
+                <p className="text-[11px] md:text-xs text-muted-foreground">
+                  Enviar fechamento de receitas, custos e margem operacional aos domingos às 23h
+                </p>
+              </div>
+            </div>
+            <Switch
+              aria-label="DRE Semanal via WhatsApp"
+              checked={Boolean(prefs.dreSemanalWhatsapp ?? true)}
+              onCheckedChange={(checked) => atualizar('dreSemanalWhatsapp', checked)}
+            />
+          </Card>
+
+          {/* Toggle 3: Conciliação Inteligente Wise Flow */}
+          <Card className="p-4 flex items-center justify-between border-border/80 bg-card">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Wand2 className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <h4 className="font-bold text-xs md:text-sm text-foreground">
+                  Auto-categorização Inteligente (Wise Flow)
+                </h4>
+                <p className="text-[11px] md:text-xs text-muted-foreground">
+                  Reconhecer lançamentos recorrentes (fornecedores de queijo, gás, folha) e conciliar
+                </p>
+              </div>
+            </div>
+            <Switch
+              aria-label="Auto-categorização Inteligente"
+              checked={Boolean(prefs.autoCategorizacaoIa ?? false)}
+              onCheckedChange={(checked) => atualizar('autoCategorizacaoIa', checked)}
+            />
+          </Card>
+
+          {/* Toggle 4: Modo Escuro */}
+          <Card className="p-4 flex items-center justify-between border-border/80 bg-card">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 text-muted-foreground">
+                <Moon className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <h4 className="font-bold text-xs md:text-sm text-foreground">
+                  {t('pref_modo_escuro', 'Modo Escuro')}
+                </h4>
+                <p className="text-[11px] md:text-xs text-muted-foreground">
+                  {t('pref_modo_escuro_desc', 'Alternar entre o tema claro e escuro')}
+                </p>
+              </div>
+            </div>
+            <Switch
+              aria-label="Modo Escuro Preferências"
+              checked={tema === 'escuro'}
+              onCheckedChange={alternarTema}
+            />
+          </Card>
+        </div>
 
         {/* Live Preview Card */}
         <Card className="p-5 md:col-span-2 bg-secondary/30 border-border border-dashed space-y-3">

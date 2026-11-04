@@ -56,14 +56,21 @@ export default function SegurancaSection() {
   }
 
   return (
-    <SettingsSection id="seguranca" title="Segurança da Conta" icon={Shield}>
+    <SettingsSection
+      id="seguranca"
+      title="Segurança da Conta"
+      superLabel="Segurança & Exclusão"
+      description="Gerencie credenciais de acesso, revogação de vínculos PJ e conformidade com LGPD."
+      icon={Shield}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Card 1: Credencial e Senha */}
         <Card
-          className="p-5 flex items-center justify-between hover:shadow-md transition-all cursor-pointer"
+          className="p-5 flex items-center justify-between hover:shadow-md transition-all cursor-pointer border-border/80 bg-card"
           onClick={() => setPainelAberto(!painelAberto)}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-primary">
               {temSenha ? (
                 <Lock className="w-5 h-5 text-foreground" />
               ) : (
@@ -78,6 +85,39 @@ export default function SegurancaSection() {
                 {temSenha ? 'Atualizar credencial de login' : 'Criar senha para login com email'}
               </p>
             </div>
+          </div>
+        </Card>
+
+        {/* Card 2: Zona de Exclusão / Desconectar PJ (Mockup Wise) */}
+        <Card className="p-5 flex flex-col justify-between gap-3 border-destructive/30 bg-destructive/5">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-destructive font-bold text-sm">
+              <Shield className="w-4 h-4" />
+              <span>Zona de Exclusão PJ</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Ao desvincular a empresa, todas as integrações bancárias são imediatamente revogadas no Banco Central e o histórico é congelado.
+            </p>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => addToast('Operação de desconexão bloqueada para conta principal.', 'info')}
+              className="rounded-full text-xs font-semibold h-8"
+            >
+              Desconectar PJ
+            </Button>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                addToast('Política LGPD: Seus dados financeiros são criptografados de ponta a ponta.', 'info');
+              }}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline"
+            >
+              Política de retenção LGPD
+            </a>
           </div>
         </Card>
       </div>

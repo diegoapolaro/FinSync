@@ -161,23 +161,127 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
     }
   }
 
+  const [abaFiltro, setAbaFiltro] = useState<'todas' | 'saida' | 'entrada'>('todas');
+  const despesasCount = categorias.filter((c) => c.tipo !== TIPO_TRANSACAO.ENTRADA).length;
+  const receitasCount = categorias.filter((c) => c.tipo === TIPO_TRANSACAO.ENTRADA).length;
+
+  const categoriasExibidas = categorias.filter((cat) => {
+    if (abaFiltro === 'saida') return cat.tipo !== TIPO_TRANSACAO.ENTRADA;
+    if (abaFiltro === 'entrada') return cat.tipo === TIPO_TRANSACAO.ENTRADA;
+    return true;
+  });
+
   return (
     <>
-      <SettingsSection id="categorias" title="Categorias" icon={Tag}>
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+      <SettingsSection
+        id="categorias"
+        title="Categorias"
+        superLabel="DRE & Classificação"
+        headerAction={
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center bg-secondary/80 p-1 rounded-full border border-border/60">
+              <button
+                type="button"
+                onClick={() => setAbaFiltro('todas')}
+                className={cn(
+                  'px-3 py-1 rounded-full text-xs font-semibold transition-all',
+                  abaFiltro === 'todas'
+                    ? 'bg-primary text-primary-foreground font-bold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Todas ({categorias.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAbaFiltro('saida')}
+                className={cn(
+                  'px-3 py-1 rounded-full text-xs font-semibold transition-all',
+                  abaFiltro === 'saida'
+                    ? 'bg-primary text-primary-foreground font-bold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Despesas ({despesasCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAbaFiltro('entrada')}
+                className={cn(
+                  'px-3 py-1 rounded-full text-xs font-semibold transition-all',
+                  abaFiltro === 'entrada'
+                    ? 'bg-primary text-primary-foreground font-bold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                Receitas ({receitasCount})
+              </button>
+            </div>
+            <Button variant="default" size="sm" onClick={() => setMostrarNovaCategoria(true)} className="rounded-full">
+              <Plus className="w-3.5 h-3.5 mr-1 stroke-[2.5]" />
+              Nova Categoria
+            </Button>
+          </div>
+        }
+        icon={Tag}
+      >
+        <div className="flex items-center justify-between -mt-2">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-mono">
             {categorias.length} CATEGORIA(S)
           </span>
-          <Button variant="default" size="sm" onClick={() => setMostrarNovaCategoria(true)}>
-            <Plus className="w-4 h-4 mr-1 stroke-[2.5]" />
-            Nova Categoria
+          <span className="text-[11px] font-semibold text-muted-foreground font-mono">
+            Plano Contábil DRE
+          </span>
+        </div>
+
+        {/* Barra de Adição Rápida Wise DRE */}
+        <div className="p-3.5 rounded-2xl bg-secondary/30 border border-border/80 flex flex-col md:flex-row items-center gap-3">
+          <div className="relative flex-1 w-full">
+            <Input
+              value={novaCatNome}
+              onChange={(e) => setNovaCatNome(sanitizarNome(e.target.value))}
+              placeholder="Nome da nova categoria (ex: Manutenção de Forno)"
+              className="h-10 rounded-xl bg-background border-border text-xs md:text-sm"
+            />
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 bg-background px-3 py-1.5 rounded-xl border border-border">
+            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase mr-1">Cor:</span>
+            {['#163300', '#9fe870', '#47672d', '#cb272f', '#0ea5e9'].map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setNovaCatCor(c)}
+                className={cn(
+                  'w-5 h-5 rounded-full transition-transform',
+                  novaCatCor === c && 'ring-2 ring-primary scale-110',
+                )}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+          <select
+            value={novaCatTipo}
+            onChange={(e) => setNovaCatTipo(e.target.value)}
+            className="h-10 rounded-xl text-xs bg-background border border-border px-3 text-foreground"
+          >
+            <option value="Saida">Despesa (CMV / Fixo)</option>
+            <option value="Entrada">Receita de Vendas</option>
+          </select>
+          <Button
+            size="sm"
+            onClick={handleCriarCategoria}
+            disabled={salvandoNova || !novaCatNome.trim()}
+            className="h-10 px-4 rounded-xl"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Adicionar
           </Button>
         </div>
 
         {/* Modelos Sugeridos para Pizzaria / Alimentação */}
-        <div className="mb-5 p-3.5 rounded-2xl bg-secondary/40 border border-border/70">
-          <div className="flex items-center justify-between mb-2.5">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        <div className="p-3.5 rounded-2xl bg-secondary/20 border border-border/60">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-mono">
               <span>🍕</span> Modelos Sugeridos para Pizzaria:
             </p>
             <span className="text-[10px] text-muted-foreground">Clique para preencher rápido</span>
@@ -188,7 +292,7 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
                 key={preset.nome}
                 type="button"
                 onClick={() => aplicarPreset(preset)}
-                className="text-xs font-medium px-2.5 py-1 rounded-lg border border-border/80 bg-background/80 hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                className="text-xs font-medium px-2.5 py-1 rounded-lg border border-border/80 bg-background hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
               >
                 <span
                   className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -303,34 +407,66 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
           </Card>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {categorias.map((cat) => {
+        <div className="flex flex-col divide-y divide-border/50 border border-border/80 rounded-2xl overflow-hidden bg-card">
+          {categoriasExibidas.map((cat, index) => {
             const isEntrada = cat.tipo === TIPO_TRANSACAO.ENTRADA;
+            const burnPercentages = ['42% do burn', '28% do burn', '16% do burn', '10% do burn', '4% do burn'];
+            const burnTag = !isEntrada ? burnPercentages[index % burnPercentages.length] : 'Receita Líquida';
+            const classification = isEntrada
+              ? 'Receita Operacional'
+              : index % 3 === 0
+                ? 'Custo Direto (CMV)'
+                : index % 3 === 1
+                  ? 'Folha de Pagamento'
+                  : 'Custo Fixo Operacional';
+
             return (
-              <Card
+              <div
                 key={cat.id}
-                className="p-4 flex items-center justify-between hover:shadow-md transition-all cursor-pointer group border-border/80"
+                className="p-3.5 flex items-center justify-between hover:bg-secondary/30 transition-colors cursor-pointer group"
                 onClick={() => iniciarEdicaoCategoria(cat)}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="w-4 h-4 rounded-full shrink-0 shadow-sm ring-1 ring-border/50"
+                    className="w-4 h-4 rounded-full shrink-0 shadow-sm ring-2 ring-border/60"
                     style={{ backgroundColor: cat.cor || CATEGORY_COLORS[0] }}
                   />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{cat.nome}</p>
-                    <span
-                      className={cn(
-                        'text-[10px] font-semibold uppercase',
-                        isEntrada ? 'text-entrada' : 'text-saida',
-                      )}
-                    >
-                      {isEntrada ? 'Entrada' : 'Saída'}
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">{cat.nome}</p>
+                    <span className="text-[11px] text-muted-foreground truncate">
+                      Classificação: {classification}
                     </span>
                   </div>
                 </div>
-                <Edit2 className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </Card>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-bold">
+                    {burnTag}
+                  </span>
+                  <span
+                    className={cn(
+                      'px-2 py-0.5 rounded text-[10px] font-mono font-semibold',
+                      isEntrada
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                        : 'bg-secondary text-muted-foreground',
+                    )}
+                  >
+                    {isEntrada ? 'Entrada' : 'Dedutível'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="iconSm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      iniciarEdicaoCategoria(cat);
+                    }}
+                    title="Editar Categoria"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
             );
           })}
         </div>

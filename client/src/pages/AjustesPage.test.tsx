@@ -369,4 +369,56 @@ describe('AjustesPage.jsx and Settings Sections', () => {
       expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '#orcamentos');
     });
   });
+
+  it('deve exibir dados corporativos fiscais e permitir edição de Razão Social e Nome Fantasia', async () => {
+    renderPage();
+
+    expect(screen.getByText(/Identificação Institucional/i)).toBeInTheDocument();
+    expect(screen.getByText('Conta PJ Verificada')).toBeInTheDocument();
+    expect(screen.getByText('Razão Social')).toBeInTheDocument();
+    expect(screen.getByText('Nome Fantasia')).toBeInTheDocument();
+    expect(screen.getByText('CNPJ')).toBeInTheDocument();
+
+    const inputRazao = screen.getByPlaceholderText('Razão social da empresa') as HTMLInputElement;
+    expect(inputRazao).toBeInTheDocument();
+    fireEvent.change(inputRazao, { target: { value: 'Bella Forneria Gastronomia Eireli' } });
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias') || '{}');
+      expect(saved.empresaRazaoSocial).toBe('Bella Forneria Gastronomia Eireli');
+    });
+  });
+
+  it('deve renderizar o card de Status Operacional 100% e ações do topo', async () => {
+    renderPage();
+
+    expect(screen.getByText(/Status Operacional/i)).toBeInTheDocument();
+    expect(screen.getByText('Em Conformidade')).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    expect(screen.getByText('Emitir Certidão Cadastral')).toBeInTheDocument();
+
+    const btnSalvar = screen.getByText('Salvar Preferências');
+    expect(btnSalvar).toBeInTheDocument();
+    fireEvent.click(btnSalvar);
+  });
+
+  it('deve alternar os novos switches de automação inteligente (Liquidez, DRE WhatsApp, IA)', async () => {
+    renderPage();
+
+    const switchLiquidez = screen.getByRole('switch', { name: 'Alerta de Liquidez Crítica' });
+    expect(switchLiquidez).toBeInTheDocument();
+
+    const switchWhatsapp = screen.getByRole('switch', { name: 'DRE Semanal via WhatsApp' });
+    expect(switchWhatsapp).toBeInTheDocument();
+
+    const switchIa = screen.getByRole('switch', { name: 'Auto-categorização Inteligente' });
+    expect(switchIa).toBeInTheDocument();
+
+    fireEvent.click(switchIa);
+
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem('finsync_preferencias') || '{}');
+      expect(saved.autoCategorizacaoIa).toBe(true);
+    });
+  });
 });

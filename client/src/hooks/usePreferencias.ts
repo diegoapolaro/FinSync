@@ -7,6 +7,14 @@ export interface Preferencias {
   tema: 'claro' | 'escuro' | 'sistema';
   lembreteDiario: boolean;
   alertaSaldoBaixo: boolean;
+  alertaLiquidezCritica?: boolean;
+  dreSemanalWhatsapp?: boolean;
+  autoCategorizacaoIa?: boolean;
+  empresaRazaoSocial?: string;
+  empresaNomeFantasia?: string;
+  empresaCnpj?: string;
+  empresaRegimeTributario?: string;
+  empresaEmailFinanceiro?: string;
   nome: string;
   email: string;
   [key: string]: string | boolean | undefined;
@@ -82,7 +90,21 @@ export default function usePreferencias() {
     listeners.forEach((listener) => listener());
   }, []);
 
-  return { prefs, atualizar };
+  const atualizarMultiplas = useCallback((novos: Partial<Preferencias>) => {
+    const atual = carregarState();
+    const atualizado = { ...atual, ...novos };
+    const serialized = JSON.stringify(atualizado);
+    try {
+      localStorage.setItem(CHAVE, serialized);
+    } catch (err) {
+      console.error('Erro ao salvar preferências:', err);
+    }
+    cacheRaw = serialized;
+    cacheState = atualizado;
+    listeners.forEach((listener) => listener());
+  }, []);
+
+  return { prefs, atualizar, atualizarMultiplas };
 }
 
 export function getPreferencias(): Preferencias {

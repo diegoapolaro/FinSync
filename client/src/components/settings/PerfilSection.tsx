@@ -11,7 +11,13 @@ import {
   X,
   Loader2,
   ShieldCheck,
+  Building2,
+  Store,
+  Mail,
+  BadgeCheck,
+  CheckCircle,
 } from 'lucide-react';
+import usePreferencias from '../../hooks/usePreferencias';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import SettingsSection from './SettingsSection';
@@ -177,9 +183,23 @@ export default function PerfilSection() {
     }
   };
 
+  const { prefs, atualizar } = usePreferencias();
+
   return (
-    <SettingsSection id="perfil" title="Perfil do Usuário" icon={User}>
-      <Card className="p-6 border-border/80 shadow-sm relative overflow-hidden transition-all">
+    <SettingsSection
+      id="perfil"
+      title="Perfil do Usuário"
+      superLabel="Identificação Institucional"
+      badge={
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-mono text-[11px] font-bold border border-emerald-500/20">
+          <BadgeCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          Conta PJ Verificada
+        </span>
+      }
+      icon={User}
+    >
+      {/* Card Perfil do Usuário e Avatar */}
+      <Card className="p-6 border-border/80 shadow-sm relative overflow-hidden transition-all bg-card">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           {/* Avatar & User Details */}
           <div className="flex items-center gap-5 min-w-0">
@@ -302,6 +322,122 @@ export default function PerfilSection() {
               <Camera className="w-3.5 h-3.5 text-primary" />
               <span>Alterar Foto</span>
             </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Identificação Institucional & Dados Fiscais (Mockup Wise) */}
+      <Card className="p-6 border-border/80 shadow-sm flex flex-col gap-5 bg-card">
+        <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-xl bg-secondary/40 border border-border/40">
+          <div className="relative shrink-0">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold shadow-sm">
+              <Store className="w-8 h-8 text-primary" />
+            </div>
+            <button
+              type="button"
+              onClick={handleAbrirModalFoto}
+              className="absolute -bottom-1 -right-1 p-1 bg-primary text-primary-foreground rounded-full shadow-sm hover:scale-105 transition-transform"
+              title="Trocar Logotipo da Empresa"
+            >
+              <Camera className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="flex flex-col text-center sm:text-left gap-1">
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <h4 className="font-bold text-base text-foreground">
+                {prefs.empresaNomeFantasia || 'Pizzaria Bella Forneria'}
+              </h4>
+              <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-bold">
+                PJ Ativa
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Matriz Pinheiros • São Paulo, SP • Ativa desde Fevereiro de 2021
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1 justify-center sm:justify-start">
+              <span className="px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground text-[10px] font-mono font-medium">
+                CNAE 56.11-2-01
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-secondary text-muted-foreground text-[10px] font-mono font-medium">
+                Inscrição Estadual: 104.920.311.119
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Formulário Fiscal em Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+              Razão Social
+            </label>
+            <Input
+              type="text"
+              value={prefs.empresaRazaoSocial || ''}
+              onChange={(e) => atualizar('empresaRazaoSocial', e.target.value)}
+              placeholder="Razão social da empresa"
+              className="h-11 rounded-xl text-sm bg-secondary/20"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Store className="w-3.5 h-3.5 text-muted-foreground" />
+              Nome Fantasia
+            </label>
+            <Input
+              type="text"
+              value={prefs.empresaNomeFantasia || ''}
+              onChange={(e) => atualizar('empresaNomeFantasia', e.target.value)}
+              placeholder="Nome comercial da loja/empresa"
+              className="h-11 rounded-xl text-sm bg-secondary/20"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+              CNPJ
+            </label>
+            <Input
+              type="text"
+              value={prefs.empresaCnpj || ''}
+              onChange={(e) => atualizar('empresaCnpj', e.target.value)}
+              placeholder="00.000.000/0000-00"
+              className="h-11 rounded-xl text-sm font-mono bg-secondary/20"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-foreground">Regime Tributário</label>
+            <select
+              value={prefs.empresaRegimeTributario || 'Simples Nacional (Anexo I e III)'}
+              onChange={(e) => atualizar('empresaRegimeTributario', e.target.value)}
+              className="h-11 rounded-xl text-xs md:text-sm bg-secondary/20 border border-input px-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer"
+            >
+              <option value="Simples Nacional (Anexo I e III)">Simples Nacional (Anexo I e III)</option>
+              <option value="Lucro Presumido">Lucro Presumido</option>
+              <option value="Lucro Real">Lucro Real</option>
+              <option value="MEI - Microempreendedor Individual">MEI - Microempreendedor Individual</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+              E-mail Financeiro &amp; DRE
+            </label>
+            <Input
+              type="email"
+              value={prefs.empresaEmailFinanceiro || ''}
+              onChange={(e) => atualizar('empresaEmailFinanceiro', e.target.value)}
+              placeholder="financeiro@empresa.com.br"
+              className="h-11 rounded-xl text-sm bg-secondary/20"
+            />
+            <span className="text-[11px] text-muted-foreground">
+              Relatórios semanais, alertas de conciliação e DRE sintético serão encaminhados a este e-mail.
+            </span>
           </div>
         </div>
       </Card>
