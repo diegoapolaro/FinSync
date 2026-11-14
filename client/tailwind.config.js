@@ -45,6 +45,19 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
 
+        /* Brand Wise Tokens */
+        brand: {
+          forest: '#163300',
+          forestDark: '#0e2200',
+          lime: '#9fe870',
+          limeHover: '#8dd65e',
+          linen: '#e2f6d5',
+          fog: '#e8ebe6',
+          paper: '#ffffff',
+          graphite: '#192415',
+          muted: '#637560',
+        },
+
         /* Wise Design System Specific Colors */
         'forest-ink': '#163300',
         'lime-voltage': '#9fe870',

@@ -10,6 +10,7 @@ publish_output/
 *.userosscache
 *.sln.docstates
 *.log
+*.original.bak
 *.vs/
 .vscode/
 **/Properties/launchSettings.json
