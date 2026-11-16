@@ -263,25 +263,25 @@ Ultra-heavy weight 900 at 89–105px with tight -0.03em tracking makes every hea
 }
 
 :root.dark {
-  /* Wise Inverted Dark Theme */
-  --background: 95 100% 10%; /* #163300 Forest floor */
-  --foreground: 0 0% 100%; /* #ffffff Paper */
-  --card: 150 88% 16%; /* #054d28 Spruce */
+  /* Wise Inverted Dark Theme Refined */
+  --background: 105 33% 4%; /* #090d07 Deep Forest Obsidian */
+  --foreground: 80 20% 95%; /* #f4f6f0 Crisp Off-White */
+  --card: 105 20% 7%; /* #11160f Elevated Card */
   --card-foreground: 0 0% 100%;
-  --popover: 95 100% 10%;
+  --popover: 105 20% 7%;
   --popover-foreground: 0 0% 100%;
   --primary: 97 73% 67%; /* #9fe870 Lime Voltage */
-  --primary-foreground: 95 100% 10%; /* Forest Ink text */
-  --secondary: 150 88% 16%;
+  --primary-foreground: 95 100% 10%; /* #163300 Forest Ink text */
+  --secondary: 108 17% 11%; /* #161d14 */
   --secondary-foreground: 0 0% 100%;
-  --muted: 150 88% 16%;
-  --muted-foreground: 96 11% 91%;
+  --muted: 108 17% 11%;
+  --muted-foreground: 215 14% 65%; /* #9ca3af Pebble */
   --accent: 97 73% 67%;
   --accent-foreground: 95 100% 10%;
-  --destructive: 357 68% 47%;
+  --destructive: 0 100% 67%; /* #ff5a5a Alarm Red */
   --destructive-foreground: 0 0% 100%;
-  --border: 150 88% 22%;
-  --input: 150 88% 22%;
+  --border: 105 20% 16%;
+  --input: 105 20% 16%;
   --ring: 97 73% 67%;
 }
 ```

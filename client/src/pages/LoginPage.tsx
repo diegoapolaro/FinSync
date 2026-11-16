@@ -49,7 +49,7 @@ function IndicadorForcaSenha({ senha }: { senha?: string }) {
                   : level <= 2
                     ? 'bg-amber-500'
                     : 'bg-brand-lime'
-                : 'bg-brand-fog'
+                : 'bg-brand-borderDark'
             }`}
           />
         ))}
@@ -57,7 +57,7 @@ function IndicadorForcaSenha({ senha }: { senha?: string }) {
       {forca > 0 && (
         <p
           className={`text-xs font-semibold ${
-            forca <= 1 ? 'text-destructive' : forca <= 2 ? 'text-amber-500' : 'text-brand-forest'
+            forca <= 1 ? 'text-destructive' : forca <= 2 ? 'text-amber-500' : 'text-brand-lime'
           }`}
         >
           {labels[forca]}
@@ -67,23 +67,22 @@ function IndicadorForcaSenha({ senha }: { senha?: string }) {
   );
 }
 
-/* ─── Brand Metrics Showcase (Painel Esquerdo - Wise Style) ──────────────────────── */
+/* ─── Brand Metrics Showcase (Painel Esquerdo - Wise Dark Style) ──────────────────────── */
 function BrandPanel() {
   return (
     <section
-      className="hidden lg:flex lg:w-[52%] xl:w-[54%] bg-brand-forest text-brand-paper relative overflow-hidden flex-col justify-between p-8 sm:p-12 lg:p-14 select-none"
+      className="hidden lg:flex lg:w-[54%] bg-brand-forestDeep text-brand-darkPaper relative overflow-hidden flex-col justify-between p-8 sm:p-12 lg:p-16 border-r border-brand-borderDark/60 select-none custom-scrollbar"
       data-purpose="brand-metrics-showcase"
     >
-      {/* Brilhos ambientais sutis */}
+      {/* Subtle Ambient Atmosphere Glows */}
       <div className="absolute -top-40 -left-40 w-[550px] h-[550px] bg-brand-lime/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[450px] h-[450px] bg-brand-lime/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Topo: Logo oficial verde & Status de Conexão */}
+      {/* Header & Integrated Status */}
       <div className="relative z-10">
-        <header className="flex items-center justify-between mb-8">
+        <header className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
-            {/* Logo do Site com símbolo verde e contraste perfeito */}
-            <div className="w-11 h-11 rounded-xl bg-brand-forestDark/80 border border-white/15 flex items-center justify-center p-2 shadow-lg shadow-black/30 backdrop-blur-md">
+            <div className="w-10 h-10 rounded-xl bg-brand-lime flex items-center justify-center p-1.5 shadow-lg shadow-brand-lime/10">
               <img
                 src={logoSymbol}
                 alt="FinSync Logo"
@@ -91,56 +90,56 @@ function BrandPanel() {
               />
             </div>
             <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tight text-white leading-none">
+              <span className="text-xl font-bold tracking-tight text-white leading-none">
                 FinSync
               </span>
-              <span className="text-[11px] text-brand-linen/70 font-medium tracking-wide mt-1">
+              <span className="text-[11px] text-brand-darkMuted font-medium tracking-wide mt-1">
                 Inteligência em Fluxo de Caixa
               </span>
             </div>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm text-[11px] text-brand-linen/90 font-medium">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-brand-borderDark backdrop-blur-sm text-[11px] text-brand-linen/90 font-medium">
             <span className="w-2 h-2 rounded-full bg-brand-lime animate-pulse" />
             <span>Open Finance Ativo</span>
           </div>
         </header>
 
-        {/* Tipografia Editorial Wise */}
+        {/* Editorial Display Typography */}
         <div className="max-w-xl">
           <p className="text-xs uppercase tracking-widest text-brand-lime font-bold mb-3 flex items-center gap-2">
             <span className="w-4 h-0.5 bg-brand-lime rounded-full" />
-            Conciliação & Liquidez Preditiva
+            Conciliação &amp; Liquidez Preditiva
           </p>
-          <h1 className="text-3xl sm:text-4xl xl:text-[42px] leading-[1.12] font-black tracking-tight text-white mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-[40px] leading-[1.12] font-black tracking-tight text-white mb-4">
             O dinheiro da sua empresa, nítido até o último centavo.
           </h1>
-          <p className="text-brand-linen/80 text-base sm:text-lg font-normal leading-relaxed max-w-lg">
+          <p className="text-brand-darkMuted text-base sm:text-lg font-normal leading-relaxed max-w-lg">
             Unifique contas bancárias, maquininhas de cartão e boletos em um fluxo contínuo em tempo real, sem surpresas no fechamento.
           </p>
         </div>
       </div>
 
-      {/* Visual de Conciliação / Micro-Ledger Coeso */}
-      <div className="relative z-10 my-6 max-w-xl">
-        <div className="rounded-2xl border border-white/15 bg-brand-forestDark/75 backdrop-blur-xl shadow-2xl overflow-hidden">
-          {/* Header do Ledger */}
-          <div className="p-5 pb-4 border-b border-white/10 flex items-center justify-between">
+      {/* Bespoke Cohesive Cashflow Engine & Micro-ledger Visual */}
+      <div className="relative z-10 my-8 max-w-xl">
+        <div className="rounded-2xl border border-brand-borderDark bg-[#0d1609]/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+          {/* Ledger Header Bar */}
+          <div className="p-5 pb-4 border-b border-brand-borderDark/80 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-brand-linen/60 uppercase tracking-wider mb-1">
+              <div className="text-[11px] font-semibold text-brand-darkMuted uppercase tracking-wider mb-1">
                 Posição Líquida Consolidada
               </div>
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
                   R$ 248.910<span className="text-brand-lime font-normal text-2xl sm:text-3xl">,40</span>
                 </span>
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-lime bg-brand-lime/10 border border-brand-lime/20 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-lime bg-brand-lime/10 border border-brand-lime/25 px-2 py-0.5 rounded-full">
                   <TrendingUp className="w-3 h-3 stroke-[2.5]" />
                   +18,4%
                 </span>
               </div>
             </div>
             <div className="text-right hidden sm:block">
-              <div className="text-[11px] text-brand-linen/60 font-medium">Previsão 30 dias</div>
+              <div className="text-[11px] text-brand-darkMuted">Previsão 30 dias</div>
               <div className="text-sm font-bold text-white tracking-tight font-mono">
                 R$ 312.450,00
               </div>
@@ -148,14 +147,14 @@ function BrandPanel() {
           </div>
 
           {/* Mini Bank Sync Row */}
-          <div className="px-5 py-2.5 bg-white/[0.03] border-b border-white/5 flex items-center justify-between text-xs text-brand-linen/70">
+          <div className="px-5 py-2.5 bg-black/20 border-b border-brand-borderDark/60 flex items-center justify-between text-xs text-brand-darkMuted">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 font-medium text-white/90">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-lime" />
                 3 conexões ativas
               </span>
-              <span className="text-white/30">|</span>
-              <div className="flex items-center gap-2 text-[11px] text-brand-linen/60">
+              <span className="text-white/20">|</span>
+              <div className="flex items-center gap-2 text-[11px] text-brand-darkMuted">
                 <span>Itaú PJ</span>
                 <span>•</span>
                 <span>Stone POS</span>
@@ -167,109 +166,97 @@ function BrandPanel() {
           </div>
 
           {/* Dynamic Live Transaction Stream */}
-          <div className="divide-y divide-white/5 text-xs">
-            {/* Item 1: Entrada */}
+          <div className="divide-y divide-brand-borderDark/50 text-xs">
+            {/* Item 1 */}
             <div className="p-3.5 px-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-lg bg-brand-lime/15 border border-brand-lime/30 flex items-center justify-center text-brand-lime shrink-0">
                   <ArrowDownLeft className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="truncate">
-                  <p className="font-medium text-white truncate">
-                    Recebíveis de Cartão (Lote Stone)
-                  </p>
-                  <p className="text-[11px] text-brand-linen/60">
-                    Conciliado automaticamente • Maquininha
-                  </p>
+                  <p className="font-medium text-white truncate">Recebíveis de Cartão (Lote Stone)</p>
+                  <p className="text-[11px] text-brand-darkMuted">Conciliado automaticamente • Maquininha</p>
                 </div>
               </div>
               <div className="text-right shrink-0 pl-3">
-                <span className="font-semibold text-brand-lime tracking-tight font-mono">
-                  + R$ 14.820,00
-                </span>
-                <span className="block text-[10px] text-brand-linen/50 font-mono">14:32</span>
+                <span className="font-semibold text-brand-lime tracking-tight font-mono">+ R$ 14.820,00</span>
+                <span className="block text-[10px] text-brand-darkMuted/70 font-mono">14:32</span>
               </div>
             </div>
 
-            {/* Item 2: Saída */}
+            {/* Item 2 */}
             <div className="p-3.5 px-5 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-brand-linen/80 shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-brand-linen/80 shrink-0">
                   <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
                 <div className="truncate">
-                  <p className="font-medium text-white truncate">
-                    Fornecedor Matéria-Prima — NFe #4081
-                  </p>
-                  <p className="text-[11px] text-brand-linen/60">
-                    Boleto liquidado • DDA Itaú
-                  </p>
+                  <p className="font-medium text-white truncate">Fornecedor Matéria-Prima — NFe #4081</p>
+                  <p className="text-[11px] text-brand-darkMuted">Boleto liquidado • DDA Itaú</p>
                 </div>
               </div>
               <div className="text-right shrink-0 pl-3">
-                <span className="font-semibold text-white/90 tracking-tight font-mono">
-                  - R$ 3.490,50
-                </span>
-                <span className="block text-[10px] text-brand-linen/50 font-mono">12:15</span>
+                <span className="font-semibold text-white/90 tracking-tight font-mono">- R$ 3.490,50</span>
+                <span className="block text-[10px] text-brand-darkMuted/70 font-mono">12:15</span>
               </div>
             </div>
           </div>
 
-          {/* Micro Stats Strip */}
-          <div className="p-4 bg-brand-forest/90 border-t border-white/10 grid grid-cols-2 gap-4 text-xs">
+          {/* Micro Stats Strip in Card */}
+          <div className="p-4 bg-[#091004]/90 border-t border-brand-borderDark/80 grid grid-cols-2 gap-4 text-xs">
             <div>
-              <span className="text-[11px] text-brand-linen/60 block">Índice de Conciliação</span>
+              <span className="text-[11px] text-brand-darkMuted block">Índice de Conciliação</span>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-base font-bold text-white font-mono">99,8%</span>
                 <span className="text-[10px] text-brand-lime font-medium">Zero divergências</span>
               </div>
             </div>
             <div>
-              <span className="text-[11px] text-brand-linen/60 block">Tempo Economizado</span>
+              <span className="text-[11px] text-brand-darkMuted block">Tempo Economizado</span>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-base font-bold text-white font-mono">~18h/mês</span>
-                <span className="text-[10px] text-brand-linen/70 font-medium">por empresa</span>
+                <span className="text-[10px] text-brand-darkMuted font-medium">por empresa</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Social Proof */}
-        <div className="mt-5 pt-4 flex items-center justify-between text-xs text-brand-linen/80 border-t border-white/10">
+        {/* Subtle Editorial Social Proof */}
+        <div className="mt-5 pt-4 flex items-center justify-between text-xs text-brand-darkMuted border-t border-brand-borderDark/60">
           <div className="flex items-center gap-6">
             <div>
               <span className="block text-base font-bold text-white tracking-tight">R$ 1.8 Bi+</span>
-              <span className="text-[11px] text-brand-linen/60">Transacionados</span>
+              <span className="text-[11px] text-brand-darkMuted">Transacionados</span>
             </div>
-            <div className="w-px h-6 bg-white/15" />
+            <div className="w-px h-6 bg-brand-borderDark" />
             <div>
               <span className="block text-base font-bold text-white tracking-tight">14.000+</span>
-              <span className="text-[11px] text-brand-linen/60">PMEs ativas</span>
+              <span className="text-[11px] text-brand-darkMuted">PMEs ativas</span>
             </div>
-            <div className="w-px h-6 bg-white/15 hidden sm:block" />
+            <div className="w-px h-6 bg-brand-borderDark hidden sm:block" />
             <div className="hidden sm:block">
               <div className="flex items-center gap-1 text-brand-lime font-bold text-xs">
                 <span>★ 4.9</span>
-                <span className="text-[11px] text-brand-linen/60 font-normal">/5.0</span>
+                <span className="text-[11px] text-brand-darkMuted font-normal">/5.0</span>
               </div>
-              <span className="text-[11px] text-brand-linen/60">Satisfação dos clientes</span>
+              <span className="text-[11px] text-brand-darkMuted">Satisfação dos clientes</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer de Segurança & Compliance */}
-      <footer className="relative z-10 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-[11px] text-brand-linen/60">
+      {/* Bottom Security & Compliance Bar */}
+      <footer className="relative z-10 pt-4 border-t border-brand-borderDark/60 flex flex-wrap items-center justify-between gap-4 text-[11px] text-brand-darkMuted">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-lime shrink-0" />
-          <span>Criptografia Bancária TLS 1.3 & AES-256</span>
+          <span>Criptografia Bancária TLS 1.3 &amp; AES-256</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-lime" />
           <span>Regulado pelo Banco Central do Brasil</span>
         </div>
         <div>
-          <span className="font-mono">ISO 27001 Certified</span>
+          <span className="font-mono text-brand-darkMuted/80">ISO 27001 Certified</span>
         </div>
       </footer>
     </section>
@@ -285,6 +272,17 @@ export default function LoginPage(): React.ReactElement {
   useEffect(() => {
     if (isAuthenticated) navigate('/', { replace: true });
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousDark = root.classList.contains('dark');
+    root.classList.add('dark');
+    return () => {
+      if (!previousDark) {
+        root.classList.remove('dark');
+      }
+    };
+  }, []);
 
   const [modo, setModo] = useState<'login' | 'registrar'>('login');
   const [nome, setNome] = useState('');
@@ -349,38 +347,38 @@ export default function LoginPage(): React.ReactElement {
   }
 
   return (
-    <main className="min-h-screen w-full flex flex-col lg:flex-row bg-brand-fog text-brand-graphite selection:bg-brand-lime selection:text-brand-forest">
+    <main className="dark min-h-screen w-full flex flex-col lg:flex-row bg-brand-authBg text-brand-darkPaper selection:bg-brand-lime selection:text-[#0b1404]">
       {/* ──── Lado Esquerdo: Brand Metrics Showcase ──── */}
       <BrandPanel />
 
-      {/* ──── Lado Direito: Formulário de Autenticação ──── */}
+      {/* ──── Lado Direito: Formulário de Autenticação (Modo Escuro) ──── */}
       <section
-        className="w-full lg:w-[48%] xl:w-[46%] bg-brand-paper flex flex-col justify-between p-6 sm:p-10 lg:p-14 relative"
+        className="w-full lg:w-[46%] bg-brand-authBg flex flex-col justify-between p-6 sm:p-12 lg:p-16 relative"
         data-purpose="authentication-form-container"
       >
         {/* Top Utility / Suporte Bar & Header Mobile */}
-        <header className="flex justify-between items-center w-full mb-6">
+        <header className="flex justify-between items-center w-full mb-8">
           {/* Header Mobile com a logo verde oficial */}
           <div className="lg:hidden flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-brand-forest flex items-center justify-center p-1.5 shadow-md shadow-brand-forestDark/40">
+            <div className="w-9 h-9 rounded-xl bg-brand-lime flex items-center justify-center p-1.5 shadow-md shadow-brand-lime/10">
               <img src={logoSymbol} alt="FinSync Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-black text-brand-forest tracking-tight leading-none">
+              <span className="text-lg font-black text-white tracking-tight leading-none">
                 FinSync
               </span>
-              <span className="text-[10px] text-brand-muted font-medium mt-0.5">
+              <span className="text-[10px] text-brand-darkMuted font-medium mt-0.5">
                 Inteligência Financeira
               </span>
             </div>
           </div>
 
-          <div className="ml-auto text-xs font-medium text-brand-muted flex items-center gap-2">
+          <div className="ml-auto text-xs font-medium text-brand-darkMuted flex items-center gap-2">
             <span>Precisa de ajuda?</span>
             <button
               type="button"
               onClick={handleSuporte}
-              className="text-brand-forest font-semibold hover:underline flex items-center gap-1 transition-colors"
+              className="text-brand-lime hover:text-brand-limeHover font-semibold hover:underline flex items-center gap-1 transition-colors"
             >
               Falar com suporte
               <HelpCircle className="w-3.5 h-3.5" />
@@ -389,13 +387,13 @@ export default function LoginPage(): React.ReactElement {
         </header>
 
         {/* Center Form Wrapper */}
-        <div className="w-full max-w-md mx-auto my-auto py-4">
+        <div className="w-full max-w-md mx-auto my-auto py-2">
           {/* Welcome Header */}
           <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-graphite tracking-tight mb-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-darkPaper tracking-tight mb-2">
               {modo === 'login' ? 'Bem-vindo de volta' : 'Criar sua conta'}
             </h2>
-            <p className="text-brand-muted text-sm leading-relaxed">
+            <p className="text-brand-darkMuted text-sm leading-relaxed">
               {modo === 'login'
                 ? 'Entre com suas credenciais para continuar.'
                 : 'Preencha os dados abaixo para começar.'}
@@ -405,7 +403,7 @@ export default function LoginPage(): React.ReactElement {
           {/* Pill Segmented Control (Wise Style Tab) */}
           <div
             aria-label="Opções de Acesso"
-            className="bg-brand-fog p-1 rounded-full flex items-center mb-6 text-sm font-semibold border border-brand-fog"
+            className="bg-brand-authCard p-1 rounded-full flex items-center mb-6 text-sm font-semibold border border-brand-borderDark"
             role="tablist"
           >
             <button
@@ -421,8 +419,8 @@ export default function LoginPage(): React.ReactElement {
               className={cn(
                 'flex-1 py-2 rounded-full font-bold text-center transition-all focus:outline-none',
                 modo === 'login'
-                  ? 'bg-brand-lime text-brand-forest shadow-sm'
-                  : 'text-brand-muted hover:text-brand-graphite',
+                  ? 'bg-brand-lime text-[#0b1404] shadow-sm'
+                  : 'text-brand-darkMuted hover:text-brand-darkPaper',
               )}
             >
               Entrar
@@ -440,8 +438,8 @@ export default function LoginPage(): React.ReactElement {
               className={cn(
                 'flex-1 py-2 rounded-full font-bold text-center transition-all focus:outline-none',
                 modo === 'registrar'
-                  ? 'bg-brand-lime text-brand-forest shadow-sm'
-                  : 'text-brand-muted hover:text-brand-graphite',
+                  ? 'bg-brand-lime text-[#0b1404] shadow-sm'
+                  : 'text-brand-darkMuted hover:text-brand-darkPaper',
               )}
             >
               Criar Conta
@@ -449,7 +447,7 @@ export default function LoginPage(): React.ReactElement {
           </div>
 
           {/* Social Fast Login & e-CNPJ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {/* Google OAuth Login Container */}
             <div className="w-full flex items-center justify-center">
               <GoogleLogin
@@ -457,7 +455,7 @@ export default function LoginPage(): React.ReactElement {
                 onError={() => addToast('Erro ao conectar com Google.', 'error')}
                 text={modo === 'login' ? 'signin_with' : 'signup_with'}
                 shape="pill"
-                theme="outline"
+                theme="filled_black"
                 size="large"
                 width="200"
                 logo_alignment="left"
@@ -468,17 +466,17 @@ export default function LoginPage(): React.ReactElement {
             <button
               type="button"
               onClick={handleCertificadoDigital}
-              className="w-full h-10 flex items-center justify-center gap-2 px-3 border border-brand-fog rounded-full bg-brand-paper hover:bg-brand-fog/50 text-brand-graphite text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-lime"
+              className="w-full h-10 flex items-center justify-center gap-2 px-3 border border-brand-borderDark rounded-full bg-brand-authCard hover:bg-[#192712] text-brand-darkPaper text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-brand-lime cursor-pointer"
             >
-              <FileBadge className="w-4 h-4 text-brand-forest shrink-0" />
+              <FileBadge className="w-4 h-4 text-brand-lime shrink-0" />
               <span>Certificado e-CNPJ</span>
             </button>
           </div>
 
           {/* Divisor */}
-          <div className="relative flex items-center justify-center my-5">
-            <div className="border-t border-brand-fog w-full" />
-            <span className="bg-brand-paper px-3 text-xs uppercase tracking-wider text-brand-muted font-medium absolute">
+          <div className="relative flex items-center justify-center my-6">
+            <div className="border-t border-brand-borderDark w-full" />
+            <span className="bg-brand-authBg px-3 text-xs uppercase tracking-wider text-brand-darkMuted font-medium absolute">
               ou com seu e-mail corporativo
             </span>
           </div>
@@ -490,7 +488,7 @@ export default function LoginPage(): React.ReactElement {
               <div className="space-y-1.5">
                 <label
                   htmlFor="nome"
-                  className="block text-xs font-bold text-brand-graphite uppercase tracking-wider"
+                  className="block text-xs font-bold text-brand-darkMuted uppercase tracking-wider"
                 >
                   Nome Completo
                 </label>
@@ -502,7 +500,7 @@ export default function LoginPage(): React.ReactElement {
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Seu nome"
-                    className="rounded-xl h-11 bg-white border-brand-fog text-brand-graphite placeholder:text-brand-muted/60 focus-visible:ring-brand-lime focus-visible:border-brand-forest"
+                    className="rounded-xl h-12 bg-brand-authCard border-brand-inputBorder text-brand-darkPaper placeholder:text-brand-darkMuted/40 focus-visible:ring-1 focus-visible:ring-brand-lime focus-visible:border-brand-lime"
                   />
                 </div>
               </div>
@@ -512,22 +510,23 @@ export default function LoginPage(): React.ReactElement {
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="block text-xs font-bold text-brand-graphite uppercase tracking-wider"
+                className="block text-xs font-bold text-brand-darkMuted uppercase tracking-wider"
               >
                 E-mail ou CNPJ
               </label>
-              <div className="relative rounded-xl">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-muted z-10">
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-brand-darkMuted z-10">
                   <Mail className="w-4 h-4" />
                 </div>
                 <Input
                   id="email"
                   type="email"
+                  name="identifier"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="pl-10 rounded-xl h-11 bg-white border-brand-fog text-brand-graphite placeholder:text-brand-muted/60 focus-visible:ring-brand-lime focus-visible:border-brand-forest"
+                  className="block w-full pl-10 pr-4 py-3 rounded-xl border border-brand-inputBorder bg-brand-authCard text-sm text-brand-darkPaper placeholder:text-brand-darkMuted/40 focus-visible:border-brand-lime focus-visible:ring-1 focus-visible:ring-brand-lime transition-colors h-12"
                 />
               </div>
             </div>
@@ -537,7 +536,7 @@ export default function LoginPage(): React.ReactElement {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="block text-xs font-bold text-brand-graphite uppercase tracking-wider"
+                  className="block text-xs font-bold text-brand-darkMuted uppercase tracking-wider"
                 >
                   Senha de acesso
                 </label>
@@ -545,7 +544,7 @@ export default function LoginPage(): React.ReactElement {
                   <button
                     type="button"
                     onClick={() => addToast('Recuperação de senha em breve!', 'info')}
-                    className="text-xs font-semibold text-brand-forest hover:text-brand-limeHover transition-colors"
+                    className="text-xs font-semibold text-brand-lime hover:text-brand-limeHover transition-colors"
                   >
                     Esqueci minha senha
                   </button>
@@ -553,12 +552,13 @@ export default function LoginPage(): React.ReactElement {
               </div>
               <PasswordInput
                 id="password"
+                name="password"
                 required
                 minLength={8}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
-                className="rounded-xl h-11 bg-white border-brand-fog text-brand-graphite placeholder:text-brand-muted/60 focus-visible:ring-brand-lime focus-visible:border-brand-forest"
+                className="rounded-xl h-12 border border-brand-inputBorder bg-brand-authCard text-sm text-brand-darkPaper placeholder:text-brand-darkMuted/40 focus-visible:border-brand-lime focus-visible:ring-1 focus-visible:ring-brand-lime transition-colors"
               />
               {modo === 'registrar' && <IndicadorForcaSenha senha={senha} />}
             </div>
@@ -568,7 +568,7 @@ export default function LoginPage(): React.ReactElement {
               <div className="space-y-1.5">
                 <label
                   htmlFor="confirmarSenha"
-                  className="block text-xs font-bold text-brand-graphite uppercase tracking-wider"
+                  className="block text-xs font-bold text-brand-darkMuted uppercase tracking-wider"
                 >
                   Confirmar Senha
                 </label>
@@ -579,7 +579,7 @@ export default function LoginPage(): React.ReactElement {
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   placeholder="Repita a senha"
                   className={cn(
-                    'rounded-xl h-11 bg-white border-brand-fog text-brand-graphite placeholder:text-brand-muted/60 focus-visible:ring-brand-lime focus-visible:border-brand-forest',
+                    'rounded-xl h-12 border border-brand-inputBorder bg-brand-authCard text-sm text-brand-darkPaper placeholder:text-brand-darkMuted/40 focus-visible:border-brand-lime focus-visible:ring-1 focus-visible:ring-brand-lime transition-colors',
                     senhasNaoCoincidem ? 'border-destructive focus-visible:ring-destructive' : '',
                   )}
                 />
@@ -595,11 +595,12 @@ export default function LoginPage(): React.ReactElement {
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    name="remember_device"
                     checked={lembrarDispositivo}
                     onChange={(e) => setLembrarDispositivo(e.target.checked)}
-                    className="w-4 h-4 rounded text-brand-forest border-brand-fog focus:ring-brand-lime accent-brand-forest"
+                    className="w-4 h-4 rounded text-brand-lime bg-brand-authCard border-brand-inputBorder focus:ring-brand-lime focus:ring-offset-brand-authBg accent-brand-lime"
                   />
-                  <span className="text-xs text-brand-muted font-medium">
+                  <span className="text-xs text-brand-darkMuted font-medium">
                     Lembrar deste dispositivo por 30 dias
                   </span>
                 </label>
@@ -608,7 +609,7 @@ export default function LoginPage(): React.ReactElement {
 
             {/* Mensagem de Erro Inline */}
             {erro && (
-              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3">
+              <div className="rounded-xl bg-destructive/15 border border-destructive/30 p-3">
                 <p className="text-xs sm:text-sm text-destructive font-medium">{erro}</p>
               </div>
             )}
@@ -618,10 +619,10 @@ export default function LoginPage(): React.ReactElement {
               <Button
                 type="submit"
                 disabled={loading || !cadastroValido}
-                className="w-full py-3.5 px-6 rounded-full bg-brand-lime hover:bg-brand-limeHover text-brand-forest font-black text-sm tracking-wide shadow-md transition-all flex items-center justify-center gap-2 focus:ring-4 focus:ring-brand-lime/30 h-12"
+                className="w-full py-3.5 px-6 rounded-full bg-brand-lime hover:bg-brand-limeHover disabled:opacity-50 disabled:cursor-not-allowed text-[#0b1404] font-extrabold text-sm tracking-wide shadow-lg shadow-brand-lime/20 transition-all flex items-center justify-center gap-2 focus:ring-4 focus:ring-brand-lime/30 h-12 cursor-pointer"
               >
                 {loading && (
-                  <span className="inline-block w-4 h-4 border-2 border-brand-forest border-t-transparent rounded-full animate-spin mr-1" />
+                  <span className="inline-block w-4 h-4 border-2 border-[#0b1404] border-t-transparent rounded-full animate-spin mr-1" />
                 )}
                 <span>
                   {loading
@@ -636,7 +637,7 @@ export default function LoginPage(): React.ReactElement {
           </form>
 
           {/* Alternar Modo (Login <-> Cadastro) */}
-          <div className="text-center pt-5 text-xs text-brand-muted">
+          <div className="text-center pt-5 text-xs text-brand-darkMuted">
             <button
               type="button"
               onClick={() => {
@@ -646,27 +647,37 @@ export default function LoginPage(): React.ReactElement {
               className="hover:underline transition-colors focus:outline-none"
             >
               {modo === 'login' ? (
-                <>Não tem conta? <span className="font-bold text-brand-forest">Criar conta</span></>
+                <>
+                  Não tem conta?{' '}
+                  <span className="font-bold text-brand-lime hover:underline">
+                    Criar conta
+                  </span>
+                </>
               ) : (
-                <>Já tem conta? <span className="font-bold text-brand-forest">Entrar</span></>
+                <>
+                  Já tem conta?{' '}
+                  <span className="font-bold text-brand-lime hover:underline">
+                    Entrar
+                  </span>
+                </>
               )}
             </button>
           </div>
         </div>
 
         {/* Legal and LGPD Footer */}
-        <footer className="w-full text-center text-[11px] text-brand-muted/80 mt-6 pt-4 border-t border-brand-fog flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+        <footer className="w-full text-center text-[11px] text-brand-darkMuted mt-8 pt-4 border-t border-brand-borderDark flex flex-col sm:flex-row items-center justify-center gap-3">
           <span>© {new Date().getFullYear()} FinSync Tecnologia Financeira S.A.</span>
           <div className="flex items-center gap-2">
-            <a href="#termos" className="hover:text-brand-forest underline">
+            <a href="#termos" className="hover:text-brand-darkPaper transition-colors underline">
               Termos de Uso
             </a>
             <span>•</span>
-            <a href="#privacidade" className="hover:text-brand-forest underline">
-              Privacidade & LGPD
+            <a href="#privacidade" className="hover:text-brand-darkPaper transition-colors underline">
+              Privacidade &amp; LGPD
             </a>
             <span>•</span>
-            <a href="#seguranca" className="hover:text-brand-forest underline">
+            <a href="#seguranca" className="hover:text-brand-darkPaper transition-colors underline">
               Segurança Bancária
             </a>
           </div>

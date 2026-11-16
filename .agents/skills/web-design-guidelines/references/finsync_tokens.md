@@ -8,12 +8,12 @@
 | `lime-voltage` | `#9fe870` | `#9fe870` | Signature active accent — primary CTA fill, active tabs |
 | `spruce` | `#054d28` | `#054d28` | Secondary dark green — elevated card surfaces |
 | `linen-mist` | `#e2f6d5` | `rgba(159, 232, 112, 0.15)` | Soft green wash for badges and subtle tags |
-| `fog` | `#e8ebe6` | `#163300` | Soft panel background, card surfaces, table headers |
-| `paper` | `#ffffff` | `#091a00` | Clean light page canvas |
-| `charcoal` | `#454745` | `#e8ebe6` | Body text, dense UI |
+| `fog` | `#e8ebe6` | `#161d14` | Soft panel background, card surfaces, table headers |
+| `paper` | `#ffffff` | `#090d07` | Clean light page canvas / deep dark obsidian |
+| `charcoal` | `#454745` | `#f4f6f0` | Body text, dense UI |
 | `obsidian` | `#0e0f0c` | `#ffffff` | Display headlines |
-| `pebble` | `#868685` | `#868685` | Muted secondary text, borders |
-| `alarm-red` | `#cb272f` | `#cb272f` | Despesas / Saídas / Alertas |
+| `pebble` | `#868685` | `#9ca3af` | Muted secondary text, borders |
+| `alarm-red` | `#cb272f` | `#ff5a5a` | Despesas / Saídas / Alertas |
 
 ## Geometry & Radii
 

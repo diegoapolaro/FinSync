@@ -67,77 +67,77 @@
 }
 
 :root.dark {
-  /* Wise Design System Tokens - Inverted Dark Mode */
+  /* Wise Design System Tokens - Inverted Dark Mode Refined */
   --color-forest-ink: #163300;
   --color-lime-voltage: #9fe870;
-  --color-spruce: #054d28;
-  --color-linen-mist: #e2f6d5;
-  --color-signal-blue: #0b4c72;
-  --color-alarm-red: #cb272f;
-  --color-charcoal: #e8ebe6;
+  --color-spruce: #0e230b;
+  --color-linen-mist: rgba(159, 232, 112, 0.15);
+  --color-signal-blue: #38bdf8;
+  --color-alarm-red: #ff5a5a;
+  --color-charcoal: #f4f6f0;
   --color-obsidian: #ffffff;
-  --color-pebble: #868685;
-  --color-slate: #a8acb3;
-  --color-fog: #163300;
-  --color-paper: #091a00;
+  --color-pebble: #9ca3af;
+  --color-slate: #8f998d;
+  --color-fog: #161d14;
+  --color-paper: #090d07;
 
   --color-primary: #9fe870;
-  --color-primary-active: #b5f58c;
-  --color-primary-disabled: #384252;
+  --color-primary-active: #b2fa87;
+  --color-primary-disabled: #2d3829;
 
   --color-ink: #ffffff;
-  --color-body: #e8ebe6;
-  --color-muted: #868685;
-  --color-muted-soft: #6a6c6a;
+  --color-body: #d1d5db;
+  --color-muted: #9ca3af;
+  --color-muted-soft: #6b7280;
 
-  --color-canvas: #0e2000;
-  --color-surface-soft: #163300;
-  --color-surface-card: #163300;
-  --color-surface-strong: #054d28;
-  --color-surface-subtle: #091a00;
+  --color-canvas: #090d07;
+  --color-surface-soft: #11160f;
+  --color-surface-card: #11160f;
+  --color-surface-strong: #163300;
+  --color-surface-subtle: #060905;
 
-  --color-hairline: rgba(159, 232, 112, 0.15);
-  --color-hairline-soft: rgba(159, 232, 112, 0.08);
+  --color-hairline: rgba(255, 255, 255, 0.08);
+  --color-hairline-soft: rgba(255, 255, 255, 0.05);
 
   --color-semantic-up: #9fe870;
-  --color-semantic-down: #cb272f;
+  --color-semantic-down: #ff5a5a;
   --color-accent-yellow: #9fe870;
 
   --color-entrada: #9fe870;
-  --color-saida: #cb272f;
+  --color-saida: #ff5a5a;
   --color-primaria: #9fe870;
   --color-laranja: #9fe870;
-  --color-azul: #0b4c72;
+  --color-azul: #38bdf8;
 
   /* Shadcn CSS Variables (Dark) - Wise Inverted */
-  --background: 95 100% 7%; /* Deep forest floor */
-  --foreground: 0 0% 100%; /* Pure white text */
+  --background: 105 33% 4%; /* #090d07 Deep Forest Obsidian */
+  --foreground: 80 20% 95%; /* #f4f6f0 Crisp Off-White */
 
-  --card: 95 100% 10%; /* #163300 Forest Ink */
+  --card: 105 20% 7%; /* #11160f Clean Dark Card */
   --card-foreground: 0 0% 100%;
 
-  --popover: 95 100% 10%;
+  --popover: 105 20% 7%;
   --popover-foreground: 0 0% 100%;
 
   --primary: 97 73% 67%; /* #9fe870 Lime Voltage */
   --primary-foreground: 95 100% 10%; /* #163300 Forest Ink text */
 
-  --secondary: 150 88% 16%; /* #054d28 Spruce */
+  --secondary: 108 17% 11%; /* #161d14 */
   --secondary-foreground: 0 0% 100%;
 
-  --muted: 150 88% 16%;
-  --muted-foreground: 96 11% 85%;
+  --muted: 108 17% 11%;
+  --muted-foreground: 215 14% 65%; /* #9ca3af */
 
   --accent: 97 73% 67%; /* Lime Voltage */
   --accent-foreground: 95 100% 10%;
 
-  --destructive: 357 68% 47%;
+  --destructive: 0 100% 67%; /* #ff5a5a */
   --destructive-foreground: 0 0% 100%;
 
-  --border: 95 100% 16%;
-  --input: 95 100% 16%;
+  --border: 105 20% 16%;
+  --input: 105 20% 16%;
 
   --ring: 97 73% 67%;
 
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
