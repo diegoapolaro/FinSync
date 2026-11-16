@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Tag, Plus, Edit2 } from 'lucide-react';
+import { Tag, Plus, Edit2, Store } from 'lucide-react';
 import { createCategoria, updateCategoria } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import { TIPO_TRANSACAO } from '../../utils/constants';
@@ -40,23 +40,19 @@ export const CATEGORY_COLORS = [
 ];
 
 export const PIZZARIA_PRESETS = [
-  { nome: '🧀 Insumos & Queijos', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#f59e0b' },
-  { nome: '🍅 Molhos & Hortifruti', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#ef4444' },
-  { nome: '📦 Embalagens & Caixas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#8b5cf6' },
-  { nome: '🛵 Motoboy & Entregas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#0ea5e9' },
-  { nome: '🔥 Gás & Forno', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#f97316' },
-  { nome: '🥤 Bebidas & Estoque', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#06b6d4' },
-  { nome: '💳 Taxas Maquininha & Apps', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#e11d48' },
-  { nome: '👥 Equipe & Diárias', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#6366f1' },
-  { nome: '🏪 Aluguel & Contas Fixas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#64748b' },
-  { nome: '🧼 Limpeza & Descartáveis', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#14b8a6' },
-  { nome: '🍕 Vendas Salão / Balcão', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#00cc4b' },
-  { nome: '📱 Delivery iFood / Apps', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#1c6cff' },
-  { nome: '🛵 Vendas Delivery Próprio', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#10b981' },
-];
-
-export const QUICK_EMOJIS = [
-  '🍕', '🧀', '🍅', '🥖', '🥤', '🥩', '🛵', '📦', '🔥', '💳', '👥', '🏪', '🧼', '🔧', '📢', '💰', '📱', '⭐'
+  { nome: 'Insumos & Matéria-Prima', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#f59e0b' },
+  { nome: 'Hortifruti & Molhos', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#ef4444' },
+  { nome: 'Embalagens & Descartáveis', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#8b5cf6' },
+  { nome: 'Logística & Entregas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#0ea5e9' },
+  { nome: 'Gás, Energia & Manutenção', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#f97316' },
+  { nome: 'Bebidas & Estoque Seco', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#06b6d4' },
+  { nome: 'Taxas de Cartão & Adquirentes', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#e11d48' },
+  { nome: 'Equipe & Folha Operacional', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#6366f1' },
+  { nome: 'Aluguel & Contas Fixas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#64748b' },
+  { nome: 'Higiene & Limpeza', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#14b8a6' },
+  { nome: 'Vendas Balcão / Salão', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#00cc4b' },
+  { nome: 'Vendas Delivery & Marketplaces', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#1c6cff' },
+  { nome: 'Vendas Canal Próprio', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#10b981' },
 ];
 
 const sanitizarNome = (nome: string) => nome
@@ -89,17 +85,6 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
     setNovaCatTipo(preset.tipo);
     setNovaCatCor(preset.cor);
     setMostrarNovaCategoria(true);
-  }
-
-  function aplicarEmoji(emoji: string, isEdicao = false) {
-    if (isEdicao) {
-      // Se já começa com emoji, substitui; senão insere no início
-      const semEmoji = editCatNome.replace(/^[\p{Extended_Pictographic}\uFE0F\s]+/u, '');
-      setEditCatNome(`${emoji} ${semEmoji}`.trim());
-    } else {
-      const semEmoji = novaCatNome.replace(/^[\p{Extended_Pictographic}\uFE0F\s]+/u, '');
-      setNovaCatNome(`${emoji} ${semEmoji}`.trim());
-    }
   }
 
   function iniciarEdicaoCategoria(cat: CategoriaDto) {
@@ -278,11 +263,11 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
           </Button>
         </div>
 
-        {/* Modelos Sugeridos para Pizzaria / Alimentação */}
+        {/* Modelos Sugeridos para Comércio & Alimentação */}
         <div className="p-3.5 rounded-2xl bg-secondary/20 border border-border/60">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-mono">
-              <span>🍕</span> Modelos Sugeridos para Pizzaria:
+              <Store className="w-3.5 h-3.5 text-primary" /> Modelos Sugeridos para Comércio & Alimentação:
             </p>
             <span className="text-[10px] text-muted-foreground">Clique para preencher rápido</span>
           </div>
@@ -318,21 +303,6 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
                   disabled={salvandoNova}
                   className="bg-secondary border-border"
                 />
-                {/* Seletor Rápido de Emojis */}
-                <div className="flex items-center gap-1 mt-2 overflow-x-auto pb-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase mr-1">Ícone:</span>
-                  {QUICK_EMOJIS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => aplicarEmoji(emoji, false)}
-                      className="hover:bg-primary/15 hover:scale-125 transition-transform p-1 rounded text-sm shrink-0"
-                      title={`Adicionar ${emoji}`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <select
@@ -498,21 +468,6 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
               onChange={(e) => setEditCatNome(sanitizarNome(e.target.value))}
               className="bg-secondary border-border"
             />
-            {/* Seletor Rápido de Emojis na Edição */}
-            <div className="flex items-center gap-1 mt-2 overflow-x-auto pb-1">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase mr-1">Ícone:</span>
-              {QUICK_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => aplicarEmoji(emoji, true)}
-                  className="hover:bg-primary/15 hover:scale-125 transition-transform p-1 rounded text-sm shrink-0"
-                  title={`Adicionar ${emoji}`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
           </div>
 
           <div>

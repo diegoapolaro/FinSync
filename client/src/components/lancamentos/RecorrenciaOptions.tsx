@@ -1,5 +1,5 @@
 import React from 'react';
-import { Repeat } from 'lucide-react';
+import { Repeat, Info } from 'lucide-react';
 import { Input } from '../ui/input';
 import { FREQUENCIA_RECORRENCIA } from '../../utils/constants';
 import { cn } from '@/lib/utils';
@@ -67,8 +67,9 @@ export default function RecorrenciaOptions({
             className="h-10 rounded-xl bg-secondary border-border text-xs"
           />
         )}
-        <p className="text-[11px] text-muted-foreground/80">
-          💡 Projeta automaticamente as faturas e lançamentos dos próximos 12 meses.
+        <p className="text-[11px] text-muted-foreground/80 flex items-center gap-1.5">
+          <Info className="w-3.5 h-3.5 text-primary/80 shrink-0" />
+          <span>Projeta automaticamente as faturas e lançamentos dos próximos 12 meses.</span>
         </p>
       </div>
     </div>

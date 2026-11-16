@@ -501,10 +501,25 @@ export default function PeriodoPicker({
                     className="w-full"
                   />
 
-                  <div className="text-[11px] text-center text-muted-foreground mt-1 mb-1 font-medium select-none">
-                    {!rangeDraft.from && '👉 Clique em um dia para definir a data inicial'}
-                    {rangeDraft.from && !rangeDraft.to && '👉 Clique na data final (ou clique no mesmo dia para desmarcar)'}
-                    {rangeDraft.from && rangeDraft.to && '✅ Intervalo selecionado! Clique em Concluir para fechar'}
+                  <div className="text-[11px] text-center text-muted-foreground mt-1 mb-1 font-medium select-none flex items-center justify-center gap-1.5">
+                    {!rangeDraft.from && (
+                      <>
+                        <CalendarIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span>Selecione um dia para definir a data inicial</span>
+                      </>
+                    )}
+                    {rangeDraft.from && !rangeDraft.to && (
+                      <>
+                        <CalendarIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span>Selecione a data final do intervalo</span>
+                      </>
+                    )}
+                    {rangeDraft.from && rangeDraft.to && (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 stroke-[2.5]" />
+                        <span className="text-foreground font-semibold">Intervalo selecionado. Clique em Concluir para fechar.</span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

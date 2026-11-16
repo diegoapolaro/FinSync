@@ -18,6 +18,7 @@ import {
   TrendingUp,
   ArrowDownLeft,
   ArrowUpRight,
+  Star,
 } from 'lucide-react';
 
 /* ─── Indicador de Força de Senha ──────────────────────── */
@@ -236,7 +237,8 @@ function BrandPanel() {
             <div className="w-px h-6 bg-brand-borderDark hidden sm:block" />
             <div className="hidden sm:block">
               <div className="flex items-center gap-1 text-brand-lime font-bold text-xs">
-                <span>★ 4.9</span>
+                <Star className="w-3.5 h-3.5 fill-brand-lime text-brand-lime shrink-0" />
+                <span>4.9</span>
                 <span className="text-[11px] text-brand-darkMuted font-normal">/5.0</span>
               </div>
               <span className="text-[11px] text-brand-darkMuted">Satisfação dos clientes</span>

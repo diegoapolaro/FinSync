@@ -570,8 +570,8 @@ export default function PerfilSection() {
                         {preset.label}
                       </span>
                       {isSelected && (
-                        <div className="absolute top-1 right-1 w-4 h-4 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-[10px]">
-                          ✓
+                        <div className="absolute top-1 right-1 w-4 h-4 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
                         </div>
                       )}
                     </button>
