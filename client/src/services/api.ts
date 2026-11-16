@@ -384,6 +384,14 @@ export async function updateCategoria(id: string, categoria: UpdateCategoriaDto)
   });
 }
 
+export async function sugerirCategoriasIa(negocio: string): Promise<SugestaoIaDto[]> {
+  return authFetch<SugestaoIaDto[]>(url('/categorias/sugerir-ia'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ negocio }),
+  });
+}
+
 export async function getDetalhamento(contaId: string | null, dataInicio: string, dataFim: string): Promise<DetalhamentoCategoriaDto[]> {
   const params = new URLSearchParams();
   if (contaId) params.set('contaId', contaId);

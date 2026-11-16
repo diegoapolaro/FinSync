@@ -1,15 +1,25 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using FinSync.Services;
 
 namespace FinSync.Features.Categorias;
+
+public record SugerirCategoriasRequest(string? Negocio);
 
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class CategoriasController(ICategoriaService categoriaService) : ControllerBase
+public class CategoriasController(ICategoriaService categoriaService, IGeminiService geminiService) : ControllerBase
 {
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    [HttpPost("sugerir-ia")]
+    public async Task<ActionResult<List<SugestaoCategoriaIaDto>>> SugerirCategoriasIa([FromBody] SugerirCategoriasRequest request, CancellationToken cancellationToken)
+    {
+        var sugestoes = await geminiService.GerarSugestoesCategoriasAsync(request.Negocio ?? string.Empty, cancellationToken);
+        return Ok(sugestoes);
+    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CategoriaDto>>> GetCategorias()

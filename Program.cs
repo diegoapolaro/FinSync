@@ -80,6 +80,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddHttpClient("GeminiClient");
+builder.Services.AddScoped<FinSync.Services.IGeminiService, FinSync.Services.GeminiService>();
 builder.Services.AddScoped<IContaService, ContaService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IRecorrenciaService, RecorrenciaService>();

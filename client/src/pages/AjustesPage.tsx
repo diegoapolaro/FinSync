@@ -364,7 +364,7 @@ export default function AjustesPage(): React.ReactElement {
           <ContasSection contas={contas} setContas={setContas} />
 
           {/* Seção C: Plano de Contas & Centros de Custo (DRE) */}
-          <CategoriasSection categorias={categorias} setCategorias={setCategorias} />
+          <CategoriasSection categorias={categorias} setCategorias={setCategorias} contaNome={contaAtiva?.nome} />
 
           {/* Seção D: Moeda, Idioma, Regionalização & Toggles Inteligentes */}
           <PreferenciasSection />

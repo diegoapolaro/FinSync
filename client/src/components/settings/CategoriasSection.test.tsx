@@ -20,10 +20,10 @@ describe('CategoriasSection.jsx', () => {
     mockSetCategorias.mockClear();
   });
 
-  function renderSection(categorias = mockCategorias) {
+  function renderSection(categorias = mockCategorias, contaNome = 'Pizzaria Express') {
     return render(
       <ToastProvider>
-        <CategoriasSection categorias={categorias} setCategorias={mockSetCategorias} />
+        <CategoriasSection categorias={categorias} setCategorias={mockSetCategorias} contaNome={contaNome} />
       </ToastProvider>,
     );
   }
@@ -112,6 +112,41 @@ describe('CategoriasSection.jsx', () => {
         tipo: 'Saida',
         cor: '#f59e0b',
       });
+    });
+  });
+
+  it('deve detectar segmento de barbearia e exibir modelos sem emojis', () => {
+    renderSection(mockCategorias, 'Barbearia Vintage Club');
+
+    expect(screen.getByText(/Modelos Sugeridos para Barbearia & Cuidados/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Cortes & Barba/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Lâminas & Descartáveis/i })).toBeInTheDocument();
+
+    // Valida que nenhum emoji está presente nos botões de preset
+    const botoes = screen.getAllByRole('button');
+    const regexEmoji = /\p{Extended_Pictographic}/u;
+    botoes.forEach((btn) => {
+      expect(regexEmoji.test(btn.textContent || '')).toBe(false);
+    });
+  });
+
+  it('deve chamar API de IA ao clicar em Gerar com IA e atualizar os modelos sugeridos', async () => {
+    const mockIaResponse = [
+      { nome: 'Cortes Especiais', tipo: 'Entrada', cor: '#00cc4b' },
+      { nome: 'Navalhas e Insumos', tipo: 'Saida', cor: '#ef4444' },
+    ];
+    vi.spyOn(api, 'sugerirCategoriasIa').mockResolvedValue(mockIaResponse);
+
+    renderSection(mockCategorias, 'Barbearia Premium');
+
+    const btnIa = screen.getByRole('button', { name: /Gerar com IA/i });
+    fireEvent.click(btnIa);
+
+    await waitFor(() => {
+      expect(api.sugerirCategoriasIa).toHaveBeenCalledWith('Barbearia Premium');
+      expect(screen.getByText(/Modelos Gerados por IA para: Barbearia Premium/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Cortes Especiais/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Navalhas e Insumos/i })).toBeInTheDocument();
     });
   });
 });

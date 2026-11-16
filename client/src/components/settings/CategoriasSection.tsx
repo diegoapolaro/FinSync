@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { Tag, Plus, Edit2, Store } from 'lucide-react';
-import { createCategoria, updateCategoria } from '../../services/api';
+import { useState, useMemo, useEffect } from 'react';
+import { Tag, Plus, Edit2, Store, Sparkles, Loader2, RotateCcw } from 'lucide-react';
+import { createCategoria, updateCategoria, sugerirCategoriasIa } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import { TIPO_TRANSACAO } from '../../utils/constants';
+import usePreferencias from '../../hooks/usePreferencias';
+import { detectarSegmentoComercial, PresetCategoria, PRESETS_ALIMENTACAO } from '../../utils/businessCategoryPresets';
 import SettingsSection from './SettingsSection';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { cn } from '@/lib/utils';
-import type { CategoriaDto } from '@/types';
+import type { CategoriaDto, SugestaoIaDto } from '@/types';
 import { TipoTransacao } from '@/types/enums';
 
 export const CATEGORY_COLORS = [
@@ -39,21 +41,8 @@ export const CATEGORY_COLORS = [
   '#64748b', // Slate (Fixas / Aluguel)
 ];
 
-export const PIZZARIA_PRESETS = [
-  { nome: 'Insumos & Matéria-Prima', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#f59e0b' },
-  { nome: 'Hortifruti & Molhos', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#ef4444' },
-  { nome: 'Embalagens & Descartáveis', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#8b5cf6' },
-  { nome: 'Logística & Entregas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#0ea5e9' },
-  { nome: 'Gás, Energia & Manutenção', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#f97316' },
-  { nome: 'Bebidas & Estoque Seco', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#06b6d4' },
-  { nome: 'Taxas de Cartão & Adquirentes', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#e11d48' },
-  { nome: 'Equipe & Folha Operacional', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#6366f1' },
-  { nome: 'Aluguel & Contas Fixas', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#64748b' },
-  { nome: 'Higiene & Limpeza', tipo: TIPO_TRANSACAO.SAIDA as TipoTransacao, cor: '#14b8a6' },
-  { nome: 'Vendas Balcão / Salão', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#00cc4b' },
-  { nome: 'Vendas Delivery & Marketplaces', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#1c6cff' },
-  { nome: 'Vendas Canal Próprio', tipo: TIPO_TRANSACAO.ENTRADA as TipoTransacao, cor: '#10b981' },
-];
+// Mantido para retrocompatibilidade
+export const PIZZARIA_PRESETS = PRESETS_ALIMENTACAO;
 
 const sanitizarNome = (nome: string) => nome
   .replace(/[""]/g, '"')
@@ -63,10 +52,12 @@ const sanitizarNome = (nome: string) => nome
 interface Props {
   categorias: CategoriaDto[];
   setCategorias: React.Dispatch<React.SetStateAction<CategoriaDto[]>>;
+  contaNome?: string;
 }
 
-export default function CategoriasSection({ categorias, setCategorias }: Props) {
+export default function CategoriasSection({ categorias, setCategorias, contaNome }: Props) {
   const { addToast } = useToast();
+  const prefs = usePreferencias();
 
   const [mostrarNovaCategoria, setMostrarNovaCategoria] = useState(false);
   const [novaCatNome, setNovaCatNome] = useState('');
@@ -74,13 +65,71 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
   const [novaCatCor, setNovaCatCor] = useState(CATEGORY_COLORS[0]);
   const [salvandoNova, setSalvandoNova] = useState(false);
 
+  // Estados de IA e Detecção de Comércio
+  const nomeNegocioPadrao = useMemo(() => {
+    return contaNome || prefs.empresaNomeFantasia || prefs.empresaRazaoSocial || '';
+  }, [contaNome, prefs.empresaNomeFantasia, prefs.empresaRazaoSocial]);
+
+  const [termoNegocio, setTermoNegocio] = useState('');
+  const [gerandoIa, setGerandoIa] = useState(false);
+  const [sugestoesIa, setSugestoesIa] = useState<PresetCategoria[] | null>(null);
+
+  useEffect(() => {
+    if (nomeNegocioPadrao && !termoNegocio) {
+      setTermoNegocio(nomeNegocioPadrao);
+    }
+  }, [nomeNegocioPadrao]);
+
+  // Segmento base detectado via heurística inteligente
+  const segmentoDetectado = useMemo(() => {
+    return detectarSegmentoComercial(termoNegocio || nomeNegocioPadrao);
+  }, [termoNegocio, nomeNegocioPadrao]);
+
+  // Lista de presets ativa (se a IA gerou, exibe da IA; caso contrário exibe o detectado)
+  const presetsExibidos = useMemo(() => {
+    if (sugestoesIa && sugestoesIa.length > 0) {
+      return sugestoesIa;
+    }
+    return segmentoDetectado.presets;
+  }, [sugestoesIa, segmentoDetectado]);
+
+  async function handleGerarComIa() {
+    const busca = termoNegocio.trim() || nomeNegocioPadrao.trim() || 'Comercio Geral';
+    try {
+      setGerandoIa(true);
+      const resultado = await sugerirCategoriasIa(busca);
+      if (resultado && resultado.length > 0) {
+        const mapeados: PresetCategoria[] = resultado.map((item) => ({
+          nome: item.nome,
+          tipo: item.tipo === 'Entrada' ? (TIPO_TRANSACAO.ENTRADA as TipoTransacao) : (TIPO_TRANSACAO.SAIDA as TipoTransacao),
+          cor: item.cor || CATEGORY_COLORS[0],
+        }));
+        setSugestoesIa(mapeados);
+        addToast(`Modelos para "${busca}" gerados com sucesso pelo Gemini IA!`, 'success');
+      } else {
+        setSugestoesIa(segmentoDetectado.presets);
+        addToast('Modelos recomendados aplicados.', 'info');
+      }
+    } catch (err: any) {
+      // Se falhar a chamada da IA, usa o fallback sem travar a interface
+      setSugestoesIa(segmentoDetectado.presets);
+      addToast('Não foi possível conectar ao Gemini. Usando modelos inteligentes locais.', 'info');
+    } finally {
+      setGerandoIa(false);
+    }
+  }
+
+  function handleResetarSugestoes() {
+    setSugestoesIa(null);
+  }
+
   const [editandoCategoria, setEditandoCategoria] = useState<CategoriaDto | null>(null);
   const [editCatNome, setEditCatNome] = useState('');
   const [editCatTipo, setEditCatTipo] = useState<string>(TIPO_TRANSACAO.SAIDA);
   const [editCatCor, setEditCatCor] = useState(CATEGORY_COLORS[0]);
   const [isSavingCategoria, setIsSavingCategoria] = useState(false);
 
-  function aplicarPreset(preset: typeof PIZZARIA_PRESETS[0]) {
+  function aplicarPreset(preset: PresetCategoria) {
     setNovaCatNome(preset.nome);
     setNovaCatTipo(preset.tipo);
     setNovaCatCor(preset.cor);
@@ -263,27 +312,85 @@ export default function CategoriasSection({ categorias, setCategorias }: Props) 
           </Button>
         </div>
 
-        {/* Modelos Sugeridos para Comércio & Alimentação */}
-        <div className="p-3.5 rounded-2xl bg-secondary/20 border border-border/60">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-mono">
-              <Store className="w-3.5 h-3.5 text-primary" /> Modelos Sugeridos para Comércio & Alimentação:
-            </p>
-            <span className="text-[10px] text-muted-foreground">Clique para preencher rápido</span>
+        {/* Modelos Sugeridos com Gemini IA & Heurística de Comércio (Zero Emojis) */}
+        <div className="p-4 rounded-2xl bg-secondary/20 border border-border/60 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5 font-mono">
+                  {sugestoesIa
+                    ? `Modelos Gerados por IA para: ${termoNegocio || 'Seu Negócio'}`
+                    : `Modelos Sugeridos para ${segmentoDetectado.titulo}`}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {sugestoesIa
+                    ? 'Sugestões exclusivas geradas pelo Gemini. Clique para aplicar rápido.'
+                    : `Segmento identificado a partir do cadastro comercial. Clique para preencher rápido.`}
+                </p>
+              </div>
+            </div>
+
+            {/* Input e Ação de Geração com Gemini */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <Input
+                value={termoNegocio}
+                onChange={(e) => setTermoNegocio(e.target.value)}
+                placeholder="Ex: Barbearia, Pizzaria, Oficina..."
+                className="h-8 text-xs rounded-xl bg-background border-border max-w-[200px]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleGerarComIa();
+                  }
+                }}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGerarComIa}
+                disabled={gerandoIa}
+                className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1.5 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary shrink-0"
+              >
+                {gerandoIa ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                <span>Gerar com IA</span>
+              </Button>
+              {sugestoesIa && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleResetarSugestoes}
+                  title="Restaurar sugestões padrão do segmento"
+                  className="h-8 w-8 p-0 rounded-xl text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {PIZZARIA_PRESETS.map((preset) => (
+
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {presetsExibidos.map((preset) => (
               <button
                 key={preset.nome}
                 type="button"
                 onClick={() => aplicarPreset(preset)}
-                className="text-xs font-medium px-2.5 py-1 rounded-lg border border-border/80 bg-background hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                className="text-xs font-medium px-2.5 py-1.5 rounded-lg border border-border/80 bg-background hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
               >
                 <span
                   className="w-2.5 h-2.5 rounded-full shrink-0"
                   style={{ backgroundColor: preset.cor }}
                 />
-                {preset.nome}
+                <span>{preset.nome}</span>
+                <span className="text-[10px] text-muted-foreground/80 font-mono">
+                  ({preset.tipo === TIPO_TRANSACAO.ENTRADA ? 'Rec' : 'Desp'})
+                </span>
               </button>
             ))}
           </div>

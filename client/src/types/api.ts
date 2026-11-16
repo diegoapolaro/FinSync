@@ -179,6 +179,12 @@ export interface CategoriaDto {
   tipo: TipoTransacao;
 }
 
+export interface SugestaoIaDto {
+  nome: string;
+  tipo: TipoTransacao | string;
+  cor: string;
+}
+
 // ── Orçamentos ────────────────────────────────────────────────────────
 
 export interface CreateOrcamentoDto {
