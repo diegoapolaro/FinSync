@@ -85,14 +85,16 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-200"
-      onClick={() => onOpenChange?.(false)}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onOpenChange?.(false);
+      }}
     >
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        className="w-full max-w-lg rounded-3xl bg-card p-6 shadow-card border text-card-foreground animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg rounded-3xl bg-card p-6 shadow-card border text-card-foreground animate-in zoom-in-95 duration-200 max-h-[calc(100vh-2rem)] overflow-y-auto custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

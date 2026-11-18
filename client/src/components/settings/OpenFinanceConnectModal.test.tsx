@@ -182,6 +182,9 @@ describe('OpenFinanceConnectModal', () => {
         instituicaoCodigo: '341',
         tipoConta: 'Comercial',
         nomePersonalizado: 'Conta PJ Itaú',
+        agencia: null,
+        numeroConta: null,
+        chavePix: null,
         cenarioSandbox: true,
       });
       expect(onContaConectada).toHaveBeenCalledWith(respostaConexao);
@@ -189,6 +192,47 @@ describe('OpenFinanceConnectModal', () => {
       expect(
         screen.getByText(/Conta conectada com sucesso! 12 lançamento\(s\) importado\(s\)\./),
       ).toBeInTheDocument();
+    });
+  });
+
+  it('não conecta nem fecha ao avançar para a etapa de configuração', async () => {
+    renderModal();
+
+    await waitFor(() => expect(screen.getByText('Itaú Unibanco S.A.')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Itaú/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Continuar/i }));
+
+    // A etapa 2 deve apenas abrir — a conexão exige clique explícito no botão final.
+    expect(screen.getByText('Consentimento regulado pelo BACEN')).toBeInTheDocument();
+    expect(api.conectarOpenFinance).not.toHaveBeenCalled();
+    expect(onContaConectada).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('envia agência, número da conta e chave Pix preenchidos', async () => {
+    renderModal();
+
+    await waitFor(() => expect(screen.getByText('Nubank')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Nubank/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Continuar/i }));
+
+    fireEvent.change(screen.getByLabelText('Agência'), { target: { value: '1234' } });
+    fireEvent.change(screen.getByLabelText('Número da Conta'), { target: { value: '56789-0' } });
+    fireEvent.change(screen.getByLabelText(/Chave Pix/), {
+      target: { value: 'financeiro@empresa.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Conectar via Open Finance/i }));
+
+    await waitFor(() => {
+      expect(api.conectarOpenFinance).toHaveBeenCalledWith({
+        instituicaoCodigo: '260',
+        tipoConta: 'Pessoal',
+        nomePersonalizado: null,
+        agencia: '1234',
+        numeroConta: '56789-0',
+        chavePix: 'financeiro@empresa.com',
+        cenarioSandbox: false,
+      });
     });
   });
 

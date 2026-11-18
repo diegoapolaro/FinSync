@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -81,6 +81,9 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
   const [etapa, setEtapa] = useState<1 | 2>(1);
   const [codigoSelecionado, setCodigoSelecionado] = useState<string | null>(null);
   const [nomeConta, setNomeConta] = useState('');
+  const [agencia, setAgencia] = useState('');
+  const [numeroConta, setNumeroConta] = useState('');
+  const [chavePix, setChavePix] = useState('');
   const [tipoConta, setTipoConta] = useState<TipoConta>('Pessoal');
   const [cenario, setCenario] = useState<CenarioId>('padrao');
   const [conectando, setConectando] = useState(false);
@@ -107,6 +110,9 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
     setEtapa(1);
     setCodigoSelecionado(null);
     setNomeConta('');
+    setAgencia('');
+    setNumeroConta('');
+    setChavePix('');
     setTipoConta('Pessoal');
     setCenario('padrao');
     setConectando(false);
@@ -129,9 +135,11 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
     setNomeConta((atual) => (atual.trim() ? atual : selecionado.nomeSugerido));
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!codigoSelecionado || conectando) return;
+  async function handleConnect() {
+    // A conexão só pode ocorrer por clique explícito na etapa 2. Sem <form>,
+    // um submit implícito (Enter ou clique acidental no botão que troca de
+    // lugar com "Continuar") não pode criar a conta sozinho.
+    if (etapa !== 2 || !codigoSelecionado || conectando) return;
 
     const selecionado = CENARIOS.find((item) => item.id === cenario) ?? CENARIOS[2];
     setConectando(true);
@@ -146,6 +154,9 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
         instituicaoCodigo: codigoSelecionado,
         tipoConta,
         nomePersonalizado: nomeConta.trim() || null,
+        agencia: agencia.trim() || null,
+        numeroConta: numeroConta.trim() || null,
+        chavePix: chavePix.trim() || null,
         cenarioSandbox: selecionado.cenarioSandbox,
       });
       const importadas = response?.sincronizacao?.novasTransacoes ?? 0;
@@ -164,7 +175,7 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
 
   return (
     <Dialog open={open} onOpenChange={fechar}>
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-5">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-forest-ink text-lime-voltage flex items-center justify-center shrink-0">
@@ -343,6 +354,57 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
               />
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="agencia-open-finance"
+                  className="text-xs font-bold text-foreground uppercase tracking-wider block"
+                >
+                  Agência
+                </label>
+                <Input
+                  id="agencia-open-finance"
+                  value={agencia}
+                  onChange={(event) => setAgencia(event.target.value)}
+                  placeholder="Ex: 0000"
+                  inputMode="numeric"
+                  disabled={conectando}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="numero-conta-open-finance"
+                  className="text-xs font-bold text-foreground uppercase tracking-wider block"
+                >
+                  Número da Conta
+                </label>
+                <Input
+                  id="numero-conta-open-finance"
+                  value={numeroConta}
+                  onChange={(event) => setNumeroConta(event.target.value)}
+                  placeholder="Ex: 00000-0"
+                  disabled={conectando}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="chave-pix-open-finance"
+                className="text-xs font-bold text-foreground uppercase tracking-wider block"
+              >
+                Chave Pix{' '}
+                <span className="normal-case font-normal text-muted-foreground">(opcional)</span>
+              </label>
+              <Input
+                id="chave-pix-open-finance"
+                value={chavePix}
+                onChange={(event) => setChavePix(event.target.value)}
+                placeholder="CPF, e-mail, telefone ou chave aleatória"
+                disabled={conectando}
+              />
+            </div>
+
             <div className="space-y-2">
               <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
                 Tipo de Conta
@@ -483,7 +545,8 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
             </Button>
           ) : (
             <Button
-              type="submit"
+              type="button"
+              onClick={handleConnect}
               disabled={conectando || !codigoSelecionado}
               className="bg-lime-voltage text-forest-ink hover:bg-lime-voltage/90 font-bold gap-2"
             >
@@ -501,7 +564,7 @@ export default function OpenFinanceConnectModal({ open, onOpenChange, onContaCon
             </Button>
           )}
         </DialogFooter>
-      </form>
+      </div>
     </Dialog>
   );
 }
