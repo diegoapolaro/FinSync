@@ -174,4 +174,14 @@ public class OpenFinanceControllerTests : ServiceTestBase
         Assert.Equal(0, await Context.Contas.CountAsync());
         Assert.Equal(0, await Context.Transacoes.CountAsync());
     }
+
+    [Fact]
+    public void OpenFinanceController_Rota_DeveCorresponderAoContratoDoCliente()
+    {
+        var rotas = typeof(OpenFinanceController).GetCustomAttributes(typeof(RouteAttribute), false);
+        var rota = Assert.IsType<RouteAttribute>(Assert.Single(rotas));
+
+        // O cliente chama /api/open-finance/instituicoes e /api/open-finance/conectar.
+        Assert.Equal("api/open-finance", rota.Template);
+    }
 }

@@ -14,7 +14,7 @@ namespace FinSync.Features.OpenFinance;
 /// </summary>
 [ApiController]
 [Authorize]
-[Route("api/[controller]")]
+[Route("api/open-finance")]
 public class OpenFinanceController(
     IOpenFinanceProvider provider,
     IContaService contaService,
