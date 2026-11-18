@@ -83,7 +83,8 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
                 NumeroParcela = t.NumeroParcela,
                 TotalParcelas = t.TotalParcelas,
                 RecorrenciaId = t.RecorrenciaId,
-                FrequenciaRecorrencia = t.Recorrencia != null ? t.Recorrencia.Frequencia : null
+                FrequenciaRecorrencia = t.Recorrencia != null ? t.Recorrencia.Frequencia : null,
+                ExternalTransactionId = t.ExternalTransactionId
             })
             .ToListAsync();
 
@@ -124,7 +125,8 @@ public class TransacaoService(FinSyncDbContext context) : ITransacaoService
             NumeroParcela = t.NumeroParcela,
             TotalParcelas = t.TotalParcelas,
             RecorrenciaId = t.RecorrenciaId,
-            FrequenciaRecorrencia = t.Recorrencia?.Frequencia
+            FrequenciaRecorrencia = t.Recorrencia?.Frequencia,
+            ExternalTransactionId = t.ExternalTransactionId
         };
     }
 

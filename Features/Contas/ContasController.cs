@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FinSync.Services.OpenFinance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,9 @@ namespace FinSync.Features.Contas;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class ContasController(IContaService contaService) : ControllerBase
+public class ContasController(
+    IContaService contaService,
+    IOpenFinanceSyncService openFinanceSyncService) : ControllerBase
 {
     private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -54,6 +57,35 @@ public class ContasController(IContaService contaService) : ControllerBase
         var toggled = await contaService.ToggleArchiveAsync(id, UsuarioId);
         if (!toggled) return NotFound();
         return NoContent();
+    }
+
+    /// <summary>Importa o extrato mais recente de uma conta conectada.</summary>
+    [HttpPost("{id:int}/sincronizar")]
+    public async Task<ActionResult<ResumoSincronizacaoDto>> Sincronizar(int id)
+    {
+        if (!await contaService.ExistsAsync(id, UsuarioId)) return NotFound();
+
+        var resumo = await openFinanceSyncService.SincronizarContaAsync(id, UsuarioId);
+        return Ok(resumo);
+    }
+
+    /// <summary>Sincroniza em lote todas as contas com Open Finance do usuário.</summary>
+    [HttpPost("sincronizar-todas")]
+    public async Task<ActionResult<RelatorioSincronizacaoDto>> SincronizarTodas()
+    {
+        return Ok(await openFinanceSyncService.SincronizarTodasAsync(UsuarioId));
+    }
+
+    /// <summary>
+    /// Desconecta a conta do provedor preservando os lançamentos já importados.
+    /// </summary>
+    [HttpPost("{id:int}/desconectar-open-finance")]
+    public async Task<ActionResult<ContaDto>> DesconectarOpenFinance(int id)
+    {
+        var conta = await contaService.DesconectarOpenFinanceAsync(id, UsuarioId);
+        if (conta is null) return NotFound();
+
+        return Ok(conta);
     }
 
     [HttpDelete("{id:int}")]

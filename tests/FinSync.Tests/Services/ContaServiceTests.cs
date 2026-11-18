@@ -181,4 +181,76 @@ public class ContaServiceTests : ServiceTestBase
         Assert.False(success);
         Assert.Null(error);
     }
+
+    [Fact]
+    public async Task CreateAsync_ComDadosOpenFinance_DevePersistirEMapearCorretamente()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var service = new ContaService(Context);
+        var dto = new CreateContaDto
+        {
+            Nome = "Banco Inter PJ",
+            Tipo = TipoConta.Comercial,
+            InstituicaoCodigo = "077",
+            InstituicaoNome = "Banco Inter",
+            Agencia = "0001",
+            NumeroConta = "1234567-8",
+            ChavePix = "pj@inter.com.br",
+            Provedor = ProvedorOpenFinance.MockSandbox,
+            ExternalItemId = "mock_item_077"
+        };
+
+        var result = await service.CreateAsync(dto, usuario.Id);
+
+        Assert.NotEqual(0, result.Id);
+        Assert.Equal("Banco Inter PJ", result.Nome);
+        Assert.Equal("077", result.InstituicaoCodigo);
+        Assert.Equal("Banco Inter", result.InstituicaoNome);
+        Assert.Equal("0001", result.Agencia);
+        Assert.Equal("1234567-8", result.NumeroConta);
+        Assert.Equal("pj@inter.com.br", result.ChavePix);
+        Assert.Equal(ProvedorOpenFinance.MockSandbox, result.Provedor);
+        Assert.Equal("mock_item_077", result.ExternalItemId);
+        Assert.Equal(StatusSincronizacao.Sincronizado, result.StatusSincronizacao);
+        Assert.NotNull(result.UltimaSincronizacaoEm);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ComDadosBancarios_DeveAtualizarCorretamente()
+    {
+        var usuario = await CriarUsuarioAsync();
+        var conta = new Conta
+        {
+            Nome = "Conta Inicial",
+            Tipo = TipoConta.Pessoal,
+            UsuarioId = usuario.Id
+        };
+        Context.Contas.Add(conta);
+        await Context.SaveChangesAsync();
+
+        var service = new ContaService(Context);
+        var updateDto = new UpdateContaDto
+        {
+            Nome = "Conta Atualizada",
+            Tipo = TipoConta.Pessoal,
+            InstituicaoCodigo = "260",
+            InstituicaoNome = "Nubank",
+            Agencia = "0001",
+            NumeroConta = "998877-6",
+            ChavePix = "chave@pix.com",
+            Provedor = ProvedorOpenFinance.MockSandbox,
+            StatusSincronizacao = StatusSincronizacao.Sincronizado
+        };
+
+        var ok = await service.UpdateAsync(conta.Id, updateDto, usuario.Id);
+        Assert.True(ok);
+
+        var atualizado = await service.GetByIdAsync(conta.Id, usuario.Id);
+        Assert.NotNull(atualizado);
+        Assert.Equal("Conta Atualizada", atualizado.Nome);
+        Assert.Equal("260", atualizado.InstituicaoCodigo);
+        Assert.Equal("Nubank", atualizado.InstituicaoNome);
+        Assert.Equal("998877-6", atualizado.NumeroConta);
+        Assert.Equal(StatusSincronizacao.Sincronizado, atualizado.StatusSincronizacao);
+    }
 }

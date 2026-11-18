@@ -17,7 +17,17 @@ public class ContaService(FinSyncDbContext context) : IContaService
                 Id = c.Id,
                 Nome = c.Nome,
                 Tipo = c.Tipo,
-                Arquivada = c.Arquivada
+                Arquivada = c.Arquivada,
+                InstituicaoCodigo = c.InstituicaoCodigo,
+                InstituicaoNome = c.InstituicaoNome,
+                Agencia = c.Agencia,
+                NumeroConta = c.NumeroConta,
+                ChavePix = c.ChavePix,
+                Provedor = c.Provedor,
+                ExternalItemId = c.ExternalItemId,
+                StatusSincronizacao = c.StatusSincronizacao,
+                UltimaSincronizacaoEm = c.UltimaSincronizacaoEm,
+                MensagemErroSincronizacao = c.MensagemErroSincronizacao
             })
             .ToListAsync();
     }
@@ -33,7 +43,17 @@ public class ContaService(FinSyncDbContext context) : IContaService
             Id = conta.Id,
             Nome = conta.Nome,
             Tipo = conta.Tipo,
-            Arquivada = conta.Arquivada
+            Arquivada = conta.Arquivada,
+            InstituicaoCodigo = conta.InstituicaoCodigo,
+            InstituicaoNome = conta.InstituicaoNome,
+            Agencia = conta.Agencia,
+            NumeroConta = conta.NumeroConta,
+            ChavePix = conta.ChavePix,
+            Provedor = conta.Provedor,
+            ExternalItemId = conta.ExternalItemId,
+            StatusSincronizacao = conta.StatusSincronizacao,
+            UltimaSincronizacaoEm = conta.UltimaSincronizacaoEm,
+            MensagemErroSincronizacao = conta.MensagemErroSincronizacao
         };
     }
 
@@ -48,6 +68,15 @@ public class ContaService(FinSyncDbContext context) : IContaService
         {
             Nome = dto.Nome,
             Tipo = dto.Tipo,
+            InstituicaoCodigo = dto.InstituicaoCodigo,
+            InstituicaoNome = dto.InstituicaoNome,
+            Agencia = dto.Agencia,
+            NumeroConta = dto.NumeroConta,
+            ChavePix = dto.ChavePix,
+            Provedor = dto.Provedor,
+            ExternalItemId = dto.ExternalItemId,
+            StatusSincronizacao = dto.Provedor != ProvedorOpenFinance.Manual ? StatusSincronizacao.Sincronizado : StatusSincronizacao.Manual,
+            UltimaSincronizacaoEm = dto.Provedor != ProvedorOpenFinance.Manual ? DateTime.UtcNow : null,
             UsuarioId = usuarioId
         };
 
@@ -59,7 +88,17 @@ public class ContaService(FinSyncDbContext context) : IContaService
             Id = conta.Id,
             Nome = conta.Nome,
             Tipo = conta.Tipo,
-            Arquivada = conta.Arquivada
+            Arquivada = conta.Arquivada,
+            InstituicaoCodigo = conta.InstituicaoCodigo,
+            InstituicaoNome = conta.InstituicaoNome,
+            Agencia = conta.Agencia,
+            NumeroConta = conta.NumeroConta,
+            ChavePix = conta.ChavePix,
+            Provedor = conta.Provedor,
+            ExternalItemId = conta.ExternalItemId,
+            StatusSincronizacao = conta.StatusSincronizacao,
+            UltimaSincronizacaoEm = conta.UltimaSincronizacaoEm,
+            MensagemErroSincronizacao = conta.MensagemErroSincronizacao
         };
     }
 
@@ -72,6 +111,13 @@ public class ContaService(FinSyncDbContext context) : IContaService
         conta.Nome = dto.Nome;
         conta.Tipo = dto.Tipo;
         conta.Arquivada = dto.Arquivada;
+        if (dto.InstituicaoCodigo is not null) conta.InstituicaoCodigo = dto.InstituicaoCodigo;
+        if (dto.InstituicaoNome is not null) conta.InstituicaoNome = dto.InstituicaoNome;
+        if (dto.Agencia is not null) conta.Agencia = dto.Agencia;
+        if (dto.NumeroConta is not null) conta.NumeroConta = dto.NumeroConta;
+        if (dto.ChavePix is not null) conta.ChavePix = dto.ChavePix;
+        if (dto.Provedor.HasValue) conta.Provedor = dto.Provedor.Value;
+        if (dto.StatusSincronizacao.HasValue) conta.StatusSincronizacao = dto.StatusSincronizacao.Value;
 
         await context.SaveChangesAsync();
         return true;
@@ -86,6 +132,44 @@ public class ContaService(FinSyncDbContext context) : IContaService
         conta.Arquivada = !conta.Arquivada;
         await context.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// Desfaz a integração de Open Finance preservando todo o histórico de
+    /// lançamentos já importados. A conta volta a ser gerenciada manualmente.
+    /// </summary>
+    public async Task<ContaDto?> DesconectarOpenFinanceAsync(int id, int usuarioId)
+    {
+        var conta = await context.Contas
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
+        if (conta is null) return null;
+
+        conta.Provedor = ProvedorOpenFinance.Manual;
+        conta.StatusSincronizacao = StatusSincronizacao.Manual;
+        conta.ExternalItemId = null;
+        conta.MensagemErroSincronizacao = null;
+        // Intencionalmente não removemos as transações: o histórico importado
+        // continua válido e passa a ser editado manualmente pelo usuário.
+
+        await context.SaveChangesAsync();
+
+        return new ContaDto
+        {
+            Id = conta.Id,
+            Nome = conta.Nome,
+            Tipo = conta.Tipo,
+            Arquivada = conta.Arquivada,
+            InstituicaoCodigo = conta.InstituicaoCodigo,
+            InstituicaoNome = conta.InstituicaoNome,
+            Agencia = conta.Agencia,
+            NumeroConta = conta.NumeroConta,
+            ChavePix = conta.ChavePix,
+            Provedor = conta.Provedor,
+            ExternalItemId = conta.ExternalItemId,
+            StatusSincronizacao = conta.StatusSincronizacao,
+            UltimaSincronizacaoEm = conta.UltimaSincronizacaoEm,
+            MensagemErroSincronizacao = conta.MensagemErroSincronizacao
+        };
     }
 
     public async Task<(bool Success, string? Error)> DeleteAsync(int id, int usuarioId)

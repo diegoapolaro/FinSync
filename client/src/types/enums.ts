@@ -35,3 +35,25 @@ export const ModoValorParcelamento = {
 } as const;
 export type ModoValorParcelamento =
   (typeof ModoValorParcelamento)[keyof typeof ModoValorParcelamento];
+
+export const ProvedorOpenFinance = {
+  Manual: 'Manual',
+  MockSandbox: 'MockSandbox',
+  Pluggy: 'Pluggy',
+  Belvo: 'Belvo',
+  Klavi: 'Klavi',
+} as const;
+export type ProvedorOpenFinance =
+  (typeof ProvedorOpenFinance)[keyof typeof ProvedorOpenFinance];
+
+export const StatusSincronizacao = {
+  Manual: 'Manual',
+  Sincronizado: 'Sincronizado',
+  Sincronizando: 'Sincronizando',
+  Pendente: 'Pendente',
+  Falha: 'Falha',
+  Desconectado: 'Desconectado',
+} as const;
+export type StatusSincronizacao =
+  (typeof StatusSincronizacao)[keyof typeof StatusSincronizacao];
+

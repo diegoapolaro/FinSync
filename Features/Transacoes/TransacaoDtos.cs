@@ -87,6 +87,7 @@ public class TransacaoDto
     public int? TotalParcelas { get; set; }
     public int? RecorrenciaId { get; set; }
     public FrequenciaRecorrencia? FrequenciaRecorrencia { get; set; }
+    public string? ExternalTransactionId { get; set; }
 }
 
 public class PagedResponse<T>

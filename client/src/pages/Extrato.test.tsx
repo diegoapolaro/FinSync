@@ -54,6 +54,42 @@ describe('Extrato.jsx category and status filter', () => {
     vi.spyOn(api, 'updateTransacaoStatus').mockResolvedValue({} as any);
   });
 
+  it('deve exibir no banner os dados bancários reais da conta ativa sincronizada', async () => {
+    mockOutletContext.contas = [
+      {
+        id: 1,
+        nome: 'Conta PJ Itaú',
+        tipo: 'Comercial',
+        arquivada: false,
+        instituicaoNome: 'Itaú Unibanco S.A.',
+        instituicaoCodigo: '341',
+        agencia: '0942',
+        numeroConta: '20491-8',
+        statusSincronizacao: 'Sincronizado',
+      },
+    ];
+
+    try {
+      render(
+        <TemaProvider>
+          <MemoryRouter>
+            <Extrato />
+          </MemoryRouter>
+        </TemaProvider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Conta PJ Itaú')[0]).toBeInTheDocument();
+        expect(screen.getAllByText('Itaú Unibanco S.A. (341)')[0]).toBeInTheDocument();
+        expect(screen.getAllByText('Ag 0942 • CC 20491-8')[0]).toBeInTheDocument();
+        expect(screen.getAllByText('Conta Jurídica')[0]).toBeInTheDocument();
+        expect(screen.getAllByText('Open Finance Ativo')[0]).toBeInTheDocument();
+      });
+    } finally {
+      delete mockOutletContext.contas;
+    }
+  });
+
   it('deve renderizar os seletores de categorias e status com as opções carregadas', async () => {
     render(
       <TemaProvider>

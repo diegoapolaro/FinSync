@@ -1,6 +1,5 @@
 import React from 'react';
 import { Store, ShieldCheck, Lock } from 'lucide-react';
-import { Badge } from '../ui/badge';
 
 interface AccountHeroBannerProps {
   contaNome?: string;
@@ -44,9 +43,9 @@ export default function AccountHeroBanner({
             </div>
 
             <div className="text-xs text-charcoal dark:text-pebble mt-1 flex flex-wrap items-center gap-2">
-              <span>{bancoInfo}</span>
+              <span className="font-mono tnum">{bancoInfo}</span>
               <span className="inline-block w-1 h-1 rounded-full bg-pebble" />
-              <span>{agenciaCc}</span>
+              <span className="font-mono tnum">{agenciaCc}</span>
               {sincronizado && (
                 <>
                   <span className="inline-block w-1 h-1 rounded-full bg-pebble" />
@@ -61,11 +60,18 @@ export default function AccountHeroBanner({
 
         {/* Right: Security & Sync Status Indicator */}
         <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-linen-mist dark:bg-spruce text-xs font-bold text-forest-ink dark:text-lime-voltage border border-lime-voltage/30">
-            <ShieldCheck className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
-            <span>Open Finance Ativo</span>
-            <span className="w-2 h-2 rounded-full bg-forest-ink dark:bg-lime-voltage animate-pulse" />
-          </div>
+          {sincronizado ? (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-linen-mist dark:bg-spruce text-xs font-bold text-forest-ink dark:text-lime-voltage border border-lime-voltage/30">
+              <ShieldCheck className="w-4 h-4 text-forest-ink dark:text-lime-voltage" />
+              <span>Open Finance Ativo</span>
+              <span className="w-2 h-2 rounded-full bg-forest-ink dark:bg-lime-voltage animate-pulse" />
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-fog dark:bg-spruce/60 text-xs font-bold text-charcoal dark:text-pebble border border-border/50">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Conta Manual</span>
+            </div>
+          )}
         </div>
       </div>
     </section>

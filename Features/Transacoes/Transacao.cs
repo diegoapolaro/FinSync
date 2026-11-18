@@ -38,6 +38,9 @@ public class Transacao : IAuditableEntity
     public int? RecorrenciaId { get; set; }
     public Recorrencia? Recorrencia { get; set; }
 
+    [StringLength(150)]
+    public string? ExternalTransactionId { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

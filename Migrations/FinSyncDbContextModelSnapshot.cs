@@ -110,19 +110,56 @@ namespace FinSync.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Agencia")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<bool>("Arquivada")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("ChavePix")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalItemId")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("InstituicaoCodigo")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("InstituicaoNome")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("MensagemErroSincronizacao")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
 
+                    b.Property<string>("NumeroConta")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("Provedor")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StatusSincronizacao")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Tipo")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UltimaSincronizacaoEm")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -133,6 +170,8 @@ namespace FinSync.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Arquivada");
+
+                    b.HasIndex("ExternalItemId");
 
                     b.HasIndex("UsuarioId");
 
@@ -269,6 +308,10 @@ namespace FinSync.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("ExternalTransactionId")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<int?>("NumeroParcela")
                         .HasColumnType("integer");
 
@@ -304,6 +347,10 @@ namespace FinSync.Migrations
                     b.HasIndex("RecorrenciaId");
 
                     b.HasIndex("ContaId", "Data");
+
+                    b.HasIndex("ContaId", "ExternalTransactionId")
+                        .IsUnique()
+                        .HasFilter("\"ExternalTransactionId\" IS NOT NULL");
 
                     b.ToTable("Transacoes");
                 });

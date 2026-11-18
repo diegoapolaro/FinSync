@@ -10,6 +10,7 @@ using FinSync.Features.Recorrencias;
 using FinSync.Features.Transacoes;
 using FinSync.Features.Orcamentos;
 using FinSync.Handlers;
+using FinSync.Services.OpenFinance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -81,6 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddHttpClient("GeminiClient");
+builder.Services.AddHttpClient("PluggyClient");
 builder.Services.AddScoped<FinSync.Services.IGeminiService, FinSync.Services.GeminiService>();
 builder.Services.AddScoped<IContaService, ContaService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
@@ -88,6 +90,22 @@ builder.Services.AddScoped<IRecorrenciaService, RecorrenciaService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddScoped<MockOpenFinanceProvider>();
+builder.Services.AddScoped<PluggyOpenFinanceProvider>();
+
+builder.Services.AddScoped<IOpenFinanceProvider>(sp =>
+{
+    var configuracao = sp.GetRequiredService<IConfiguration>();
+    var nome = configuracao["OpenFinance:Provider"] ?? "MockSandbox";
+    return nome.Equals("Pluggy", StringComparison.OrdinalIgnoreCase)
+        || nome.Equals("Belvo", StringComparison.OrdinalIgnoreCase)
+        || nome.Equals("Klavi", StringComparison.OrdinalIgnoreCase)
+        ? sp.GetRequiredService<PluggyOpenFinanceProvider>()
+        : sp.GetRequiredService<MockOpenFinanceProvider>();
+});
+
+builder.Services.AddScoped<IOpenFinanceSyncService, OpenFinanceSyncService>();
 
 builder.Services.AddHostedService<ProcessadorRecorrenciasWorker>();
 

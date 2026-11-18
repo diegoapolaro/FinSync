@@ -8,6 +8,7 @@ public interface IContaService
     Task<ContaDto> CreateAsync(CreateContaDto dto, int usuarioId);
     Task<bool> UpdateAsync(int id, UpdateContaDto dto, int usuarioId);
     Task<bool> ToggleArchiveAsync(int id, int usuarioId);
+    Task<ContaDto?> DesconectarOpenFinanceAsync(int id, int usuarioId);
     Task<(bool Success, string? Error)> DeleteAsync(int id, int usuarioId);
     Task<object?> GetResumoAsync(int id, int usuarioId);
 }

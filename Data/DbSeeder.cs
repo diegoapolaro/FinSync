@@ -36,12 +36,30 @@ public static class DbSeeder
                 {
                     Nome = "Pizzaria",
                     Tipo = TipoConta.Comercial,
+                    InstituicaoCodigo = "341",
+                    InstituicaoNome = "Itaú Unibanco",
+                    Agencia = "0942",
+                    NumeroConta = "20491-8",
+                    ChavePix = "contato@bellaforneria.com.br",
+                    Provedor = ProvedorOpenFinance.MockSandbox,
+                    ExternalItemId = "mock_item_itau_pizzaria",
+                    StatusSincronizacao = StatusSincronizacao.Sincronizado,
+                    UltimaSincronizacaoEm = DateTime.UtcNow.AddMinutes(-15),
                     UsuarioId = usuarioPadrao.Id
                 },
                 new Conta
                 {
                     Nome = "Pessoal",
                     Tipo = TipoConta.Pessoal,
+                    InstituicaoCodigo = "260",
+                    InstituicaoNome = "Nubank",
+                    Agencia = "0001",
+                    NumeroConta = "839201-4",
+                    ChavePix = "admin@finsync.com",
+                    Provedor = ProvedorOpenFinance.MockSandbox,
+                    ExternalItemId = "mock_item_nubank_pessoal",
+                    StatusSincronizacao = StatusSincronizacao.Sincronizado,
+                    UltimaSincronizacaoEm = DateTime.UtcNow.AddMinutes(-40),
                     UsuarioId = usuarioPadrao.Id
                 }
             );

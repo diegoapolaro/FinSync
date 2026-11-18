@@ -4,6 +4,8 @@ import type {
   StatusTransacao,
   FrequenciaRecorrencia,
   ModoValorParcelamento,
+  ProvedorOpenFinance,
+  StatusSincronizacao,
 } from './enums';
 
 // ── Auth ──────────────────────────────────────────────────────────────
@@ -94,6 +96,7 @@ export interface TransacaoDto {
   totalParcelas?: number | null;
   recorrenciaId?: number | null;
   frequenciaRecorrencia?: FrequenciaRecorrencia | null;
+  externalTransactionId?: string | null;
 }
 
 export interface PagedResponse<T> {
@@ -130,12 +133,26 @@ export interface SugestaoDescricaoDto {
 export interface CreateContaDto {
   nome: string;
   tipo: TipoConta;
+  instituicaoCodigo?: string | null;
+  instituicaoNome?: string | null;
+  agencia?: string | null;
+  numeroConta?: string | null;
+  chavePix?: string | null;
+  provedor?: ProvedorOpenFinance;
+  externalItemId?: string | null;
 }
 
 export interface UpdateContaDto {
   nome: string;
   tipo: TipoConta;
   arquivada: boolean;
+  instituicaoCodigo?: string | null;
+  instituicaoNome?: string | null;
+  agencia?: string | null;
+  numeroConta?: string | null;
+  chavePix?: string | null;
+  provedor?: ProvedorOpenFinance;
+  statusSincronizacao?: StatusSincronizacao;
 }
 
 export interface ContaDto {
@@ -143,6 +160,69 @@ export interface ContaDto {
   nome: string;
   tipo: TipoConta;
   arquivada: boolean;
+  saldo?: number;
+  instituicaoCodigo?: string | null;
+  instituicaoNome?: string | null;
+  agencia?: string | null;
+  numeroConta?: string | null;
+  chavePix?: string | null;
+  provedor?: ProvedorOpenFinance;
+  externalItemId?: string | null;
+  statusSincronizacao?: StatusSincronizacao;
+  ultimaSincronizacaoEm?: string | null;
+  mensagemErroSincronizacao?: string | null;
+}
+
+// ── Open Finance ──────────────────────────────────────────────────────
+
+export interface InstituicaoBancariaDto {
+  codigo: string;
+  nome: string;
+  nomeOficial: string;
+  cor: string;
+  logoUrl: string;
+  disponivel: boolean;
+}
+
+export interface ConectarContaOpenFinanceDto {
+  instituicaoCodigo: string;
+  tipoConta: TipoConta;
+  nomePersonalizado?: string | null;
+  cenarioSandbox?: boolean;
+  agencia?: string | null;
+  numeroConta?: string | null;
+  chavePix?: string | null;
+}
+
+export interface ResumoSincronizacaoDto {
+  contaId: number;
+  contaNome: string;
+  sucesso: boolean;
+  novasTransacoes: number;
+  transacoesDuplicadasIgnoradas: number;
+  saldoConsolidado: number;
+  tempoRespostaMs: number;
+  mensagemErro?: string | null;
+  sincronizadoEm: string;
+}
+
+export interface RelatorioSincronizacaoDto {
+  totalContas: number;
+  contasSincronizadas: number;
+  contasComFalha: number;
+  totalNovasTransacoes: number;
+  tempoTotalMs: number;
+  resultados: ResumoSincronizacaoDto[];
+  geradoEm: string;
+}
+
+export interface ConectarContaOpenFinanceResponse {
+  conta: ContaDto;
+  sincronizacao: ResumoSincronizacaoDto;
+  instituicao?: InstituicaoBancariaDto | null;
+  transacoesImportadas: TransacaoDto[];
+  mensagem?: string | null;
+  provedor: string;
 }
 
 export interface ContaResumoDto {

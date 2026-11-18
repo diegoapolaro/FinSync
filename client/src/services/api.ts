@@ -28,7 +28,13 @@ import type {
   ResumoRecorrenciasDto,
   ResumoPeriodoDto,
   ProcessarRecorrenciasResponse,
-  DetalhamentoCategoriaDto
+  DetalhamentoCategoriaDto,
+  SugestaoIaDto,
+  InstituicaoBancariaDto,
+  ConectarContaOpenFinanceDto,
+  ConectarContaOpenFinanceResponse,
+  ResumoSincronizacaoDto,
+  RelatorioSincronizacaoDto
 } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -201,6 +207,57 @@ export async function deleteConta(id: string): Promise<void> {
   return authFetch<void>(url(`/contas/${id}`), {
     method: 'DELETE',
   });
+}
+
+// ── Open Finance ──────────────────────────────────────────────────────
+
+/** Importa o extrato mais recente de uma conta conectada. */
+export async function sincronizarConta(
+  contaId: number | string
+): Promise<ResumoSincronizacaoDto> {
+  return authFetch<ResumoSincronizacaoDto>(
+    url(`/contas/${contaId}/sincronizar`),
+    { method: 'POST' }
+  );
+}
+
+/** Sincroniza em lote todas as contas com Open Finance do usuário. */
+export async function sincronizarTodasContas(): Promise<RelatorioSincronizacaoDto> {
+  return authFetch<RelatorioSincronizacaoDto>(
+    url('/contas/sincronizar-todas'),
+    { method: 'POST' }
+  );
+}
+
+/** Desconecta a conta do provedor, preservando os lançamentos importados. */
+export async function desconectarOpenFinance(
+  contaId: number | string
+): Promise<ContaDto> {
+  return authFetch<ContaDto>(
+    url(`/contas/${contaId}/desconectar-open-finance`),
+    { method: 'POST' }
+  );
+}
+
+/** Lista as instituições bancárias suportadas. */
+export async function listarInstituicoesOpenFinance(): Promise<
+  InstituicaoBancariaDto[]
+> {
+  return authFetch<InstituicaoBancariaDto[]>(url('/open-finance/instituicoes'));
+}
+
+/** Conecta uma nova conta e já importa o extrato inicial. */
+export async function conectarOpenFinance(
+  dados: ConectarContaOpenFinanceDto
+): Promise<ConectarContaOpenFinanceResponse> {
+  return authFetch<ConectarContaOpenFinanceResponse>(
+    url('/open-finance/conectar'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados),
+    }
+  );
 }
 
 export interface GetTransacoesParams {

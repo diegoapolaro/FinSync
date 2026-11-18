@@ -37,6 +37,7 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
                   .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(c => c.UsuarioId);
+            entity.HasIndex(c => c.ExternalItemId);
         });
 
         modelBuilder.Entity<Transacao>(entity =>
@@ -58,6 +59,12 @@ public class FinSyncDbContext(DbContextOptions<FinSyncDbContext> options) : DbCo
 
             entity.HasIndex(t => t.Data);
             entity.HasIndex(t => new { t.ContaId, t.Data });
+            // Idempotência concorrente: o mesmo ID externo não pode ser importado
+            // duas vezes na mesma conta. Linhas sem ID externo (lançamentos manuais)
+            // continuam livres para coexistir, graças ao filtro parcial.
+            entity.HasIndex(t => new { t.ContaId, t.ExternalTransactionId })
+                  .IsUnique()
+                  .HasFilter("\"ExternalTransactionId\" IS NOT NULL");
             entity.HasIndex(t => t.ParcelamentoId);
             entity.HasIndex(t => t.RecorrenciaId);
         });

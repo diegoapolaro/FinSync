@@ -38,6 +38,7 @@ import ConciliationInsightBanner from '../components/transactions/ConciliationIn
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { cn } from '@/lib/utils';
+import { StatusSincronizacao } from '@/types';
 import type { CategoriaDto, TransacaoDto, ResumoPeriodoDto, ContaDto } from '@/types';
 
 interface OutletContextType {
@@ -59,6 +60,16 @@ export default function Extrato(): React.ReactElement {
   const contaAtiva = useMemo(() => {
     return contas.find((c) => String(c.id) === String(contaSelecionadaId));
   }, [contas, contaSelecionadaId]);
+
+  // Dados bancários reais da conta ativa (Open Finance) exibidos no banner do extrato.
+  const bancoInfo = contaAtiva?.instituicaoNome
+    ? `${contaAtiva.instituicaoNome}${contaAtiva.instituicaoCodigo ? ` (${contaAtiva.instituicaoCodigo})` : ''}`
+    : 'Conta Manual';
+  const agenciaCc = contaAtiva?.agencia
+    ? `Ag ${contaAtiva.agencia} • CC ${contaAtiva.numeroConta ?? '—'}`
+    : 'Sem dados bancários';
+  const sincronizado = contaAtiva?.statusSincronizacao === StatusSincronizacao.Sincronizado;
+  const tipoConta = contaAtiva?.tipo === 'Comercial' ? 'Conta Jurídica' : 'Conta Pessoal';
 
   const [categorias, setCategorias] = useState<CategoriaDto[]>(() => categoriasContext || []);
   const [categoriaSelecionadaId, setCategoriaSelecionadaId] = useState<string>('');
@@ -494,11 +505,11 @@ export default function Extrato(): React.ReactElement {
           {/* 2. ACCOUNT HERO & STATUS BANNER (Wise Linen Mist & Forest Ink) */}
           <AccountHeroBanner
             contaNome={contaAtiva?.nome || 'Pizzaria Bella Forneria'}
-            tipoConta={contaAtiva?.tipo ? `Conta ${contaAtiva.tipo}` : 'Conta Jurídica Ativa'}
+            tipoConta={tipoConta}
             documento="CNPJ 38.192.831/0001-44"
-            bancoInfo="Banco Itaú Unibanco (341)"
-            agenciaCc="Ag 0942 • CC 20491-8"
-            sincronizado={true}
+            bancoInfo={bancoInfo}
+            agenciaCc={agenciaCc}
+            sincronizado={sincronizado}
           />
 
           {/* 3. KEY FINANCIAL METRICS (WISE INVERTED DARK SECTION + FOG PANELS) */}
@@ -598,10 +609,11 @@ export default function Extrato(): React.ReactElement {
         {/* Mobile Hero */}
         <AccountHeroBanner
           contaNome={contaAtiva?.nome || 'Pizzaria Bella Forneria'}
-          tipoConta={contaAtiva?.tipo || 'PJ Ativa'}
+          tipoConta={tipoConta}
           documento="CNPJ 38.192.831"
-          bancoInfo="Itaú (341)"
-          agenciaCc="CC 20491-8"
+          bancoInfo={bancoInfo}
+          agenciaCc={agenciaCc}
+          sincronizado={sincronizado}
         />
 
         {/* Mobile Search & Filters */}
