@@ -181,7 +181,7 @@ export default function LancamentosDateHeader({
                 className={cn(
                   'z-50 rounded-[24px] border border-pebble/30 bg-paper dark:bg-spruce p-3 shadow-2xl text-forest-ink dark:text-paper',
                   'animate-in fade-in-0 zoom-in-95 duration-150',
-                  'fixed bottom-4 left-4 right-4 max-w-xs mx-auto sm:static sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:max-w-none sm:w-[300px]',
+                  'fixed bottom-4 left-4 right-4 max-w-xs mx-auto sm:static sm:absolute sm:right-0 sm:left-auto sm:bottom-auto sm:top-full sm:mt-2 sm:max-w-none sm:w-[300px]',
                 )}
               >
                 <Calendar

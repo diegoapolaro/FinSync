@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import LancamentosPage from './LancamentosPage';
 import { ToastProvider } from '../contexts/ToastContext';
 import * as api from '../services/api';
@@ -188,6 +188,40 @@ describe('LancamentosPage.jsx', () => {
       await waitFor(() => {
         expect(screen.getByRole('heading', { name: /Lançamentos de Hoje/i })).toBeInTheDocument();
       });
+    });
+
+    it('deve abrir o calendário de navegação e permitir selecionar um dia diretamente', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalled();
+      });
+
+      fireEvent.click(screen.getByTitle('Escolher data customizada') as any);
+
+      const dialog = screen.getByRole('dialog', { name: 'Calendário de navegação' });
+      expect(dialog).toBeInTheDocument();
+
+      const hoje = new Date();
+      const diaAlvo = hoje.getDate() === 15 ? 16 : 15;
+      const botaoDia = within(dialog)
+        .getAllByRole('button')
+        .find((b) => b.textContent === String(diaAlvo));
+      expect(botaoDia).toBeDefined();
+
+      fireEvent.click(botaoDia as any);
+
+      await waitFor(() => {
+        expect(api.getTransacoes).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.stringMatching(new RegExp(`-${String(diaAlvo).padStart(2, '0')}$`)),
+          }),
+        );
+      });
+
+      expect(
+        screen.queryByRole('dialog', { name: 'Calendário de navegação' }),
+      ).not.toBeInTheDocument();
     });
 
     it('deve permitir alterar a data diretamente pelo campo de formulário e submeter com a data escolhida', async () => {
