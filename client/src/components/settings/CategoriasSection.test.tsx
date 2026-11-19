@@ -115,6 +115,27 @@ describe('CategoriasSection.jsx', () => {
     });
   });
 
+  it('deve abrir modal de exclusão e remover a categoria após confirmação', async () => {
+    vi.spyOn(api, 'deleteCategoria').mockResolvedValue(undefined);
+
+    renderSection();
+
+    const botoesExcluir = screen.getAllByTitle('Excluir Categoria');
+    expect(botoesExcluir).toHaveLength(mockCategorias.length);
+
+    fireEvent.click(botoesExcluir[1]);
+
+    expect(screen.getByRole('heading', { name: 'Excluir Categoria?' })).toBeInTheDocument();
+    expect(screen.getByText(/ficarão sem categoria/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sim, Excluir' }));
+
+    await waitFor(() => {
+      expect(api.deleteCategoria).toHaveBeenCalledWith('2');
+      expect(mockSetCategorias).toHaveBeenCalled();
+    });
+  });
+
   it('deve detectar segmento de barbearia e exibir modelos sem emojis', () => {
     renderSection(mockCategorias, 'Barbearia Vintage Club');
 

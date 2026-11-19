@@ -441,6 +441,12 @@ export async function updateCategoria(id: string, categoria: UpdateCategoriaDto)
   });
 }
 
+export async function deleteCategoria(id: string): Promise<void> {
+  return authFetch<void>(url(`/categorias/${id}`), {
+    method: 'DELETE',
+  });
+}
+
 export async function sugerirCategoriasIa(negocio: string): Promise<SugestaoIaDto[]> {
   return authFetch<SugestaoIaDto[]>(url('/categorias/sugerir-ia'), {
     method: 'POST',

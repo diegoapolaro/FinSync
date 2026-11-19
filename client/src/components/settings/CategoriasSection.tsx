@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Tag, Plus, Edit2, Store, Sparkles, Loader2, RotateCcw } from 'lucide-react';
-import { createCategoria, updateCategoria, sugerirCategoriasIa } from '../../services/api';
+import { Tag, Plus, Edit2, Trash2, AlertTriangle, Store, Sparkles, Loader2, RotateCcw } from 'lucide-react';
+import { createCategoria, updateCategoria, deleteCategoria, sugerirCategoriasIa } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import { TIPO_TRANSACAO } from '../../utils/constants';
 import usePreferencias from '../../hooks/usePreferencias';
@@ -9,7 +9,7 @@ import SettingsSection from './SettingsSection';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Dialog, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { cn } from '@/lib/utils';
 import type { CategoriaDto, SugestaoIaDto } from '@/types';
 import { TipoTransacao } from '@/types/enums';
@@ -128,6 +128,8 @@ export default function CategoriasSection({ categorias, setCategorias, contaNome
   const [editCatTipo, setEditCatTipo] = useState<string>(TIPO_TRANSACAO.SAIDA);
   const [editCatCor, setEditCatCor] = useState(CATEGORY_COLORS[0]);
   const [isSavingCategoria, setIsSavingCategoria] = useState(false);
+  const [excluindoCategoria, setExcluindoCategoria] = useState<CategoriaDto | null>(null);
+  const [isDeletingCategoria, setIsDeletingCategoria] = useState(false);
 
   function aplicarPreset(preset: PresetCategoria) {
     setNovaCatNome(preset.nome);
@@ -172,6 +174,22 @@ export default function CategoriasSection({ categorias, setCategorias, contaNome
       addToast(err.message, 'error');
     } finally {
       setIsSavingCategoria(false);
+    }
+  }
+
+  async function handleExcluirCategoria() {
+    if (!excluindoCategoria || isDeletingCategoria) return;
+    setIsDeletingCategoria(true);
+    try {
+      await deleteCategoria(String(excluindoCategoria.id));
+      setCategorias((prev) => prev.filter((c) => c.id !== excluindoCategoria.id));
+      const nomeExcluido = excluindoCategoria.nome;
+      setExcluindoCategoria(null);
+      addToast(`Categoria "${nomeExcluido}" excluída!`, 'success');
+    } catch (err: any) {
+      addToast(err.message, 'error');
+    } finally {
+      setIsDeletingCategoria(false);
     }
   }
 
@@ -542,6 +560,18 @@ export default function CategoriasSection({ categorias, setCategorias, contaNome
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="iconSm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExcluindoCategoria(cat);
+                    }}
+                    title="Excluir Categoria"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
               </div>
             );
@@ -642,6 +672,35 @@ export default function CategoriasSection({ categorias, setCategorias, contaNome
           </Button>
           <Button variant="default" onClick={handleSalvarCategoria} disabled={isSavingCategoria}>
             {isSavingCategoria ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <Dialog
+        open={Boolean(excluindoCategoria)}
+        onOpenChange={(open) => {
+          if (!open) setExcluindoCategoria(null);
+        }}
+      >
+        <DialogHeader>
+          <div className="flex items-center gap-3 text-destructive">
+            <AlertTriangle className="w-6 h-6" />
+            <DialogTitle>Excluir Categoria?</DialogTitle>
+          </div>
+          <DialogDescription>
+            Os lançamentos e recorrências vinculados à categoria &quot;{excluindoCategoria?.nome}&quot;
+            ficarão sem categoria. Metas de orçamento desta categoria também serão removidas.
+            Esta ação não pode ser desfeita.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setExcluindoCategoria(null)} disabled={isDeletingCategoria}>
+            Cancelar
+          </Button>
+          <Button variant="destructive" onClick={handleExcluirCategoria} disabled={isDeletingCategoria}>
+            {isDeletingCategoria ? 'Excluindo...' : 'Sim, Excluir'}
           </Button>
         </DialogFooter>
       </Dialog>
